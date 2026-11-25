@@ -12,7 +12,8 @@
         "php": "^8.4",
         "laravel/framework": "^13.0",
         "laravel/tinker": "^3.0",
-        "codeart/core": "@dev"
+        "codeart/core": "@dev",
+        "codeart/module-example": "@dev"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -90,6 +91,13 @@
         {
             "type": "path",
             "url": "../../packages/core",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../../packages/modules/*",
             "options": {
                 "symlink": true
             }

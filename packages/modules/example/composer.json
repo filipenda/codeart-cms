@@ -1,0 +1,17 @@
+{
+    "name": "codeart/module-example",
+    "description": "Example CodeArt module: proves the module flow end to end.",
+    "type": "codeart-module",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "codeart/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Codeart\\Example\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

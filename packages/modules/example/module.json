@@ -1,0 +1,14 @@
+{
+    "name": "example",
+    "package": "codeart/module-example",
+    "title": "Example",
+    "description": "Demo module: a table, two permissions, a menu item, a protected route and an event listener.",
+    "requires": {},
+    "permissions": ["example.view", "example.manage"],
+    "menu": [
+        {"label": "Example", "route": "example.index", "permission": "example.view", "icon": "cube", "order": 100}
+    ],
+    "migrations": "database/migrations",
+    "provider": "Codeart\\Example\\ExampleServiceProvider",
+    "license": "proprietary"
+}
