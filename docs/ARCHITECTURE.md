@@ -21,4 +21,11 @@ Auto-increment ID everywhere; a ULID column only for externally exposed records.
 `tokens.css` is the single source of truth for colors, radius, spacing, fonts (light on `:root`, dark on `[data-theme="dark"]`). Tailwind v4 (CSS-first) maps its theme to these variables and the default palette is removed, so raw palette utilities do not exist. `ThemeSettings` returns overrides (from config now, DB later), derives hover/link shades from a client primary and picks dark/white text by WCAG contrast; a Blade partial prints them as a cached inline `<style>`. `check:colors` enforces the rule in CI.
 
 ## Quality
-Pint, Larastan (level raised gradually), Pest; one root `composer check`; CI on PHP 8.2 and latest.
+Pint, Larastan (level raised gradually), Pest; one root `composer check`; CI on PHP 8.4 (minimum) and latest stable, with a MariaDB 12.3 service. Tests run on MariaDB (never SQLite) locally and in CI. Stack: Laravel 13, Pest 5, Larastan 3, Pint, Testbench 11, Tailwind 4.3.
+
+## Hosting requirements
+For client servers (cPanel, SSH or FTP-only):
+- **PHP 8.4.1 or newer** (the product is tested on 8.4 and the latest stable PHP).
+- Required PHP extensions: `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `intl`, `mbstring`, `openssl`, `pcre`, `pdo` with `pdo_mysql`, `session`, `tokenizer`, `xml`, `xmlwriter`.
+- Database: MariaDB or MySQL (production). Developed and tested on MariaDB 12.3 LTS; MariaDB 10.11+ / MySQL 8+ are the supported floor but only 12.3 is exercised by tests.
+- Cron able to run `php artisan schedule:run` every minute (database queue is processed by the scheduler). No Node, no daemons, no root access.

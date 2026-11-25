@@ -5,10 +5,10 @@ Modular, reusable Laravel CMS: one shared codebase (core + modules) installed se
 ## Structure (monorepo, released later as split packages)
 - `packages/core`      `codeart/core`: Laravel package, auto-discovery, tokens, theme, contracts, events
 - `packages/modules/`  future `codeart/module-<name>`
-- `apps/starter`       thin Laravel 12 app requiring core via Composer `path` repositories
+- `apps/starter`       thin Laravel 13 app requiring core via Composer `path` repositories
 - `tools/`             repo tooling (`check-colors.php`); `docs/` decisions and task briefs
 
-Env: PHP >= 8.2 (composer `platform` 8.2.0, CI also on latest), Laravel 12, DDEV. No Node on production: assets are built locally and shipped inside packages. No queue workers: database queue + scheduler via cron.
+Env: PHP >= 8.4 (composer `platform` 8.4.1, CI on 8.4 and latest stable), Laravel 13, DDEV (PHP 8.5, MariaDB 12.3). Dev and tests run on MariaDB (database `db` for dev, `test` for tests, created by a DDEV post-start hook), never SQLite. Always build on the latest stable versions; see "Hosting requirements" in docs/ARCHITECTURE.md. No Node on production: assets are built locally and shipped inside packages. No queue workers: database queue + scheduler via cron.
 
 ## Commands
 - `ddev start`, then `ddev composer setup` (first time)

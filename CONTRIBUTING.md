@@ -17,7 +17,7 @@ ddev composer check   # Pint, Larastan, Pest, color check
 ```
 
 ## CI
-GitHub Actions runs `composer check` on PHP 8.2 and the latest PHP.
+GitHub Actions runs `composer check` on PHP 8.4 (the minimum) and the latest stable PHP, against a MariaDB 12.3 service (tests need a `test` database; DDEV creates it on `ddev start`).
 **Branch protection is not available on our GitHub plan, so CI is informational only**: nothing stops a red PR from being merged. Check that CI is green before merging.
 
 ## Rules
