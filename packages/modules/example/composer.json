@@ -9,7 +9,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Codeart\\Example\\": "src/"
+            "Codeart\\Example\\": "src/",
+            "Codeart\\Example\\Database\\Factories\\": "database/factories/"
         }
     },
     "minimum-stability": "stable",

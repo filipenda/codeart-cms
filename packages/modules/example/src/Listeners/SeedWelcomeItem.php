@@ -3,7 +3,7 @@
 namespace Codeart\Example\Listeners;
 
 use Codeart\Core\Events\ModuleEnabled;
-use Illuminate\Support\Facades\DB;
+use Codeart\Example\Models\ExampleItem;
 
 /** Runs when THIS module is enabled; ignores the enabling of any other module. */
 class SeedWelcomeItem
@@ -14,12 +14,10 @@ class SeedWelcomeItem
             return;
         }
 
-        if (DB::table('example_items')->doesntExist()) {
-            DB::table('example_items')->insert([
-                'title' => 'Welcome item',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        if (ExampleItem::query()->doesntExist()) {
+            $item = ExampleItem::create();
+            $item->setTranslation('sr', ['title' => 'Dobrodošla stavka', 'description' => 'Ljubav prema njivi.']);
+            $item->setTranslation('en', ['title' => 'Welcome item', 'description' => 'Love for the field.']);
         }
     }
 }

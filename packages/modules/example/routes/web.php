@@ -1,8 +1,8 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
+use Codeart\Example\Models\ExampleItem;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/example', fn () => response()->json([
-    'items' => DB::table('example_items')->orderBy('id')->pluck('title'),
+    'items' => ExampleItem::query()->orderBy('id')->get()->map->title->values(),
 ]))->middleware('can:example.view')->name('example.index');
