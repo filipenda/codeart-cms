@@ -5,7 +5,9 @@
     "license": "proprietary",
     "require": {
         "php": "^8.4",
-        "illuminate/support": "^13.0"
+        "composer/semver": "^3.6",
+        "illuminate/support": "^13.0",
+        "spatie/laravel-permission": "^8.5"
     },
     "require-dev": {
         "larastan/larastan": "^3.0",

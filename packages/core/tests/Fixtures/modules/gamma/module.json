@@ -1,0 +1,8 @@
+{
+    "name": "gamma",
+    "package": "fixture/module-gamma",
+    "title": "Gamma",
+    "description": "Fixture module that needs a newer alpha than installed.",
+    "requires": {"alpha": "^2.0"},
+    "provider": "Codeart\\Core\\Tests\\Fixtures\\GammaProvider"
+}

@@ -1,7 +1,16 @@
 # Contributing
 
+## Release rules
+- `main` is the **next release**, NOT production. Nothing deploys from `main`.
+- Releases are **Git tags**. Pre-releases (`x.y.z-rc.N`) are installed only on a test site. Stable tags (`x.y.z`) are what clients install.
+- Client apps require `^x.y` of stable releases only.
+- **Hotfix**: branch from the released tag, fix, tag a new patch release, then bring the fix back to `main`.
+- **Maintenance branches** (`1.x`) exist only when an old line must be kept alive after `main` moved on.
+- **Client app repositories are different**: PR -> `staging` -> `main` = production.
+- Conventional Commits; PRs are squash-merged.
+
 ## Branches
-- `main` is always releasable. Never commit to it directly.
+- `main` is always releasable (a candidate for the next tag). Never commit to it directly.
 - Work on short-lived branches: `feat/...`, `fix/...`, `chore/...`.
 - Open a pull request; it is **squash-merged**. The PR title must be a Conventional Commit.
 

@@ -1,0 +1,10 @@
+{
+    "name": "beta",
+    "package": "fixture/module-beta",
+    "title": "Beta",
+    "description": "Fixture module that requires alpha.",
+    "requires": {"alpha": "^1.0"},
+    "permissions": ["beta.view"],
+    "menu": [{"label": "Beta", "route": "beta.index", "permission": null, "icon": "star", "order": 5}],
+    "provider": "Codeart\\Core\\Tests\\Fixtures\\BetaProvider"
+}
