@@ -47,7 +47,7 @@ class CreateAdminUser
                 'approved_at' => now(),
                 ...$attributes,
             ])->save();
-           
+
             $user->syncRoles($roles);
 
             return $user;
