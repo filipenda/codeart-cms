@@ -32,7 +32,7 @@ Content translations live in one table per translatable model with a `locale` co
 Auto-increment ID everywhere; a ULID column only for externally exposed records. Each module prefixes its tables (`pages_*`).
 
 ## Design tokens
-`tokens.css` is the single source of truth for colors, radius, spacing, fonts (light on `:root`, dark on `[data-theme="dark"]`). Tailwind v4 (CSS-first) maps its theme to these variables and the default palette is removed, so raw palette utilities do not exist. `ThemeSettings` returns overrides (from config now, DB later), derives hover/link shades from a client primary and picks dark/white text by WCAG contrast; a Blade partial prints them as a cached inline `<style>`. `check:colors` enforces the rule in CI.
+`tokens.css` is the single source of truth for colors, radius, spacing, fonts (light on `:root`, dark on `[data-theme="dark"]`). Tailwind v4 (CSS-first) maps its theme to these variables and the default palette is removed, so raw palette utilities do not exist. `ThemeSettings` returns overrides (from the `theme.*` database settings, config values as defaults), derives hover/link shades from a client primary and picks dark/white text by WCAG contrast; a Blade partial prints them as a cached inline `<style>`. `check:colors` enforces the rule in CI.
 
 ## Quality
 Pint, Larastan (level raised gradually), Pest; one root `composer check`; CI on PHP 8.4 (minimum) and latest stable, with a MariaDB 12.3 service. Tests run on MariaDB (never SQLite) locally and in CI. Stack: Laravel 13, spatie/laravel-permission 8, Pest 5, Larastan 3, Pint, Testbench 11, Tailwind 4.3.
@@ -43,3 +43,6 @@ For client servers (cPanel, SSH or FTP-only):
 - Required PHP extensions: `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `intl`, `mbstring`, `openssl`, `pcre`, `pdo` with `pdo_mysql`, `session`, `tokenizer`, `xml`, `xmlwriter`.
 - Database: MariaDB or MySQL (production). Developed and tested on MariaDB 12.3 LTS; MariaDB 10.11+ / MySQL 8+ are the supported floor but only 12.3 is exercised by tests.
 - Cron able to run `php artisan schedule:run` every minute (database queue is processed by the scheduler). No Node, no daemons, no root access.
+
+## Settings
+One `settings` table (`key`, `group`, `locale` with `*` for non-translatable, JSON `value`; unique `(key, locale)`) plus `settings_locks`. `SettingsRegistry` holds the definitions (core's and enabled modules'); `Settings` reads/writes them through one forever cache entry (plain file cache, no tags), falling back to defaults when the database is not ready; `SettingsManager` is the permission + lock layer for people. Appearance, content locales and (not yet enforced) security settings are core definitions; `ThemeSettings` and `Locales` read through `Settings`. Details: "Settings" in `docs/modules.md`.

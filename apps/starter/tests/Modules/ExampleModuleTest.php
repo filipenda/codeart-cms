@@ -46,7 +46,7 @@ it('enables end to end: table, permissions, listener, route, menu', function () 
     $this->artisan('module:enable example')->assertSuccessful();
 
     expect(Schema::hasTable('example_items'))->toBeTrue()
-        ->and(Permission::pluck('name')->sort()->values()->all())->toBe(['example.manage', 'example.view'])
+        ->and(Permission::where('name', 'like', 'example.%')->pluck('name')->sort()->values()->all())->toBe(['example.manage', 'example.view'])
         ->and(ExampleItem::first()->title)->toBe('Welcome item') // seeded by the ModuleEnabled listener
         ->and(Route::has('example.index'))->toBeTrue();
 
@@ -75,7 +75,7 @@ it('keeps data and permissions when disabled, and does not seed twice on re-enab
 
     expect(Schema::hasTable('example_items'))->toBeTrue()
         ->and(DB::table('example_items')->count())->toBe(1)
-        ->and(Permission::count())->toBe(2)
+        ->and(Permission::where('name', 'like', 'example.%')->count())->toBe(2)
         ->and(app(ModuleRegistry::class)->isEnabled('example'))->toBeFalse();
 
     $this->artisan('module:enable example')->assertSuccessful();

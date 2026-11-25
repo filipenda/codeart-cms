@@ -22,23 +22,39 @@ return [
     ],
 
     /*
-    | Theme settings. Later these come from the database settings screen.
-    | Colors equal to the brand defaults produce no overrides: tokens.css is used.
+    | Defaults of the appearance settings (theme.*). The database settings override them.
     */
     'theme' => [
         'primary' => '#C9F31D',
         'secondary' => '#A0BB47',
-        'default_mode' => 'light', // light | dark
-        'logo' => null,
+        'mode' => 'light', // light | dark | auto (follow the visitor's system)
+        'logo_light' => null,
+        'logo_dark' => null,
+        'favicon' => null,
     ],
 
+    /*
+    | What tokens.css already defines. A color equal to these produces no CSS override.
+    */
     'theme_defaults' => [
         'primary' => '#C9F31D',
         'secondary' => '#A0BB47',
     ],
 
     /*
-    | Content languages (not the admin interface language). Later these come from the database settings.
+    | Logo/favicon uploads (png, jpg, webp only).
+    */
+    'branding' => [
+        'disk' => 'public',
+        'directory' => 'branding',
+        'max_kb' => 2048,
+        'max_dimension' => 4096,
+    ],
+
+    /*
+    | Content languages (not the admin interface language).
+    | `default`, `enabled` and `fallbacks` are only the DEFAULTS of the locales.* settings (the database wins);
+    | `available` (what each language is) stays here.
     | `sr` is the source; `sr-Cyrl` is generated from it by the transliterator unless a field was edited by hand.
     | Add a language: an entry in `available` (a `manual` one, or `derived_from` + `transliterator`)
     | and its code in `enabled`. `fallbacks` = what to show when a translation is missing.

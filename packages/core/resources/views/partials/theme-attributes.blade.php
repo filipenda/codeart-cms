@@ -1,0 +1,1 @@
+{!! app(\Codeart\Core\Theme\ThemeSettings::class)->htmlAttributes() !!}

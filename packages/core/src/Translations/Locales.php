@@ -2,23 +2,24 @@
 
 namespace Codeart\Core\Translations;
 
+use Codeart\Core\Settings\Settings;
 use InvalidArgumentException;
 
-/** Reads the `codeart.locales` config (later: database settings). Content languages only, not the admin UI language. */
+/** Content languages only (not the admin UI language): default, enabled and fallbacks come from the locales.* settings, `available` from config. */
 class Locales
 {
     /** @param array<string, mixed> $config */
-    public function __construct(private readonly array $config) {}
+    public function __construct(private readonly Settings $settings, private readonly array $config) {}
 
     public function default(): string
     {
-        return (string) ($this->config['default'] ?? 'sr');
+        return (string) $this->settings->get('locales.default');
     }
 
     /** @return list<string> */
     public function enabled(): array
     {
-        return array_values((array) ($this->config['enabled'] ?? [$this->default()]));
+        return array_values((array) $this->settings->get('locales.enabled'));
     }
 
     public function isEnabled(string $locale): bool
@@ -92,7 +93,7 @@ class Locales
      */
     public function chain(string $locale): array
     {
-        $chain = [$locale, ...(array) ($this->config['fallbacks'][$locale] ?? []), $this->default()];
+        $chain = [$locale, ...(array) (((array) $this->settings->get('locales.fallbacks'))[$locale] ?? []), $this->default()];
 
         return array_values(array_filter(array_unique($chain), fn (string $l) => $this->isEnabled($l)));
     }
