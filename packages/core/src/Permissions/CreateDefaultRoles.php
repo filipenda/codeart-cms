@@ -2,6 +2,8 @@
 
 namespace Codeart\Core\Permissions;
 
+use Codeart\Core\Settings\CoreSettings;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -19,6 +21,12 @@ class CreateDefaultRoles
             if ($role->wasRecentlyCreated) {
                 $created[] = $name;
             }
+        }
+
+        // Core's own permission. Granted to admin only when it is created, so a later revoke sticks.
+        $permission = Permission::findOrCreate(CoreSettings::PERMISSION_APPEARANCE, $guard);
+        if ($permission->wasRecentlyCreated) {
+            Role::findByName('admin', $guard)->givePermissionTo($permission);
         }
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
