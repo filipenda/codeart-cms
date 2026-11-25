@@ -2,6 +2,7 @@
 @import "./tokens.css";
 
 @source "../views";
+@source "../js";
 @source inline("{bg,text,border}-{primary,primary-hover,on-primary,secondary,on-secondary,surface,surface-alt,text,text-muted,border,link,success,success-bg,success-text,warning,warning-bg,warning-text,danger,danger-bg,danger-text,info,info-bg,info-text,sidebar,sidebar-text}");
 
 /*
@@ -38,6 +39,12 @@
     --color-info-text: var(--color-info-text);
     --color-sidebar: var(--sidebar-bg);
     --color-sidebar-text: var(--sidebar-text);
+    --color-primary-soft: var(--color-primary-soft);
+    --color-focus: var(--color-focus);
+
+    --radius-control: var(--radius-control);
+    --radius-card: var(--radius-card);
+    --shadow-card: var(--shadow-card);
 
     --radius-sm: var(--radius-sm);
     --radius-md: var(--radius-md);
@@ -52,4 +59,32 @@ body {
     background-color: var(--color-surface);
     color: var(--color-text);
     font-family: var(--font-sans);
+}
+
+/* Logo variants: the light-theme logo on light, the dark-theme logo on dark (also for mode "auto"). */
+.codeart-logo-dark {
+    display: none;
+}
+
+[data-theme="dark"] .codeart-logo-light {
+    display: none;
+}
+
+[data-theme="dark"] .codeart-logo-dark {
+    display: inline-block;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="auto"] .codeart-logo-light {
+        display: none;
+    }
+
+    :root[data-theme="auto"] .codeart-logo-dark {
+        display: inline-block;
+    }
+}
+
+/* Alpine hides x-cloak elements until it has started */
+[x-cloak] {
+    display: none !important;
 }

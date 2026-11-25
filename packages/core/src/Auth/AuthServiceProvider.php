@@ -5,10 +5,14 @@ namespace Codeart\Core\Auth;
 use Codeart\Core\Auth\Actions\RegisterUser;
 use Codeart\Core\Auth\Actions\ResetUserPassword;
 use Codeart\Core\Auth\Actions\UpdateUserPassword;
+use Codeart\Core\Auth\Http\RegisterResponse;
 use Codeart\Core\Auth\Http\SameResponseForPasswordReset;
+use Codeart\Core\Auth\Http\Screens;
 use Codeart\Core\Auth\Listeners\AuthEventSubscriber;
 use Codeart\Core\Auth\Middleware\ConfigureAuthRequest;
 use Codeart\Core\Auth\Middleware\EnsureAdminAccess;
+use Codeart\Core\Auth\Middleware\SetAuthLocale;
+use Codeart\Core\Auth\Middleware\ValidInvitationLink;
 use Codeart\Core\Mail\MailConfig;
 use Codeart\Core\Settings\Settings;
 use Illuminate\Auth\Middleware\Authenticate;
@@ -21,6 +25,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Contracts\FailedPasswordResetResponse;
+use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
@@ -45,6 +50,7 @@ class AuthServiceProvider extends ServiceProvider
         $this->app->bind(FailedPasswordResetLinkRequestResponse::class, SameResponseForPasswordReset::class);
         $this->app->bind(FailedPasswordResetResponse::class, SameResponseForPasswordReset::class);
         $this->app->bind(SuccessfulPasswordResetLinkRequestResponse::class, SameResponseForPasswordReset::class);
+        $this->app->bind(RegisterResponseContract::class, RegisterResponse::class);
     }
 
     public function boot(): void
@@ -54,7 +60,10 @@ class AuthServiceProvider extends ServiceProvider
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
         Fortify::authenticateUsing($this->authenticate(...));
 
-        $this->app->make(Router::class)->aliasMiddleware('admin.access', EnsureAdminAccess::class);
+        $router = $this->app->make(Router::class);
+        $router->aliasMiddleware('admin.access', EnsureAdminAccess::class);
+        $router->aliasMiddleware('admin.invitation', ValidInvitationLink::class);
+        $this->registerScreens();
         try {
             Gate::policy(Admin::userModel(), UserPolicy::class);
         } catch (\RuntimeException) {
@@ -62,13 +71,30 @@ class AuthServiceProvider extends ServiceProvider
         }
         $this->app->make(Dispatcher::class)->subscribe(AuthEventSubscriber::class);
 
-        // Guests who hit a protected page go to the login screen once the screens task provides it; until then a plain 401.
+        // Guests who hit a protected page go to the login screen (route `login`, present while the screens are on); otherwise a plain 401.
         Authenticate::redirectUsing(fn (Request $request): ?string => Route::has('login') && ! $request->expectsJson() ? route('login') : null);
 
         $this->app->make(MailConfig::class)->apply();
         $this->applySessionLifetime();
 
         $this->registerRoutes();
+    }
+
+    /** Fortify's GET screens render core's Blade views (an app overrides them by publishing the views). */
+    private function registerScreens(): void
+    {
+        if (! config('fortify.views')) {
+            return;
+        }
+        $screens = fn (string $method): \Closure => fn (Request $request) => $this->app->make(Screens::class)->{$method}($request);
+
+        Fortify::loginView($screens('login'));
+        Fortify::registerView($screens('register'));
+        Fortify::twoFactorChallengeView($screens('twoFactorChallenge'));
+        Fortify::requestPasswordResetLinkView($screens('forgotPassword'));
+        Fortify::resetPasswordView($screens('resetPassword'));
+        Fortify::verifyEmailView($screens('verifyEmail'));
+        Fortify::confirmPasswordView($screens('confirmPassword'));
     }
 
     /** Fortify's routes and core's own, under the admin path. Skipped when the app caches its routes (the cache has them). */
@@ -85,7 +111,7 @@ class AuthServiceProvider extends ServiceProvider
 
         $fortify = dirname((string) (new \ReflectionClass(Fortify::class))->getFileName(), 2).'/routes/routes.php';
         Route::group(['namespace' => 'Laravel\\Fortify\\Http\\Controllers', 'prefix' => $path], fn () => require $fortify);
-        Route::middleware('web')->prefix($path)->group(__DIR__.'/../../routes/auth.php');
+        Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/auth.php');
     }
 
     /** Guard, Fortify config and the settings-driven parts. Values come from settings with config fallbacks. */
@@ -114,7 +140,7 @@ class AuthServiceProvider extends ServiceProvider
         $config->set('fortify.email', 'email');
         $config->set('fortify.views', (bool) $config->get('codeart.auth.views', false));
         $config->set('fortify.limiters.login', null); // ConfiguredLoginRateLimiter does it, and fires Lockout
-        $config->set('fortify.middleware', ['web', ConfigureAuthRequest::class]);
+        $config->set('fortify.middleware', ['web', SetAuthLocale::class, ConfigureAuthRequest::class]);
         // Registration is always routed; ConfigureAuthRequest answers 404 until auth.registration.enabled is on.
         $config->set('fortify.features', [
             Features::registration(),

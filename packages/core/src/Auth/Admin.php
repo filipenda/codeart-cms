@@ -54,12 +54,15 @@ final class Admin
         return self::guard()->user();
     }
 
-    /** A named screen route when the screens task provides it, else the documented fallback path under the admin prefix. */
-    /** @param  array<string, string>  $query */
-    public static function screenUrl(string $routeName, string $fallbackPath, array $query = []): string
+    /** A named screen route when it exists, else the documented fallback path under the admin prefix. */
+    /**
+     * @param  array<string, string>  $query
+     * @param  array<string, string>  $parameters  path parameters of the named route (e.g. the reset token)
+     */
+    public static function screenUrl(string $routeName, string $fallbackPath, array $query = [], array $parameters = []): string
     {
         if (Route::has($routeName)) {
-            return route($routeName, $query);
+            return route($routeName, $parameters + $query);
         }
         $url = url(self::path().'/'.ltrim($fallbackPath, '/'));
 

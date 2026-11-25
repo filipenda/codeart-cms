@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // Development logos and favicon (docs/design/brand) through the normal image upload service.
+        $this->command?->call('codeart:brand:load');
+
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',

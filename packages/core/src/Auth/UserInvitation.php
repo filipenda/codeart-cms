@@ -34,6 +34,16 @@ class UserInvitation extends Model
         return hash('sha256', $token);
     }
 
+    /** What a person opening the link should be told: valid, used, expired. (Unknown tokens are 'invalid', decided by the caller.) */
+    public function state(): string
+    {
+        return match (true) {
+            $this->accepted_at !== null => 'used',
+            $this->expires_at->isPast() => 'expired',
+            default => 'valid',
+        };
+    }
+
     public function isUsable(): bool
     {
         return $this->accepted_at === null && $this->expires_at->isFuture();

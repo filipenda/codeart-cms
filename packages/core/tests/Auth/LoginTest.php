@@ -38,7 +38,7 @@ it('gives the same error for a wrong password, an unknown e-mail and an inactive
         $response->assertStatus(422)->assertJsonValidationErrors('email');
     }
     expect($responses[0]->json())->toEqual($responses[1]->json())->toEqual($responses[2]->json())
-        ->and($responses[0]->json('errors.email.0'))->toBe(__('codeart::framework.auth.failed'))
+        ->and($responses[0]->json('errors.email.0'))->toBeIn([__('codeart::framework.auth.failed', [], 'sr'), __('codeart::framework.auth.failed', [], 'en')])
         ->and(auth('admin')->check())->toBeFalse();
 });
 
