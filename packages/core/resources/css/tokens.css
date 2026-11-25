@@ -42,6 +42,13 @@
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
     --radius-lg: 0.75rem;
+    --radius-control: 0.875rem; /* inputs and buttons (14px) */
+    --radius-card: 1.5rem; /* cards (24px) */
+
+    /* Auth screens: soft primary tint (background shapes), card shadow, readable focus ring */
+    --color-primary-soft: color-mix(in srgb, var(--color-primary) 22%, transparent);
+    --color-focus: var(--color-link);
+    --shadow-card: 0 12px 40px -8px color-mix(in srgb, var(--color-text) 10%, transparent), 0 2px 6px color-mix(in srgb, var(--color-text) 5%, transparent);
 
     /* Spacing scale for components */
     --space-xs: 0.25rem;
@@ -85,6 +92,9 @@
 
     --sidebar-bg: #151313;
     --sidebar-text: #f1f0ee;
+
+    --color-primary-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);
+    --shadow-card: 0 12px 40px -8px color-mix(in srgb, var(--color-surface) 80%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 
 /* theme mode "auto": the same dark values, only while the visitor's system prefers dark */
@@ -118,5 +128,8 @@
 
         --sidebar-bg: #151313;
         --sidebar-text: #f1f0ee;
+
+        --color-primary-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);
+        --shadow-card: 0 12px 40px -8px color-mix(in srgb, var(--color-surface) 80%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-text) 8%, transparent);
     }
 }

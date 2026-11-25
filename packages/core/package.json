@@ -2,10 +2,14 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "tailwindcss -i resources/css/app.css -o resources/dist/codeart.css --minify"
+        "build": "npm run build:css && npm run build:js",
+        "build:css": "tailwindcss -i resources/css/app.css -o resources/dist/codeart.css --minify",
+        "build:js": "esbuild resources/js/app.js --bundle --minify --target=es2020 --legal-comments=none --outfile=resources/dist/codeart.js"
     },
     "devDependencies": {
         "@tailwindcss/cli": "^4.3.5",
+        "alpinejs": "^3.17.5",
+        "esbuild": "^0.28.2",
         "tailwindcss": "^4.3.5"
     }
 }
