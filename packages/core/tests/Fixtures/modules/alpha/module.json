@@ -1,0 +1,13 @@
+{
+    "name": "alpha",
+    "package": "fixture/module-alpha",
+    "title": "Alpha",
+    "description": "Fixture module with migration, routes, permissions and menu.",
+    "permissions": ["alpha.view", "alpha.edit"],
+    "menu": [
+        {"label": "Alpha edit", "route": "alpha.edit", "permission": "alpha.edit", "icon": "pencil", "order": 20},
+        {"label": "Alpha list", "route": "alpha.index", "permission": "alpha.view", "icon": "list", "order": 10}
+    ],
+    "migrations": "database/migrations",
+    "provider": "Codeart\\Core\\Tests\\Fixtures\\AlphaProvider"
+}
