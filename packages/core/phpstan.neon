@@ -12,3 +12,18 @@ parameters:
         -
             identifier: trait.unused
             path: src/Translations/Translatable.php
+        # The app's User model gets its columns (name, email, is_active, ...) and the AdminUser/HasRoles methods
+        # from the app, not from core: core talks to it through the Eloquent model and these documented attributes.
+        -
+            identifier: property.notFound
+            paths:
+                - src/Auth
+                - src/ActivityLog
+                - src/Console
+        -
+            identifier: method.notFound
+            paths:
+                - src/Auth
+        -
+            identifier: trait.unused
+            path: src/Auth/Concerns/AdminUser.php

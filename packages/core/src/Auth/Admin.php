@@ -1,0 +1,78 @@
+<?php
+
+namespace Codeart\Core\Auth;
+
+use Codeart\Core\Settings\Settings;
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
+use RuntimeException;
+
+/** Small facts about the staff area: guard name, base path, the user model. */
+final class Admin
+{
+    public static function guardName(): string
+    {
+        return (string) config('codeart.auth.guard', 'admin');
+    }
+
+    public static function guard(): StatefulGuard
+    {
+        /** @var StatefulGuard */
+        return Auth::guard(self::guardName());
+    }
+
+    /** URL prefix of every admin and sign-in route, without slashes at the ends. */
+    public static function path(): string
+    {
+        $path = trim((string) app(Settings::class)->get('auth.admin_path'), '/');
+
+        return $path === '' ? 'admin' : $path;
+    }
+
+    /** @return class-string<Model> */
+    public static function userModel(): string
+    {
+        $model = config('auth.providers.users.model');
+        if (! is_string($model) || ! is_subclass_of($model, Model::class)) {
+            throw new RuntimeException('auth.providers.users.model must be an Eloquent model.');
+        }
+
+        return $model;
+    }
+
+    public static function findByEmail(string $email): ?Model
+    {
+        return self::userModel()::query()->where('email', $email)->first();
+    }
+
+    public static function currentUser(): ?Authenticatable
+    {
+        return self::guard()->user();
+    }
+
+    /** A named screen route when the screens task provides it, else the documented fallback path under the admin prefix. */
+    /** @param  array<string, string>  $query */
+    public static function screenUrl(string $routeName, string $fallbackPath, array $query = []): string
+    {
+        if (Route::has($routeName)) {
+            return route($routeName, $query);
+        }
+        $url = url(self::path().'/'.ltrim($fallbackPath, '/'));
+
+        return $query === [] ? $url : $url.'?'.http_build_query($query);
+    }
+
+    /**
+     * Signed, expiring URL.
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    public static function signedUrl(string $routeName, \DateTimeInterface $expires, array $parameters): string
+    {
+        return URL::temporarySignedRoute($routeName, $expires, $parameters);
+    }
+}
