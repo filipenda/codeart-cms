@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Codeart\Core\Auth\Concerns\AdminUser;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+/** A staff user: the AdminUser trait (core) adds roles, two-factor, e-mail verification and the admin helpers. */
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable;
+    use AdminUser, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -23,16 +24,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
     ];
 
     /**
