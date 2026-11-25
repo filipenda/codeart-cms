@@ -14,6 +14,16 @@ Controller / Livewire component -> Action (one operation) -> Eloquent model. Ser
 ## Modules
 Modules never call each other. They talk through events and contracts defined in core, so any module can be removed without breaking others. Only a super-admin can enable/disable modules.
 
+A module is a Composer package of type `codeart-module` with a `module.json` manifest (see `docs/modules.md`). Core's `ModuleRegistry` discovers packages through Composer's installed metadata (so an FTP-uploaded `vendor/` is enough), keeps state in the `modules` table, and boots only enabled modules (provider, routes, views, migrations path; enabled list cached). Enabling runs migrations and syncs permissions; disabling never deletes data. Module versions are never written in `module.json`: they come from `Composer\InstalledVersions`.
+*Why:* one source of truth for versions, no shell needed at runtime, and a disabled module leaves no trace in a running site except its data.
+
+## Roles and permissions
+`spatie/laravel-permission`, with roles `super-admin`, `admin`, `editor`. `super-admin` passes every Gate check (`Gate::before`); the `manage-modules` Gate is super-admin only. Core owns the permission tables migration but not the User model: the app adds `HasRoles`.
+*Why:* a proven package instead of our own; core stays free of app models.
+
+## Releases
+`main` is the next release, not production; nothing deploys from `main`. Releases are Git tags: `x.y.z-rc.N` pre-releases go to a test site only, `x.y.z` stable tags are what clients install (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only when an old line must stay alive. Client app repos work differently (PR -> staging -> main = production). Details in `CONTRIBUTING.md`.
+
 ## Identifiers and tables
 Auto-increment ID everywhere; a ULID column only for externally exposed records. Each module prefixes its tables (`pages_*`).
 
@@ -21,7 +31,7 @@ Auto-increment ID everywhere; a ULID column only for externally exposed records.
 `tokens.css` is the single source of truth for colors, radius, spacing, fonts (light on `:root`, dark on `[data-theme="dark"]`). Tailwind v4 (CSS-first) maps its theme to these variables and the default palette is removed, so raw palette utilities do not exist. `ThemeSettings` returns overrides (from config now, DB later), derives hover/link shades from a client primary and picks dark/white text by WCAG contrast; a Blade partial prints them as a cached inline `<style>`. `check:colors` enforces the rule in CI.
 
 ## Quality
-Pint, Larastan (level raised gradually), Pest; one root `composer check`; CI on PHP 8.4 (minimum) and latest stable, with a MariaDB 12.3 service. Tests run on MariaDB (never SQLite) locally and in CI. Stack: Laravel 13, Pest 5, Larastan 3, Pint, Testbench 11, Tailwind 4.3.
+Pint, Larastan (level raised gradually), Pest; one root `composer check`; CI on PHP 8.4 (minimum) and latest stable, with a MariaDB 12.3 service. Tests run on MariaDB (never SQLite) locally and in CI. Stack: Laravel 13, spatie/laravel-permission 8, Pest 5, Larastan 3, Pint, Testbench 11, Tailwind 4.3.
 
 ## Hosting requirements
 For client servers (cPanel, SSH or FTP-only):

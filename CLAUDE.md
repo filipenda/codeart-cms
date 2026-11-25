@@ -31,6 +31,13 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 - No hex/rgb/hsl and no raw Tailwind palette colors (`bg-lime-400`, `bg-white`) anywhere else. `composer check:colors` enforces it (tests dirs are not scanned).
 - Client colors come from `ThemeSettings` (derives shades, picks readable text by WCAG contrast).
 
+## Modules and permissions
+- A module = Composer package `type: codeart-module` + `module.json` (`docs/modules.md`). Version comes from Composer, never from module.json. Core owns the registry; only enabled modules boot.
+- Permissions are `<module>.<action>`; roles `super-admin`/`admin`/`editor` (spatie/laravel-permission); `manage-modules` Gate = super-admin only. Core does not own the User model (the app adds `HasRoles`).
+
+## Release rules (short; full text in CONTRIBUTING.md)
+`main` = next release, NOT production; nothing deploys from it. Releases are Git tags: `x.y.z-rc.N` only on a test site, `x.y.z` stable for clients (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only for old lines. Client app repos differ: PR -> staging -> main = production.
+
 ## Git rules
 - `main` is always releasable; short-lived branches `feat/`, `fix/`, `chore/`; Conventional Commits; PRs are squash-merged.
 - Never push or touch `main` unless asked. CI is informational (no branch protection), see CONTRIBUTING.md.
