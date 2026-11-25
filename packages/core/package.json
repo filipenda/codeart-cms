@@ -1,0 +1,11 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "tailwindcss -i resources/css/app.css -o resources/dist/codeart.css --minify"
+    },
+    "devDependencies": {
+        "@tailwindcss/cli": "^4.3.5",
+        "tailwindcss": "^4.3.5"
+    }
+}

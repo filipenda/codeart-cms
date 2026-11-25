@@ -1,0 +1,55 @@
+@import "tailwindcss" source(none);
+@import "./tokens.css";
+
+@source "../views";
+@source inline("{bg,text,border}-{primary,primary-hover,on-primary,secondary,on-secondary,surface,surface-alt,text,text-muted,border,link,success,success-bg,success-text,warning,warning-bg,warning-text,danger,danger-bg,danger-text,info,info-bg,info-text,sidebar,sidebar-text}");
+
+/*
+ * Map Tailwind to the semantic variables. The default palette is removed so
+ * raw palette utilities (the default Tailwind color scale) simply do not exist.
+ * The self-referencing `--color-x: var(--color-x)` lines Tailwind emits inside
+ * @layer theme are harmless: the unlayered values from tokens.css always win.
+ */
+@theme inline {
+    --color-*: initial;
+
+    --color-primary: var(--color-primary);
+    --color-primary-hover: var(--color-primary-hover);
+    --color-on-primary: var(--color-on-primary);
+    --color-secondary: var(--color-secondary);
+    --color-on-secondary: var(--color-on-secondary);
+    --color-surface: var(--color-surface);
+    --color-surface-alt: var(--color-surface-alt);
+    --color-text: var(--color-text);
+    --color-text-muted: var(--color-text-muted);
+    --color-border: var(--color-border);
+    --color-link: var(--color-link);
+    --color-success: var(--color-success);
+    --color-success-bg: var(--color-success-bg);
+    --color-success-text: var(--color-success-text);
+    --color-warning: var(--color-warning);
+    --color-warning-bg: var(--color-warning-bg);
+    --color-warning-text: var(--color-warning-text);
+    --color-danger: var(--color-danger);
+    --color-danger-bg: var(--color-danger-bg);
+    --color-danger-text: var(--color-danger-text);
+    --color-info: var(--color-info);
+    --color-info-bg: var(--color-info-bg);
+    --color-info-text: var(--color-info-text);
+    --color-sidebar: var(--sidebar-bg);
+    --color-sidebar-text: var(--sidebar-text);
+
+    --radius-sm: var(--radius-sm);
+    --radius-md: var(--radius-md);
+    --radius-lg: var(--radius-lg);
+
+    --font-sans: var(--font-sans);
+    --font-heading: var(--font-heading);
+    --font-mono: var(--font-mono);
+}
+
+body {
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+}

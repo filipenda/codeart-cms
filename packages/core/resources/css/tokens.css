@@ -1,0 +1,88 @@
+/*
+ * Design tokens: the ONLY place (besides config/codeart.php defaults) where
+ * raw color values are allowed. Everything else uses the semantic variables.
+ * Brand defaults: CodeArt (primary #C9F31D, olive, charcoal).
+ */
+
+:root {
+    /* Brand / actions */
+    --color-primary: #c9f31d;
+    --color-primary-hover: #b6dd14;
+    --color-on-primary: #22201f;
+    --color-secondary: #a0bb47;
+    --color-on-secondary: #22201f;
+
+    /* Surfaces and text */
+    --color-surface: #ffffff;
+    --color-surface-alt: #f4f4f2;
+    --color-text: #22201f;
+    --color-text-muted: #5d5a58;
+    --color-border: #dcdad7;
+    --color-link: #4a6210;
+
+    /* Status */
+    --color-success: #2f7d32;
+    --color-success-bg: #e6f4e7;
+    --color-success-text: #1b4d1e;
+    --color-warning: #b26a00;
+    --color-warning-bg: #fff3dc;
+    --color-warning-text: #6b4000;
+    --color-danger: #c62828;
+    --color-danger-bg: #fdeaea;
+    --color-danger-text: #7f1818;
+    --color-info: #1565c0;
+    --color-info-bg: #e5f0fb;
+    --color-info-text: #0d3f78;
+
+    /* Sidebar (admin) */
+    --sidebar-bg: #373435;
+    --sidebar-text: #f1f0ee;
+
+    /* Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+
+    /* Spacing scale for components */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2.5rem;
+
+    /* Fonts */
+    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-heading: var(--font-sans);
+    --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+[data-theme="dark"] {
+    --color-primary: #c9f31d;
+    --color-primary-hover: #d9ff4d;
+    --color-on-primary: #22201f;
+    --color-secondary: #a0bb47;
+    --color-on-secondary: #22201f;
+
+    --color-surface: #1c1a1a;
+    --color-surface-alt: #262323;
+    --color-text: #f1f0ee;
+    --color-text-muted: #b5b1ae;
+    --color-border: #4a4647;
+    --color-link: #c9f31d;
+
+    --color-success: #66bb6a;
+    --color-success-bg: #14301a;
+    --color-success-text: #b8e4ba;
+    --color-warning: #ffb74d;
+    --color-warning-bg: #3a2a0c;
+    --color-warning-text: #ffdca3;
+    --color-danger: #ef5350;
+    --color-danger-bg: #3d1717;
+    --color-danger-text: #ffc4c2;
+    --color-info: #64b5f6;
+    --color-info-bg: #12304d;
+    --color-info-text: #b9dcfb;
+
+    --sidebar-bg: #151313;
+    --sidebar-text: #f1f0ee;
+}
