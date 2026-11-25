@@ -144,7 +144,7 @@
         },
         {
             "name": "codeart/core",
-            "version": "dev-feat/module-registry",
+            "version": "dev-feat/translations",
             "dist": {
                 "type": "path",
                 "url": "../../packages/core",
@@ -208,11 +208,11 @@
         },
         {
             "name": "codeart/module-example",
-            "version": "dev-feat/module-registry",
+            "version": "dev-feat/translations",
             "dist": {
                 "type": "path",
                 "url": "../../packages/modules/example",
-                "reference": "b8fef7c3d83ff1a3ca04dfe78b0bf72ee8a6a2cc"
+                "reference": "0d5794a2f0628eef13136dea485d065194e0fd59"
             },
             "require": {
                 "codeart/core": "*",
@@ -221,7 +221,8 @@
             "type": "codeart-module",
             "autoload": {
                 "psr-4": {
-                    "Codeart\\Example\\": "src/"
+                    "Codeart\\Example\\": "src/",
+                    "Codeart\\Example\\Database\\Factories\\": "database/factories/"
                 }
             },
             "license": [

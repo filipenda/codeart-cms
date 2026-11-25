@@ -4,6 +4,7 @@ use App\Models\User;
 use Codeart\Core\Modules\MenuRegistry;
 use Codeart\Core\Modules\ModuleRegistry;
 use Codeart\Core\Permissions\CreateDefaultRoles;
+use Codeart\Example\Models\ExampleItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -46,7 +47,7 @@ it('enables end to end: table, permissions, listener, route, menu', function () 
 
     expect(Schema::hasTable('example_items'))->toBeTrue()
         ->and(Permission::pluck('name')->sort()->values()->all())->toBe(['example.manage', 'example.view'])
-        ->and(DB::table('example_items')->pluck('title')->all())->toBe(['Welcome item']) // seeded by the ModuleEnabled listener
+        ->and(ExampleItem::first()->title)->toBe('Welcome item') // seeded by the ModuleEnabled listener
         ->and(Route::has('example.index'))->toBeTrue();
 
     $editor = userWith('editor');
@@ -85,4 +86,26 @@ it('allows managing modules only for super-admin', function () {
     expect(Gate::forUser(userWith('super-admin'))->allows('manage-modules'))->toBeTrue()
         ->and(Gate::forUser(userWith('admin'))->allows('manage-modules'))->toBeFalse()
         ->and(Gate::forUser(userWith('editor'))->allows('manage-modules'))->toBeFalse();
+});
+
+it('translates example items end to end (sr source, generated sr-Cyrl, own en slug)', function () {
+    $this->artisan('module:enable example')->assertSuccessful();
+
+    $item = ExampleItem::factory()
+        ->translated('en', ['title' => 'Love and field'])
+        ->create();
+    $item->setTranslation('sr', ['title' => 'Ljubav i njiva', 'description' => 'Džemper']);
+    $item = $item->fresh();
+
+    $cyr = $item->getTranslation('sr-Cyrl', false);
+    expect($cyr->title)->toBe('Љубав и њива')
+        ->and($cyr->description)->toBe('Џемпер')
+        ->and($cyr->slug)->toBe('primer-stavke') // slugs stay stable when the title changes
+        ->and($item->getTranslation('en', false)->slug)->toBe('love-and-field');
+
+    app()->setLocale('sr-Cyrl');
+    expect($item->title)->toBe('Љубав и њива');
+    app()->setLocale('en');
+    expect($item->title)->toBe('Love and field')
+        ->and(ExampleItem::whereTranslatedSlug('love-and-field')->first()?->is($item))->toBeTrue();
 });
