@@ -47,6 +47,12 @@ class Locales
         return (string) ($this->definition($locale)['label'] ?? $locale);
     }
 
+    /** Short native name for a language switcher ("Srpski", "Српски", "English"); falls back to the label. */
+    public function name(string $locale): string
+    {
+        return (string) ($this->definition($locale)['name'] ?? $this->label($locale));
+    }
+
     public function script(string $locale): ?string
     {
         return $this->definition($locale)['script'] ?? null;

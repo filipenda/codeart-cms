@@ -67,14 +67,15 @@ return [
             'en' => ['sr'],
         ],
         'available' => [
-            'sr' => ['label' => 'Srpski (latinica)', 'script' => 'Latn', 'manual' => true],
+            'sr' => ['label' => 'Srpski (latinica)', 'name' => 'Srpski', 'script' => 'Latn', 'manual' => true],
             'sr-Cyrl' => [
                 'label' => 'Српски (ћирилица)',
+                'name' => 'Српски',
                 'script' => 'Cyrl',
                 'derived_from' => 'sr',
                 'transliterator' => SerbianLatinToCyrillic::class,
             ],
-            'en' => ['label' => 'English', 'script' => 'Latn', 'manual' => true],
+            'en' => ['label' => 'English', 'name' => 'English', 'script' => 'Latn', 'manual' => true],
         ],
     ],
 
@@ -85,8 +86,11 @@ return [
     'auth' => [
         // Name of the staff guard (and of the spatie guard roles/permissions live under).
         'guard' => 'admin',
-        // false = headless: Fortify registers no GET (screen) routes. The screens task sets this to true.
-        'views' => false,
+        // true = Fortify's GET screens (login, reset, verify, ...) use core's Blade views (`codeart::auth.*`).
+        // false = headless: Fortify registers no GET (screen) routes.
+        'views' => true,
+        // Cookie that remembers the visitor's language on the sign-in screens (the session holds it too).
+        'locale_cookie' => 'codeart_locale',
         // Higher rank = more power. Nobody may assign or modify a role above their own; roles not listed
         // rank 98, i.e. only a super-admin can hand them out.
         'role_rank' => ['super-admin' => 100, 'admin' => 50, 'editor' => 10, 'member' => 0],
