@@ -88,3 +88,40 @@ The model must be saved before `setTranslation()`. Disabled or unknown locales t
 - Saving `sr-Cyrl` directly: a value that differs from the generated one is added to `manual_fields` (and is never overwritten again); a value equal to it is removed from the list.
 - Transliteration is rule based: `lj nj dž` become Љ Њ Џ, `đ` becomes ђ, a plain `dj` stays д+ј. HTML tags and attribute values, script/style, entities, URLs, e-mail addresses and placeholders (`:name`, `%s`, `{name}`, `{{ }}`) are left alone.
 - **Known limitation:** ambiguous words cannot be solved by rules: "injekcija" comes out as "ињекција" (correct: "инјекција"). The editor corrects the Cyrillic by hand; that edit is kept (`manual_fields`).
+
+## Settings
+Settings live in the `settings` table (typed, cached as one entry, secrets encrypted). A module registers its definitions in its service provider; they exist only while the module is enabled (stored values survive a disable). Keys must start with `<module>.`.
+```php
+use Codeart\Core\Settings\{SettingDefinition, SettingsRegistry, SettingType};
+
+public function boot(): void
+{
+    $this->app->make(SettingsRegistry::class)->register(
+        new SettingDefinition(
+            key: 'pages.per_page', type: SettingType::Int, default: 12,
+            rules: ['min:1', 'max:100'],
+            permission: 'pages.edit',          // who may change it; null = super-admin only
+            label: 'Pages per page', description: 'Shown on list screens.',
+            module: 'pages',
+        ),
+    );
+}
+```
+Types: `string int bool color enum json image secret`. Other options: `translatable: true` (one value per locale), `options: [...]` (enum), `itemRules` (rules per list item), `check: fn ($value, $read) => ?string` (cross-field rule; `$read('other.key')` gives the value after the same write), `default` may be a Closure (config-backed).
+```php
+$settings = app(Codeart\Core\Settings\Settings::class);
+$settings->get('pages.per_page');            // typed, default if unset, never throws for a missing DB
+$settings->set('pages.title', 'Naslov', 'sr');  // validates; null = back to the default
+$settings->setMany([...]);                   // one validated write (cross-field rules see the final state)
+$settings->masked('x.api_key');              // for display: secrets become ********
+app(SettingsManager::class)->update($user, $key, $value);  // checks permission + lock (use this for people)
+```
+`Settings::set` is the raw layer (CLI, seeders, internal code): no permission or lock check. Unknown keys always throw. Never put a secret in a log or exception message; use `masked()`.
+
+**Who may change what:** a definition's `permission` (core: `settings.appearance` for `theme.*` and `locales.*`, granted to `admin`); `null` = `super-admin` only (security settings). `super-admin` can lock/unlock any key; a locked key is changeable by `super-admin` only. CLI: `settings:list|get|set|lock|unlock` (CLI = super-admin; secrets masked).
+
+**Appearance:** `theme.primary|secondary|mode|logo_light|logo_dark|favicon`. `theme.mode` is `light|dark|auto`; `<html @include('codeart::partials.theme-attributes')>` prints `data-theme="..."`, `auto` follows the visitor's system preference through a `prefers-color-scheme` block in tokens.css. Logos/favicon are uploaded with `BrandingImageUploader` (png, jpg, webp by real content; size and dimension limits in `codeart.branding`; SVG refused).
+
+**Locales:** `locales.default|enabled|fallbacks` (config values are only the defaults; `available` stays in config). The default must be enabled; a derived locale (`sr-Cyrl`) needs its source (`sr`) enabled.
+
+**Security settings** (`security.*`: 2FA mode and roles, password rules, session lifetime, login attempts, log retention) are defined and validated but not enforced until login exists.

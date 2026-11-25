@@ -86,3 +86,37 @@
     --sidebar-bg: #151313;
     --sidebar-text: #f1f0ee;
 }
+
+/* theme mode "auto": the same dark values, only while the visitor's system prefers dark */
+@media (prefers-color-scheme: dark) {
+    :root[data-theme="auto"] {
+        --color-primary: #c9f31d;
+        --color-primary-hover: #d9ff4d;
+        --color-on-primary: #22201f;
+        --color-secondary: #a0bb47;
+        --color-on-secondary: #22201f;
+
+        --color-surface: #1c1a1a;
+        --color-surface-alt: #262323;
+        --color-text: #f1f0ee;
+        --color-text-muted: #b5b1ae;
+        --color-border: #4a4647;
+        --color-link: #c9f31d;
+
+        --color-success: #66bb6a;
+        --color-success-bg: #14301a;
+        --color-success-text: #b8e4ba;
+        --color-warning: #ffb74d;
+        --color-warning-bg: #3a2a0c;
+        --color-warning-text: #ffdca3;
+        --color-danger: #ef5350;
+        --color-danger-bg: #3d1717;
+        --color-danger-text: #ffc4c2;
+        --color-info: #64b5f6;
+        --color-info-bg: #12304d;
+        --color-info-text: #b9dcfb;
+
+        --sidebar-bg: #151313;
+        --sidebar-text: #f1f0ee;
+    }
+}

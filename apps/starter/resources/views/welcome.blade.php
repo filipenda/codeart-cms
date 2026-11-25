@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ app(\Codeart\Core\Theme\ThemeSettings::class)->defaultMode() }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ app(\Codeart\Core\Theme\ThemeSettings::class)->mode() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
