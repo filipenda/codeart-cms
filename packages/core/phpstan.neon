@@ -7,3 +7,8 @@ parameters:
     paths:
         - src
         - config
+    ignoreErrors:
+        # Traits are used by models in other packages (and in tests), not inside core's src.
+        -
+            identifier: trait.unused
+            path: src/Translations/Translatable.php

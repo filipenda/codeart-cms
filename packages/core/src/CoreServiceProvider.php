@@ -10,6 +10,7 @@ use Codeart\Core\Modules\MenuRegistry;
 use Codeart\Core\Modules\ModuleDiscovery;
 use Codeart\Core\Modules\ModuleRegistry;
 use Codeart\Core\Theme\ThemeSettings;
+use Codeart\Core\Translations\Locales;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\PermissionServiceProvider;
@@ -26,6 +27,8 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(MenuRegistry::class);
 
         $this->mergeConfigFrom(__DIR__.'/../config/codeart.php', 'codeart');
+
+        $this->app->singleton(Locales::class, fn (): Locales => new Locales((array) config('codeart.locales', [])));
 
         $this->app->singleton(ThemeSettings::class, fn (): ThemeSettings => new ThemeSettings(
             (array) config('codeart.theme', []),
