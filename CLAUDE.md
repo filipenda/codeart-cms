@@ -14,7 +14,7 @@ Env: PHP >= 8.4 (composer `platform` 8.4.1, CI on 8.4 and latest stable), Larave
 - `ddev start`, then `ddev composer setup` (first time)
 - `ddev composer check` = check:colors + Pint (test mode) + Larastan + Pest for core and starter
 - `ddev composer check:colors` alone; inside a package: `composer check`, `composer test`
-- Rebuild CSS: `ddev exec "cd packages/core && npm run build"` (commit `resources/dist`)
+- Rebuild CSS and JS: `ddev exec "cd packages/core && npm run build"` (commit `resources/dist`)
 
 ## Code conventions
 - Thin controllers/Livewire components -> Action classes (one class = one operation) -> Eloquent models.
@@ -45,10 +45,11 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 - Colors/locales/theme mode come from settings with config defaults; never read `config('codeart.theme.*')` or `codeart.locales.enabled` directly in app code.
 
 ## Authentication (details: docs/auth.md)
-- Staff sign in on guard `admin` (Laravel Fortify, headless; screens come from a later task). All routes sit under the setting `auth.admin_path`; no `route:cache`. Core does not own `User`: the app's model uses `Codeart\Core\Auth\Concerns\AdminUser`.
+- Staff sign in on guard `admin` (Laravel Fortify). Screens are Blade + Alpine in `codeart::auth.*` (no Livewire), forms post straight to Fortify and work without JS. All routes sit under the setting `auth.admin_path`; no `route:cache`. Core does not own `User`: the app's model uses `Codeart\Core\Auth\Concerns\AdminUser`.
 - Every admin route uses `['web', 'auth:admin', 'admin.access']`. Roles/permissions are guard `admin`: `super-admin`, `admin`, `editor`, `member`; permissions `admin.access`, `users.view|invite|manage|approve`. Only a super-admin touches a super-admin (`RoleRank`, `UserPolicy`).
 - Security behaviour is settings-driven (`security.*`, `auth.*`, `mail.*`); defaults: 2FA required for super-admin/admin, registration OFF. Never log passwords, tokens or codes: write through `ActivityLog::record()`.
 - UI strings: edit `resources/lang/{sr,en}`, then run `php artisan lang:transliterate` and commit `sr-Cyrl` (a test checks it).
+- UI building blocks: anonymous components `<x-codeart::...>` (`docs/components.md`), only semantic utilities. Rebuild CSS + JS after touching views/CSS/JS: `ddev exec "cd packages/core && npm run build"` and commit `resources/dist`. Screens are overridable with `vendor:publish --tag=codeart-views`.
 - First super-admin: `php artisan codeart:roles`, then `php artisan user:create "Name" email super-admin`.
 
 ## Release rules (short; full text in CONTRIBUTING.md)

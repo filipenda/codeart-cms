@@ -1,7 +1,8 @@
 # Authentication (staff)
 
-Headless backend for signing in to the admin. There are **no screens** in core: the next task builds them on
-top of the routes, names and JSON shapes below. Read this file alone and you can start.
+Backend and screens for signing in to the admin. The routes, names and JSON shapes below are the backend; the screens
+(Blade + Alpine, no Livewire) are described under "Screens" and are on by default (`codeart.auth.views`). Every form posts
+straight to Fortify and works without JavaScript.
 
 - Guard `admin` (provider `users`, the app's `User` model). Staff only; future shop customers get their own guard and table.
 - Laravel Fortify 1.44 does the heavy lifting (login, reset, verification, 2FA, registration); core adds the policies, settings, invitations, logging and mail around it.
@@ -25,7 +26,7 @@ top of the routes, names and JSON shapes below. Read this file alone and you can
 4. **First super-admin:** `php artisan user:create "Name" you@example.com super-admin`. The password is asked for with a hidden prompt (never on the command line). The user is created verified, active and approved. With 2FA required (default) they set it up at first sign-in.
 5. Production needs HTTPS and `SESSION_SECURE_COOKIE=true` (plus `SESSION_SAME_SITE=lax`, the default, and `SESSION_HTTP_ONLY=true`, the default) in `.env`, `APP_URL` with `https://`. Sessions are stored in the database (`SESSION_DRIVER=database`; core switches `file`/`cookie` to `database`). Mail must work (see Mail) or invitations, resets and verification cannot be delivered.
 
-Core makes `admin` the default guard when the app still has `web` (the database session handler needs that to record user ids). `config('codeart.auth.guard')` names it; `config('codeart.auth.views')` is `false` until the screens task sets it to `true` (see below).
+Core makes `admin` the default guard when the app still has `web` (the database session handler needs that to record user ids). `config('codeart.auth.guard')` names it; `config('codeart.auth.views')` is `true` (set it to `false` for a headless install: Fortify then registers no GET screens).
 
 ## Roles and permissions
 
@@ -108,7 +109,7 @@ Mail settings override `.env` only for values that were saved. 2FA mode: `off` h
 
 **E-mail verification.** The mail links to the signed `verification.verify` route; the user must be signed in. Required only while `auth.registration.require_email_verification` is on.
 
-**Invitations (the main way to add staff).** `InviteUser` (action) or `php artisan user:invite name email role`. Needs `users.invite`, and the role must not be above the inviter's (admin: up to admin, never super-admin). One open invitation per address; the token is random, stored only as a SHA-256 hash, valid `auth.invitation.expiry_days`, single use. The mail contains a signed URL to `admin.invitation.show`. **The screens task** renders the "set your password" form at that URL and POSTs the same URL with `password`, `password_confirmation` and optional `locale` (`admin.invitation.accept`): it creates the user (verified, active, approved, roles from the invitation, `invited_at`). Unknown, used, expired or no-longer-allowed invitations all answer 410; a tampered link 403.
+**Invitations (the main way to add staff).** `InviteUser` (action) or `php artisan user:invite name email role`. Needs `users.invite`, and the role must not be above the inviter's (admin: up to admin, never super-admin). One open invitation per address; the token is random, stored only as a SHA-256 hash, valid `auth.invitation.expiry_days`, single use. The mail contains a signed URL to `admin.invitation.show`. The invitation screen renders the "set your password" form at that URL and POSTs the same URL with `password`, `password_confirmation` and optional `locale` (`admin.invitation.accept`): accepting creates the user (verified, active, approved, roles from the invitation, `invited_at`). Unknown, used, expired or no-longer-allowed invitations all answer 410; a tampered link 403.
 
 **Registration** (off by default). When enabled, `register.store` creates a user with the default role. With approval required the user is `is_active=false`, `approved_at=null` and cannot sign in until approved; they are signed in right after registering, so they can verify the e-mail in that session. Mails: verification, "registration received", and a "new registration pending" to every active user with `users.approve` plus super-admins. Approve with `ApproveUser` (needs `users.approve`) or `php artisan user:approve email`; the user gets "registration approved". Known trade-off: the e-mail uniqueness check reveals that an address is registered (login and reset do not).
 
@@ -118,9 +119,30 @@ Bot protection (`Codeart\Core\Auth\BotProtection`, applied to `register.store`):
 
 **2FA.** Enable (password confirmation first) → show QR/secret → confirm with a code → show recovery codes. Recovery codes are replaced when used. Lost phone: `php artisan user:reset-2fa email` (logged).
 
-## What the screens task must build
+## Screens
 
-Login (with remember me and the 2FA challenge step), forgot password, reset password (reads `token` and `email` from the URL; the mail links to the named route `password.reset`, or `/admin/reset-password/{token}?email=` if that route is missing), verify-email notice (`verification.notice`) with a resend button, password confirmation (`password.confirm`), 2FA setup (`admin.two-factor.setup`: QR, secret, confirm, recovery codes), invitation acceptance (`admin.invitation.show`), registration form, own-sessions list, change password, and a pending-registrations screen (`admin.users.pending`, linked from the approvers' mail; falls back to `/admin/users/pending`). To get Fortify's GET screen routes set `config('codeart.auth.views')` to `true` and register the views with `Fortify::loginView(...)` etc. Use `GET admin.session` to learn who is signed in and why access is denied. Unauthenticated browser requests are redirected to route `login` once it exists (else 401).
+Views live in `codeart::auth.*` (`packages/core/resources/views/auth`) on top of the components in `docs/components.md`.
+Fortify's view hooks are registered in `AuthServiceProvider::registerScreens()`; `Codeart\Core\Auth\Http\Screens` builds the data.
+
+| Screen | Route name / path | Notes |
+|---|---|---|
+| Login + registration tabs | `login` (GET `/admin/login`), `register` (GET `/admin/register`) | Tabs are links (no JS); the registration tab, its link, the form, honeypot and signed timestamp exist ONLY when `auth.registration.enabled` is on (`/register` is 404 otherwise). After a failed registration the page stays on its tab and keeps the input |
+| 2FA challenge | `two-factor.login` | one numeric code input; `?recovery=1` shows the recovery-code field (also toggled by Alpine) |
+| 2FA setup | `admin.two-factor.setup` (`/admin/two-factor-setup`) | states: off, start (asks for the password first), confirm (inline SVG QR, manual key, code form), done. Recovery codes appear ONLY right after the first correct code or after regenerating (flash status); `admin.access` redirects here when 2FA is required |
+| Forgot / reset password | `password.request`, `password.reset` | status messages from `codeart::ui.status.*` or the neutral sentence |
+| Accept invitation | `admin.invitation.show` | valid = password form posting to the same signed URL (`locale` hidden = current language); expired, used, invalid = a clear state (HTTP 410; a changed or timed-out signature 403 with state `invalid` / `expired`). JSON clients still get JSON |
+| Verify e-mail | `verification.notice` | resend button; `admin.access` redirects unverified users here |
+| Confirm password | `password.confirm` | |
+| Registration received | `admin.registration.received` | where a browser lands after registering; shows "verify your e-mail" and/or "waiting for approval" |
+| No access | rendered by `admin.access` | themed 403 for browsers; JSON clients keep the JSON `{message, reason}` |
+
+Not built yet (later tasks): own-sessions list, change password, pending-registrations screen, the admin home (`/admin`, Fortify's post-login target), social sign-in buttons (the layout has the empty `social` slot).
+
+**Language of the screens.** `SetAuthLocale` (on every Fortify route and core's auth routes) picks: the visitor's choice (session `codeart.locale`, then the cookie `codeart_locale`), then the signed-in user's `locale`, then `locales.default`; only ENABLED locales count. The switcher posts to `codeart.locale` (`POST /admin/locale`, throttled), which validates against the enabled locales, stores the choice in the session and a cookie and updates the signed-in user's `locale`.
+
+**Override a screen.** `php artisan vendor:publish --tag=codeart-views` copies the views and components to `resources/views/vendor/codeart/`; a copy there wins over core's. `--tag=codeart-assets` publishes `codeart.css` and `codeart.js` to `public/vendor/codeart`. `php artisan codeart:brand:load [path]` loads `logo-light-bg.png`, `logo-dark-bg.png` and `favicon.png` (default `docs/design/brand`) into the theme settings through the normal image upload service (needs `php artisan storage:link` to be served).
+
+Use `GET admin.session` to learn who is signed in and why access is denied. Unauthenticated browser requests are redirected to route `login`.
 
 ## Mail
 
@@ -132,8 +154,8 @@ Sent in the user's `locale` (`sr`, `sr-Cyrl`, `en`; falls back to the app locale
 
 ## Language files
 
-`packages/core/resources/lang/{sr,en}` are written by hand; `sr-Cyrl` is generated: `php artisan lang:transliterate` (placeholders such as `:name` stay untouched; `--check` only reports). Commit the generated files. A test fails when a key is missing in any language or `sr-Cyrl` is stale. Namespace `codeart::` (`auth`, `mail`, `framework`). `framework.php` holds fallbacks for Laravel's own `auth.*`, `passwords.*` and `validation.*` keys, used only when the app has no translation for the key.
+`packages/core/resources/lang/{sr,en}` are written by hand; `sr-Cyrl` is generated: `php artisan lang:transliterate` (placeholders such as `:name` stay untouched; `--check` only reports). Commit the generated files. A test fails when a key is missing in any language or `sr-Cyrl` is stale. Namespace `codeart::` (`auth`, `mail`, `ui` for the screens, `framework`). `framework.php` holds fallbacks for Laravel's own `auth.*`, `passwords.*` and `validation.*` keys, used only when the app has no translation for the key.
 
 ## Commands
 
-`user:create {name} {email} {role}`, `user:invite`, `user:approve`, `user:deactivate`, `user:reset-2fa`, `activity-log:prune`, `mail:test {address}`, `lang:transliterate`, `codeart:roles`.
+`codeart:brand:load {path?}`, `user:create {name} {email} {role}`, `user:invite`, `user:approve`, `user:deactivate`, `user:reset-2fa`, `activity-log:prune`, `mail:test {address}`, `lang:transliterate`, `codeart:roles`.
