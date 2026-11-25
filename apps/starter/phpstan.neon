@@ -1,0 +1,9 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    # Start at 6, raise gradually towards 9 (see docs/DECISIONS.md).
+    level: 6
+    paths:
+        - app
+        - routes
