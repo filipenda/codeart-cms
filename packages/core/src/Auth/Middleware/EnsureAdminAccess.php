@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureAdminAccess
 {
-    /** @var array<string, string> reason => screen route (provided by the screens task) */
+    /** @var array<string, string> reason => screen route */
     private const array SCREENS = [
         AdminAccess::UNVERIFIED => 'verification.notice',
         AdminAccess::TWO_FACTOR => 'admin.two-factor.setup',
@@ -44,6 +44,11 @@ class EnsureAdminAccess
         $message = __('codeart::auth.denied.'.$reason);
         if ($request->expectsJson()) {
             return response()->json(['message' => $message, 'reason' => $reason], 403);
+        }
+
+        // Browsers get the themed "no access" page (when the screens are on); anything else the plain 403.
+        if (config('codeart.auth.views', true)) {
+            return response()->view('codeart::auth.no-access', ['reason' => $reason, 'message' => $message], 403);
         }
         abort(403, $message);
     }

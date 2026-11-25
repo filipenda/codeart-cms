@@ -26,6 +26,6 @@ class ResetPasswordMail extends ThemedMail
 
     protected function actionUrl(): string
     {
-        return Admin::screenUrl('password.reset', 'reset-password/'.$this->token, ['email' => $this->user->getEmailForPasswordReset()]);
+        return Admin::screenUrl('password.reset', 'reset-password/'.$this->token, ['email' => $this->user->getEmailForPasswordReset()], ['token' => $this->token]);
     }
 }

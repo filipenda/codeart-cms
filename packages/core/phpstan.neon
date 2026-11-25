@@ -27,3 +27,9 @@ parameters:
         -
             identifier: trait.unused
             path: src/Auth/Concerns/AdminUser.php
+        # Views of this package are in the `codeart::` namespace, which the analyser cannot resolve to files.
+        -
+            identifier: argument.type
+            message: '#\$view of function view expects view-string#'
+            paths:
+                - src/Auth

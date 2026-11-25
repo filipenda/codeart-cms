@@ -4,6 +4,7 @@ namespace Codeart\Core;
 
 use Codeart\Core\Auth\AuthServiceProvider;
 use Codeart\Core\Console\ActivityLogPruneCommand;
+use Codeart\Core\Console\BrandLoadCommand;
 use Codeart\Core\Console\LangTransliterateCommand;
 use Codeart\Core\Console\MailTestCommand;
 use Codeart\Core\Console\ModuleDisableCommand;
@@ -27,6 +28,7 @@ use Codeart\Core\Settings\CoreSettings;
 use Codeart\Core\Settings\Settings;
 use Codeart\Core\Settings\SettingsManager;
 use Codeart\Core\Settings\SettingsRegistry;
+use Codeart\Core\Theme\Assets;
 use Codeart\Core\Theme\ThemeSettings;
 use Codeart\Core\Translations\Locales;
 use Illuminate\Console\Scheduling\Schedule;
@@ -62,6 +64,7 @@ class CoreServiceProvider extends ServiceProvider
             (array) config('codeart.locales', []),
         ));
 
+        $this->app->singleton(Assets::class);
         $this->app->singleton(ThemeSettings::class, fn (): ThemeSettings => new ThemeSettings(
             $this->app->make(Settings::class),
             (array) config('codeart.theme_base', []),
@@ -95,7 +98,7 @@ class CoreServiceProvider extends ServiceProvider
             $this->commands([ModuleListCommand::class, ModuleEnableCommand::class, ModuleDisableCommand::class, RolesCommand::class,
                 SettingsListCommand::class, SettingsGetCommand::class, SettingsSetCommand::class, SettingsLockCommand::class, SettingsUnlockCommand::class,
                 UserCreateCommand::class, UserInviteCommand::class, UserApproveCommand::class, UserDeactivateCommand::class, UserReset2faCommand::class,
-                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class]);
+                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class, BrandLoadCommand::class]);
 
             $this->publishes([
                 __DIR__.'/../config/codeart.php' => config_path('codeart.php'),
@@ -103,8 +106,14 @@ class CoreServiceProvider extends ServiceProvider
 
             // Pre-built assets are shipped inside the package (no Node on servers).
             $this->publishes([
-                __DIR__.'/../resources/dist' => public_path('vendor/codeart'),
+                Assets::packagePath() => public_path('vendor/codeart'),
             ], 'codeart-assets');
+
+            // To change a screen, publish the views and edit them (they then win over core's copy).
+            $this->publishes([
+                __DIR__.'/../resources/views/auth' => resource_path('views/vendor/codeart/auth'),
+                __DIR__.'/../resources/views/components' => resource_path('views/vendor/codeart/components'),
+            ], 'codeart-views');
         }
     }
 
