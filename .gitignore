@@ -1,5 +1,5 @@
-/vendor/
-/node_modules/
+vendor/
+node_modules/
 .env
 .env.*
 !.env.example
@@ -9,5 +9,6 @@
 composer.phar
 /.idea/
 /.vscode/
-/.ddev/.gitignore
 .DS_Store
+/packages/*/composer.lock
+/composer.lock

@@ -1,0 +1,28 @@
+{
+    "name": "codeart/cms-monorepo",
+    "description": "CodeArt CMS monorepo: root tooling only. Dependencies live in each package / app.",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2"
+    },
+    "scripts": {
+        "setup": [
+            "@composer --working-dir=packages/core install --no-interaction",
+            "@composer --working-dir=apps/starter install --no-interaction"
+        ],
+        "check:colors": "@php tools/check-colors.php",
+        "check:core": "@composer --working-dir=packages/core check",
+        "check:starter": "@composer --working-dir=apps/starter check",
+        "check": [
+            "@check:colors",
+            "@check:core",
+            "@check:starter"
+        ]
+    },
+    "config": {
+        "platform": {
+            "php": "8.2.0"
+        }
+    }
+}
