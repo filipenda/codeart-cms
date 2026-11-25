@@ -9,7 +9,7 @@ class RolesCommand extends Command
 {
     protected $signature = 'codeart:roles';
 
-    protected $description = 'Create the default roles (super-admin, admin, editor) if missing';
+    protected $description = 'Create the default roles (super-admin, admin, editor, member) and core permissions if missing';
 
     public function handle(CreateDefaultRoles $create): int
     {

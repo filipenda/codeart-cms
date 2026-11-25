@@ -5,11 +5,13 @@ use Codeart\Core\Settings\Settings;
 
 it('has sensible defaults', function () {
     expect(app(Settings::class)->group('security'))->toBe([
-        'security.2fa.mode' => 'off',
+        'security.2fa.mode' => 'required',
         'security.2fa.required_roles' => ['super-admin', 'admin'],
         'security.activity_log.retention_days' => 90,
         'security.login.decay_minutes' => 15,
         'security.login.max_attempts' => 5,
+        'security.login.remember_days' => 30,
+        'security.password.check_breached' => true,
         'security.password.min_length' => 10,
         'security.password.require_mixed_case' => true,
         'security.password.require_number' => true,
@@ -31,6 +33,7 @@ it('enforces ranges', function (string $key, int $low, int $ok, int $high) {
     'attempts' => ['security.login.max_attempts', 0, 1, 101],
     'decay' => ['security.login.decay_minutes', 0, 30, 1441],
     'retention' => ['security.activity_log.retention_days', 6, 365, 3651],
+    'remember' => ['security.login.remember_days', 0, 14, 366],
 ]);
 
 it('validates 2fa mode, roles and flags', function () {

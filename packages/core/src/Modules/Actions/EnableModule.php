@@ -2,6 +2,7 @@
 
 namespace Codeart\Core\Modules\Actions;
 
+use Codeart\Core\Auth\Admin;
 use Codeart\Core\Events\ModuleEnabled;
 use Codeart\Core\Modules\InstalledModule;
 use Codeart\Core\Modules\ModuleException;
@@ -98,7 +99,7 @@ class EnableModule
 
     private function syncPermissions(InstalledModule $module): void
     {
-        $guard = (string) config('auth.defaults.guard', 'web');
+        $guard = Admin::guardName();
         foreach ($module->manifest->permissions as $permission) {
             Permission::findOrCreate($permission, $guard);
         }

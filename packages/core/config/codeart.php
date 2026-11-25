@@ -77,4 +77,20 @@ return [
             'en' => ['label' => 'English', 'script' => 'Latn', 'manual' => true],
         ],
     ],
+
+    /*
+    | Admin authentication (see docs/auth.md). Behaviour is controlled by the auth.* / security.* settings;
+    | these keys are wiring only.
+    */
+    'auth' => [
+        // Name of the staff guard (and of the spatie guard roles/permissions live under).
+        'guard' => 'admin',
+        // false = headless: Fortify registers no GET (screen) routes. The screens task sets this to true.
+        'views' => false,
+        // Higher rank = more power. Nobody may assign or modify a role above their own; roles not listed
+        // rank 98, i.e. only a super-admin can hand them out.
+        'role_rank' => ['super-admin' => 100, 'admin' => 50, 'editor' => 10, 'member' => 0],
+        // Routes reachable while two-factor setup is still required (besides the Fortify two-factor routes).
+        'two_factor_exempt_routes' => ['logout', 'admin.session', 'password.confirm', 'password.confirm.store', 'password.confirmation'],
+    ],
 ];
