@@ -21,6 +21,10 @@ A module is a Composer package of type `codeart-module` with a `module.json` man
 `spatie/laravel-permission`, with roles `super-admin`, `admin`, `editor`. `super-admin` passes every Gate check (`Gate::before`); the `manage-modules` Gate is super-admin only. Core owns the permission tables migration but not the User model: the app adds `HasRoles`.
 *Why:* a proven package instead of our own; core stays free of app models.
 
+## Translations
+Content translations live in one table per translatable model with a `locale` column (`items` + `item_translations`), normal columns for translated attributes (indexable, searchable, sortable), unique `(locale, slug)`. Core ships a small `Translatable` trait, a `Translation` base model, `Locales` (config reader), `Slug` and `SerbianLatinToCyrillic`. `sr-Cyrl` is derived from `sr`; attributes edited by hand are tracked in `manual_fields` and never overwritten. Locales, enabled list and fallback chain come from `config/codeart.php` now, database settings later. Usage and rules: `docs/modules.md`.
+*Why:* a plain translation table keeps queries and indexes simple; a derived locale with a manual-override list gives editors automatic Cyrillic without losing corrections.
+
 ## Releases
 `main` is the next release, not production; nothing deploys from `main`. Releases are Git tags: `x.y.z-rc.N` pre-releases go to a test site only, `x.y.z` stable tags are what clients install (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only when an old line must stay alive. Client app repos work differently (PR -> staging -> main = production). Details in `CONTRIBUTING.md`.
 
