@@ -47,7 +47,7 @@ class CreateAdminUser
                 'approved_at' => now(),
                 ...$attributes,
             ])->save();
-            /** @phpstan-ignore method.notFound */
+           
             $user->syncRoles($roles);
 
             return $user;

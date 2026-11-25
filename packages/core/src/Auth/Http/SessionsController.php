@@ -36,7 +36,7 @@ class SessionsController
         $request->validate(['password' => ['required', 'string', 'current_password:'.Admin::guardName()]], [], __('codeart::auth.attributes'));
 
         $count = $this->sessions->revokeOthers($user->getAuthIdentifier(), $request->session()->getId());
-        Admin::guard()->logoutOtherDevices((string) $request->input('password')); /** @phpstan-ignore method.notFound */
+        Admin::guard()->logoutOtherDevices((string) $request->input('password'));
         $log->record('session.others_revoked', 'Signed out of other devices', $user, $user, ['sessions' => $count]);
 
         return response()->json(['revoked' => $count]);

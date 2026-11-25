@@ -28,7 +28,7 @@ class ConfigureAuthRequest
 
     public function handle(Request $request, Closure $next): Response
     {
-        Admin::guard()->setRememberDuration((int) $this->settings->get('security.login.remember_days') * 1440); /** @phpstan-ignore method.notFound */
+        Admin::guard()->setRememberDuration((int) $this->settings->get('security.login.remember_days') * 1440);
         $name = (string) $request->route()?->getName();
 
         if ($name === 'register.store') {

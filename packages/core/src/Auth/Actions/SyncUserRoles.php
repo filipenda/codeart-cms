@@ -24,7 +24,7 @@ class SyncUserRoles
         Gate::forUser($actor)->authorize('update', $user);
 
         /** @var Collection<int, string> $current */
-        $current = $user->getRoleNames(); /** @phpstan-ignore method.notFound */
+        $current = $user->getRoleNames();
         // Nothing the actor may not hand out can be given, and nothing they may not hand out can be taken away.
         foreach (array_unique([...$roles, ...$current->all()]) as $role) {
             $changes = in_array($role, $roles, true) !== $current->contains($role);
@@ -36,7 +36,6 @@ class SyncUserRoles
             Role::findByName($role, Admin::guardName());
         }
 
-        /** @phpstan-ignore method.notFound */
         $user->syncRoles($roles);
     }
 }
