@@ -2,6 +2,7 @@
 
 namespace Codeart\Core\Tests\Support;
 
+use Codeart\Core\Auth\Admin;
 use Illuminate\Foundation\Auth\User;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -13,4 +14,9 @@ class StubUser extends User
     protected $table = 'users';
 
     protected $guarded = [];
+
+    public function guardName(): string
+    {
+        return Admin::guardName();
+    }
 }

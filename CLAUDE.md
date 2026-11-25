@@ -44,6 +44,13 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 - Settings are typed DB values with definitions (`SettingsRegistry`); modules register theirs in their provider (`docs/modules.md`). Read with `Settings::get`; people write through `SettingsManager::update` (permission + lock), code/CLI with `Settings::set`. Unknown keys throw; secrets are encrypted and shown only via `masked()`.
 - Colors/locales/theme mode come from settings with config defaults; never read `config('codeart.theme.*')` or `codeart.locales.enabled` directly in app code.
 
+## Authentication (details: docs/auth.md)
+- Staff sign in on guard `admin` (Laravel Fortify, headless; screens come from a later task). All routes sit under the setting `auth.admin_path`; no `route:cache`. Core does not own `User`: the app's model uses `Codeart\Core\Auth\Concerns\AdminUser`.
+- Every admin route uses `['web', 'auth:admin', 'admin.access']`. Roles/permissions are guard `admin`: `super-admin`, `admin`, `editor`, `member`; permissions `admin.access`, `users.view|invite|manage|approve`. Only a super-admin touches a super-admin (`RoleRank`, `UserPolicy`).
+- Security behaviour is settings-driven (`security.*`, `auth.*`, `mail.*`); defaults: 2FA required for super-admin/admin, registration OFF. Never log passwords, tokens or codes: write through `ActivityLog::record()`.
+- UI strings: edit `resources/lang/{sr,en}`, then run `php artisan lang:transliterate` and commit `sr-Cyrl` (a test checks it).
+- First super-admin: `php artisan codeart:roles`, then `php artisan user:create "Name" email super-admin`.
+
 ## Release rules (short; full text in CONTRIBUTING.md)
 `main` = next release, NOT production; nothing deploys from it. Releases are Git tags: `x.y.z-rc.N` only on a test site, `x.y.z` stable for clients (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only for old lines. Client app repos differ: PR -> staging -> main = production.
 

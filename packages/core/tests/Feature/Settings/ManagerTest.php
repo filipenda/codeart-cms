@@ -93,7 +93,7 @@ it('lets a module permission govern its own setting', function () {
 
     expect(fn () => manager()->update($admin, 'alpha.greeting', 'x'))->toThrow(AuthorizationException::class);
 
-    $admin->givePermissionTo(Permission::findOrCreate('alpha.edit', 'web'));
+    $admin->givePermissionTo(Permission::findOrCreate('alpha.edit', 'admin'));
     manager()->update($admin->fresh(), 'alpha.greeting', 'x');
     expect(app(Settings::class)->get('alpha.greeting'))->toBe('x');
 });

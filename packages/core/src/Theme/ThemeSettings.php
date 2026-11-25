@@ -101,6 +101,31 @@ class ThemeSettings
         return ['light' => $light, 'dark' => $dark];
     }
 
+    /**
+     * Resolved colors for places where CSS variables do not work (e-mail). Every value is derived
+     * from the theme settings and the brand-neutral base colors in config, never written down in a view.
+     *
+     * @return array{primary: string, on_primary: string, link: string, text: string, muted: string, card: string, background: string, border: string}
+     */
+    public function emailPalette(): array
+    {
+        $configured = $this->colors()['primary'] ?? null;
+        $primary = Color::isHex($configured) ? Color::normalize($configured) : (Color::isHex($this->defaults['primary'] ?? null) ? Color::normalize($this->defaults['primary']) : $this->baseColor('ink'));
+        $ink = $this->baseColor('ink');
+        $card = $this->baseColor('surface_light');
+
+        return [
+            'primary' => $primary,
+            'on_primary' => $this->onColor($primary),
+            'link' => Color::ensureContrast($primary, $card, $ink, $this->minContrast()),
+            'text' => $ink,
+            'muted' => Color::mix($ink, $card, 0.4),
+            'card' => $card,
+            'background' => Color::mix($card, $ink, 0.06),
+            'border' => Color::mix($card, $ink, 0.14),
+        ];
+    }
+
     /** CSS to place in an inline <style> block. Empty string when nothing is overridden. */
     public function css(): string
     {

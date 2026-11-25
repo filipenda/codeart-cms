@@ -18,7 +18,7 @@ A module is a Composer package of type `codeart-module` with a `module.json` man
 *Why:* one source of truth for versions, no shell needed at runtime, and a disabled module leaves no trace in a running site except its data.
 
 ## Roles and permissions
-`spatie/laravel-permission`, with roles `super-admin`, `admin`, `editor`. `super-admin` passes every Gate check (`Gate::before`); the `manage-modules` Gate is super-admin only. Core owns the permission tables migration but not the User model: the app adds `HasRoles`.
+`spatie/laravel-permission`, with roles `super-admin`, `admin`, `editor`, `member` (registered users; no permissions), all under the `admin` guard name. `super-admin` passes every Gate check (`Gate::before`); the `manage-modules` Gate is super-admin only. Core owns the permission tables migration but not the User model: the app adds `HasRoles`.
 *Why:* a proven package instead of our own; core stays free of app models.
 
 ## Translations
@@ -46,3 +46,7 @@ For client servers (cPanel, SSH or FTP-only):
 
 ## Settings
 One `settings` table (`key`, `group`, `locale` with `*` for non-translatable, JSON `value`; unique `(key, locale)`) plus `settings_locks`. `SettingsRegistry` holds the definitions (core's and enabled modules'); `Settings` reads/writes them through one forever cache entry (plain file cache, no tags), falling back to defaults when the database is not ready; `SettingsManager` is the permission + lock layer for people. Appearance, content locales and (not yet enforced) security settings are core definitions; `ThemeSettings` and `Locales` read through `Settings`. Details: "Settings" in `docs/modules.md`.
+
+## Authentication
+Staff sign in through the `admin` guard on **Laravel Fortify** (headless: routes and JSON only, the screens come in a later task); core wraps it with `admin.access` middleware, a user policy with role ranks, invitations, controlled public registration, 2FA enforcement from settings, database sessions, an activity log and themed mail. Core does not own the User model: the app's model uses the `AdminUser` trait and core adds the columns by migration. Full description, route names and settings: `docs/auth.md`.
+*Why:* Fortify is Laravel's own, maintained and covers login, reset, verification and 2FA; writing those again would be the security-critical code we least want to own. Every auth route lives under one configurable prefix, read from the database at boot (so no route cache), which keeps the admin movable by a super-admin without touching files.

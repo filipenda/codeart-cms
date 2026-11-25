@@ -21,10 +21,10 @@ function labels(?StubUser $user): array
     return array_map(fn ($i) => $i->label, app(MenuRegistry::class)->items($user));
 }
 
-it('creates the three default roles, once', function () {
-    expect(app(CreateDefaultRoles::class)())->toBe(['super-admin', 'admin', 'editor'])
+it('creates the default roles, once', function () {
+    expect(app(CreateDefaultRoles::class)())->toBe(['super-admin', 'admin', 'editor', 'member'])
         ->and(app(CreateDefaultRoles::class)())->toBe([])
-        ->and(Role::pluck('name')->sort()->values()->all())->toBe(['admin', 'editor', 'super-admin']);
+        ->and(Role::pluck('name')->sort()->values()->all())->toBe(['admin', 'editor', 'member', 'super-admin']);
 
     $this->artisan('codeart:roles')->expectsOutputToContain('already exist')->assertSuccessful();
 });
