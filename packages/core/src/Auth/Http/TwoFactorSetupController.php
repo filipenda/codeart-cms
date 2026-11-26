@@ -4,6 +4,7 @@ namespace Codeart\Core\Auth\Http;
 
 use Codeart\Core\Auth\Admin;
 use Codeart\Core\Auth\TwoFactorPolicy;
+use Codeart\Core\Auth\TwoFactorQrCode;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ class TwoFactorSetupController
         if ($pending) {
             return view('codeart::auth.two-factor-setup', [
                 'state' => 'confirm',
-                'qr' => $user->twoFactorQrCodeSvg(),
+                'qr' => TwoFactorQrCode::withQuietZone($user->twoFactorQrCodeSvg()),
                 'secret' => decrypt($user->two_factor_secret),
                 'errors' => $request->session()->get('errors')?->getBag('confirmTwoFactorAuthentication') ?? new MessageBag,
             ]);

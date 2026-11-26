@@ -38,6 +38,10 @@
     --sidebar-bg: #373435;
     --sidebar-text: #f1f0ee;
 
+    /* QR code: ALWAYS dark modules on white, in every theme (scanners need that contrast). Never derive from theme or brand. */
+    --color-qr-fg: #000000;
+    --color-qr-bg: #ffffff;
+
     /* Radius */
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
@@ -64,6 +68,9 @@
 }
 
 [data-theme="dark"] {
+    --color-qr-fg: #000000;
+    --color-qr-bg: #ffffff;
+
     --color-primary: #c9f31d;
     --color-primary-hover: #d9ff4d;
     --color-on-primary: #22201f;
@@ -100,6 +107,9 @@
 /* theme mode "auto": the same dark values, only while the visitor's system prefers dark */
 @media (prefers-color-scheme: dark) {
     :root[data-theme="auto"] {
+        --color-qr-fg: #000000;
+        --color-qr-bg: #ffffff;
+
         --color-primary: #c9f31d;
         --color-primary-hover: #d9ff4d;
         --color-on-primary: #22201f;

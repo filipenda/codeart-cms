@@ -13,8 +13,8 @@
 
         @elseif ($state === 'confirm')
             <x-codeart::heading :title="__('codeart::ui.setup_scan_title')" :text="__('codeart::ui.setup_scan_text')" />
-            {{-- Inline SVG from Fortify (no external image, no request to a QR service). --}}
-            <div class="mx-auto w-fit rounded-control border border-border bg-surface p-3 [&_svg]:size-48" role="img" aria-label="{{ __('codeart::ui.setup_qr_label') }}">{!! $qr !!}</div>
+            {{-- Inline SVG from Fortify, re-wrapped with a 4-module quiet zone and the fixed QR tokens (never theme colors). --}}
+            <div class="mx-auto w-fit rounded-control border border-border bg-qr-bg [&_svg]:block [&_svg]:size-56" style="color-scheme: only light" role="img" aria-label="{{ __('codeart::ui.setup_qr_label') }}">{!! $qr !!}</div>
             <div class="space-y-1 text-center">
                 <p class="text-sm text-text-muted">{{ __('codeart::ui.setup_manual') }}</p>
                 <p class="break-all font-mono text-base font-medium tracking-wider text-text" id="two-factor-secret">{{ $secret }}</p>
