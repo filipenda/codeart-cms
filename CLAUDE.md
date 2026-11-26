@@ -59,10 +59,11 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 ## Release rules (short; full text in CONTRIBUTING.md)
 `main` = next release, NOT production; nothing deploys from it. Releases are Git tags: `x.y.z-rc.N` only on a test site, `x.y.z` stable for clients (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only for old lines. Client app repos differ: PR -> staging -> main = production.
 
-## Workflow (details: CONTRIBUTING.md, DECISIONS W1-W5)
+## Workflow (details: CONTRIBUTING.md, DECISIONS W1-W6)
 - `main` holds only finished, working features (a whole module), never half-done pieces. One branch per feature (`feat/admin-ui`); several sessions may add commits to it.
 - While working: run only `ddev composer check:fast`; no CI, no PR. Commit and push the branch (push is fine), then report.
 - Open a PR, wait for CI and merge ONLY when the prompt says "finish the feature": then run full `ddev composer check` once, CI once, squash-merge on green.
+- After merging to main, also wait for the push run on main (`gh run list --branch main --limit 1`, `gh run watch`) and report it; if red, fix it before any other work (W6).
 - Version tags only when a feature set is stable. Every task brief states its branch and whether it finishes the feature.
 
 ## Git rules
