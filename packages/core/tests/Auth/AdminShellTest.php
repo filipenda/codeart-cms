@@ -2,6 +2,7 @@
 
 require_once __DIR__.'/../Support/dom.php';
 
+use Codeart\Core\ActivityLog\ActivityDescription;
 use Codeart\Core\Admin\Navigation\AdminMenu;
 use Codeart\Core\Admin\Search\SearchProvider;
 use Codeart\Core\Admin\Search\SearchRegistry;
@@ -75,7 +76,7 @@ it('sends a user whose role requires two-factor to the setup page, without a loo
 
 // ---- layout ----------------------------------------------------------------------------------------------------
 
-it('renders the shell with skip link, landmarks, theme and language switchers and a POST logout', function () {
+it('renders the shell with skip link, landmarks and the user menu holding theme, language and a POST logout', function () {
     $html = dashboard($this, staff('editor'))->assertOk()->getContent();
     $xp = dom($html);
 
@@ -83,8 +84,12 @@ it('renders the shell with skip link, landmarks, theme and language switchers an
         ->and(count_nodes($xp, '//header'))->toBe(1)
         ->and(count_nodes($xp, '//aside//nav'))->toBe(1)
         ->and(count_nodes($xp, '//main[@id="main"]'))->toBe(1)
-        ->and(count_nodes($xp, '//div[@role="group"]//button[@aria-pressed]'))->toBe(3)             // light / dark / auto
-        ->and(count_nodes($xp, '//form[contains(@action, "/admin/locale")]//button[@name="locale"]'))->toBe(3) // sr, sr-Cyrl, en
+        ->and(count_nodes($xp, '//header//button[@aria-haspopup][@aria-controls="user-menu-panel"][@aria-expanded]'))->toBe(1)
+        ->and(count_nodes($xp, '//header//*[@id="user-menu-panel"]//*[@role="radiogroup"]//button[@role="radio"]'))->toBe(3) // light / dark / auto
+        ->and(count_nodes($xp, '//header//form[contains(@action, "/admin/locale")]//button[@name="locale"]'))->toBe(3) // sr, sr-Cyrl, en
+        ->and(count_nodes($xp, '//header//*[@aria-pressed]'))->toBe(0)                                  // old topbar toggle is gone
+        ->and(text_of($xp, '//header'))->toContain('Srpski (latinica)')->toContain('Српски (ћирилица)')->toContain('English')
+        ->and($html)->not->toMatch('/flag|flags\//i')
         ->and(count_nodes($xp, '//form[@method="POST"][contains(@action, "/admin/logout")]//input[@name="_token"]'))->toBe(1)
         ->and($html)->toContain("localStorage.getItem('codeart.theme')")
         ->and($html)->toContain('Ctrl K');
@@ -212,7 +217,8 @@ it('renders widgets sorted by order, and a failing widget becomes an error card 
         ->and($html)->not->toContain('secret failure detail')
         ->and(text_of($xp, '//*[@data-widget="shell.late"]'))->toContain('hello widget')
         ->and(attr($xp, '//*[@data-widget="shell.early"]', 'class'))->toContain('md:col-span-12')
-        ->and(attr($xp, '//*[@data-widget="shell.broken"]', 'class'))->toContain('lg:col-span-3');
+        ->and(attr($xp, '//*[@data-widget="shell.early"]', 'data-span'))->toBe('12')
+        ->and(attr($xp, '//*[@data-widget="shell.broken"]', 'class'))->toContain('lg:col-span-(--span)');
 
     Log::shouldHaveReceived('error')->withArgs(fn ($message) => str_contains($message, 'shell.broken'))->once();
 });
@@ -250,4 +256,45 @@ it('shows system status to admins only, with real checks', function () {
 
     expect(text_of($xp, $widget))->toContain(__('codeart::admin.widgets.check.database'))->toContain(PHP_VERSION)
         ->and(count_nodes(dom(dashboard($this, staff('editor'))->getContent()), $widget))->toBe(0);
+});
+
+// ---- activity feed -----------------------------------------------------------------------------------------------
+
+it('translates activity descriptions per locale, falls back to the raw text and hides technical events', function () {
+    $admin = staff('admin', ['name' => 'Ana Admin']);
+    activity()->event('auth.login')->causedBy($admin)->log('Signed in');
+    activity()->event('role.attached')->causedBy($admin)->log('Role attached');
+    activity()->event('unknown.thing')->log('Something custom');
+    $widget = '//*[@data-widget="core.recent-activity"]';
+
+    app()->setLocale('sr');
+    $sr = text_of(dom(dashboard($this, $admin->fresh())->getContent()), $widget);
+    expect($sr)->toContain('Prijava')->toContain('Something custom')->toContain('Sistem')->not->toContain('Signed in')->not->toContain('Uloga dodeljena')->not->toContain('Role attached');
+
+    app()->setLocale('en');
+    expect(ActivityDescription::for('auth.login', 'x'))->toBe('Signed in');
+    app()->setLocale('sr-Cyrl');
+    expect(ActivityDescription::for('auth.login', 'x'))->toBe('Пријава')
+        ->and(ActivityDescription::for('nope', 'raw'))->toBe('raw')
+        ->and(ActivityDescription::for(null, 'raw'))->toBe('raw');
+
+    expect(Activity::where('event', 'role.attached')->count())->toBeGreaterThanOrEqual(1); // still in the log
+});
+
+it('shows the brand mark and tooltips for the collapsed sidebar', function () {
+    $xp = dom(dashboard($this, staff('editor'))->getContent());
+
+    expect(count_nodes($xp, '//aside//a[@data-brand-mark][@aria-label]'))->toBe(1);
+    foreach ($xp->query('//aside//nav//a | //aside//nav//button') as $node) {
+        expect($node->getAttribute('aria-label'))->not->toBe('');
+    }
+    expect(count_nodes($xp, '//aside//nav//a[@aria-label]//*[@role="tooltip"]'))->toBeGreaterThan(0);
+});
+
+it('lays content out left-aligned with a token max width', function () {
+    $xp = dom(dashboard($this, staff('editor'))->getContent());
+    $class = attr($xp, '//main', 'class');
+
+    expect($class)->toContain('max-w-(--content-max)')->not->toContain('mx-auto')
+        ->and(file_get_contents(__DIR__.'/../../resources/css/tokens.css'))->toContain('--content-max: 100rem');
 });

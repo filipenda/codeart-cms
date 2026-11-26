@@ -80,6 +80,14 @@ return [
     ],
 
     /*
+    | Activity events that stay in the log but are left out of the dashboard's "Recent activity" widget
+    | (technical sync noise). Use the event name as written to the log.
+    */
+    'activity' => [
+        'hidden_events' => ['role.attached', 'role.detached', 'permission.attached', 'permission.detached'],
+    ],
+
+    /*
     | Admin authentication (see docs/auth.md). Behaviour is controlled by the auth.* / security.* settings;
     | these keys are wiring only.
     */

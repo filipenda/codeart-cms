@@ -9,8 +9,9 @@
         <button type="button" class="{{ $link }}w-full text-start {{ $node->open() ? 'bg-sidebar-hover' : $idle }}"
             x-on:click="if (collapsedDesktop) { expandSidebar(); open = true } else { open = !open }"
             x-bind:aria-expanded="open ? 'true' : 'false'" aria-expanded="{{ $node->open() ? 'true' : 'false' }}" aria-controls="group-{{ $node->item->key }}"
-            title="{{ $node->label }}" aria-label="{{ $node->label }}">
+            aria-label="{{ $node->label }}">
             <x-codeart::icon :name="$node->item->icon" class="size-5" />
+            <span role="tooltip" data-tooltip class="pointer-events-none absolute start-full z-50 ms-3 hidden whitespace-nowrap rounded-md bg-text px-2 py-1 text-xs font-medium text-surface shadow-card lg:in-data-[sidebar=collapsed]:group-hover:block lg:in-data-[sidebar=collapsed]:group-focus-visible:block" aria-hidden="true">{{ $node->label }}</span>
             <span class="flex-1 truncate lg:in-data-[sidebar=collapsed]:hidden">{{ $node->label }}</span>
             <x-codeart::icon name="chevron-down" class="size-4 transition-transform lg:in-data-[sidebar=collapsed]:hidden" x-bind:class="open ? 'rotate-180' : ''" />
         </button>
@@ -28,8 +29,9 @@
 @else
     <li>
         <a href="{{ $node->url }}" class="{{ $link }}{{ $node->active ? $on : $idle }}" @if ($node->active) aria-current="page" @endif
-            title="{{ $node->label }}" aria-label="{{ $node->label }}" x-on:click="if (isMobile) drawer = false">
+            aria-label="{{ $node->label }}" x-on:click="if (isMobile) drawer = false">
             <x-codeart::icon :name="$node->item->icon" class="size-5" />
+            <span role="tooltip" data-tooltip class="pointer-events-none absolute start-full z-50 ms-3 hidden whitespace-nowrap rounded-md bg-text px-2 py-1 text-xs font-medium text-surface shadow-card lg:in-data-[sidebar=collapsed]:group-hover:block lg:in-data-[sidebar=collapsed]:group-focus-visible:block" aria-hidden="true">{{ $node->label }}</span>
             <span class="truncate lg:in-data-[sidebar=collapsed]:hidden">{{ $node->label }}</span>
         </a>
     </li>

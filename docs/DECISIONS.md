@@ -167,3 +167,14 @@ New dev dependencies (npm, newest stable on 2026-11-26): `@fontsource-variable/i
 - **D14. Dashboard is the post-login page.** `GET {admin}` (`admin.dashboard`) ends the 404 noted in U15. Guests are redirected to login and back (Laravel's intended URL). The 2FA redirect needed no change; it is covered by a test and does not loop.
 - **D15. Version line.** `CMS v{version}` from Composer's installed metadata of `codeart/core` (a path install shows `dev-...`).
 - **D16. New tokens.** `--sidebar-muted|hover|border`, `--color-topbar`, `--color-scrim`, `--color-surface-sunken`, `--color-neutral` (+ `-bg`, `-text`), in light, dark and auto. The status colors already existed.
+
+## 2026-11-26 (admin shell polish)
+
+- **D17. No flags, anywhere.** A flag stands for a country, not a language (Serbian is written in two scripts, English is spoken in many countries), and flag assets add files, licensing and accessibility questions. Languages are shown as fixed endonyms from `codeart.locales.available[*].label`, never translated. This replaces the code badges of D10.
+- **D18. Theme and language live in the user menu.** The top bar is hamburger, search, user menu. Theme (radiogroup) and language (three items with a check) are personal settings, so they sit with the user. Behaviour is unchanged: `localStorage` theme with the pre-paint script, language through `POST codeart.locale`. The old toggle and switcher components were deleted.
+- **D19. Version rule.** A tagged release shows `v{x.y.z}` (also `-rc.N`); anything else (dev-*, *-dev, branch names, unknown) shows `dev`. A branch name says nothing to a client and wrapped badly. One resolver (`Version::resolve`) feeds the sidebar and the status widget.
+- **D20. Widget row packing.** `WidgetRows` packs widgets in order into rows of 12; a row with two or more widgets and less than 12 is scaled proportionally to 12 (rounding goes to the widest), a lone widget keeps its size. No empty gaps on the right; order never changes. Tablets keep 6/6/12, phones stack.
+- **D21. Hidden technical events.** Role and permission attach/detach events stay in the activity log but are listed in `codeart.activity.hidden_events` and left out of the dashboard widget. Descriptions are translated at render time from `admin.activity.<event>` (the stored English text is only the fallback), so old entries follow the panel language.
+- **D22. Collapsed sidebar mark and tooltips.** The brand mark is the favicon (one image, so no light/dark pair); without a favicon a primary-colored letter tile is used. In collapsed mode the nav does not clip (`overflow-visible`) so CSS tooltips fit; the trade-off is that a menu taller than the screen does not scroll while collapsed.
+- **D23. Content width.** Content is left-aligned up to `--content-max` (1600px, in `tokens.css`) instead of a centered 80rem column.
+

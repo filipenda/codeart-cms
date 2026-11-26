@@ -246,6 +246,61 @@ Alpine.data('codeartShell', () => ({
     },
 }));
 
+/** User dropdown: aria-expanded button, arrows/Home/End move between items, Esc closes and refocuses, tabbing out closes. */
+Alpine.data('codeartUserMenu', () => ({
+    open: false,
+
+    items() {
+        return [...this.$refs.panel.querySelectorAll('[data-menu-item]')].filter((el) => el.offsetParent !== null);
+    },
+
+    toggle() {
+        this.open ? this.close(true) : this.show();
+    },
+
+    show() {
+        this.open = true;
+        this.$nextTick(() => this.items()[0]?.focus());
+    },
+
+    close(refocus = true) {
+        if (!this.open) return;
+        this.open = false;
+        if (refocus) this.$refs.button.focus();
+    },
+
+    onFocusOut(event) {
+        if (this.open && event.relatedTarget && !this.$root.contains(event.relatedTarget)) this.close(false);
+    },
+
+    onKey(event) {
+        if (event.key === 'Escape' && this.open) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.close(true);
+            return;
+        }
+        if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+        if (!this.open) {
+            if (event.target === this.$refs.button && event.key !== 'ArrowUp' && event.key !== 'Home') {
+                event.preventDefault();
+                this.show();
+            }
+            return;
+        }
+        event.preventDefault();
+        const items = this.items();
+        if (items.length === 0) return;
+        const at = items.indexOf(document.activeElement);
+        let next;
+        if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = items.length - 1;
+        else if (event.key === 'ArrowDown') next = at < 0 ? 0 : (at + 1) % items.length;
+        else next = at <= 0 ? items.length - 1 : at - 1;
+        items[next].focus();
+    },
+}));
+
 Alpine.data('codeartPalette', () => ({
     all: [],
     query: '',
