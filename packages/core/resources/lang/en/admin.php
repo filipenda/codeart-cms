@@ -27,7 +27,7 @@ return [
         'dark' => 'Dark',
         'auto' => 'Automatic',
     ],
-    'language' => 'Panel language',
+    'language' => 'Language',
     'user' => [
         'menu' => 'User menu',
         'security' => 'Two-step verification',

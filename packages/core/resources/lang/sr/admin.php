@@ -27,11 +27,11 @@ return [
         'dark' => 'Tamna',
         'auto' => 'Automatska',
     ],
-    'language' => 'Jezik panela',
+    'language' => 'Jezik',
     'user' => [
         'menu' => 'Korisnički meni',
         'security' => 'Dvostepena provera',
-        'logout' => 'Odjavi se',
+        'logout' => 'Odjava',
         'roles' => [
             'super-admin' => 'Super administrator',
             'admin' => 'Administrator',

@@ -14,8 +14,6 @@
     </button>
 
     <div class="ms-auto flex items-center gap-2">
-        <x-codeart::admin.theme-toggle />
-        <x-codeart::admin.language-switcher />
         <x-codeart::admin.user-menu :user="$user" />
     </div>
 </header>

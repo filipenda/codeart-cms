@@ -105,7 +105,8 @@ Spec: `docs/admin-ui.md`. Only semantic utilities; the sidebar and top bar follo
 |---|---|
 | `admin.layout` | Page shell. Prop `title`. Skip link, `aside > nav` (sidebar), `header` (top bar), `main#main`, command palette. Builds the menu and search items for the signed-in user. Alpine `codeartShell` holds drawer, collapse, theme and palette state. |
 | `admin.sidebar`, `admin.menu-node` | Logo, menu tree (`NavNode`s), version line. Groups collapse; `aria-current="page"` on the active link. |
-| `admin.topbar` | Hamburger, search button (Ctrl+K), `admin.theme-toggle`, `admin.language-switcher`, `admin.user-menu`. |
+| `admin.topbar` | Hamburger, search button (Ctrl+K), `admin.user-menu`. |
+| `admin.user-menu` | Dropdown: name and role, theme radiogroup, language items, 2FA link (when offered), sign out. |
 | `admin.command-palette` | Prop `items` (list of `{label, url, icon, group}`); rendered as JSON, filtered in the browser, arrow keys, Enter, Esc, focus trap. |
 | `admin.page-header` | Props `title`, `description`, `breadcrumbs` (`[['label' => 'Pages', 'url' => '...'], ['label' => 'Edit']]`); named slot `actions` aligned to the end. |
 | `admin.card` | Rounded surface with border. Props `title`, `icon` (header shown when `title` is set). |
