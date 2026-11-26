@@ -68,7 +68,7 @@ Other attributes (`autocomplete`, `required`, `autofocus`, `readonly`) go to the
 ```
 
 ### `input`
-52px text input with optional leading `icon`. Used by `field`; `aria-invalid="true"` turns the border to the danger color.
+Props: `icon` (start), `icon-end`, `type`. 52px text input; `aria-invalid="true"` turns the border to the danger color; `disabled`/`readonly` styled. Used by `field`.
 
 ### `password-input`
 Password field with show/hide toggle (Alpine switches `type`; without JS the toggle stays hidden and it is a plain password field).
@@ -78,17 +78,76 @@ Props: `id`, `name` (default `code`), `length` (default 6). The submitted value 
 `autocomplete="one-time-code"`, `maxlength`). Alpine (`codeartOtp`) turns it into boxes with auto-advance, paste and backspace
 handling and keeps the single input in sync.
 
-### `checkbox`
-Props: `id`, `label`; other attributes (`name`, `value`, `checked`) go to the input.
+### `field-shell`
+Frame shared by `field`, `textarea` and `select`. Props: `id`, `label`, `hint`, `error`, `required` (adds an `aria-hidden` `*`), `max` + `count` (character counter `data-counter`, live with Alpine, server value without JS).
+
+### `textarea`, `select`
+Same contract as `field`. `textarea` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `rows` (4); `maxlength` gives the counter. `select` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `options` (value => label) or `<option>` in the slot, `placeholder`. Value defaults to `old(name)`.
+```blade
+<x-codeart::textarea name="bio" label="Bio" maxlength="80" hint="Optional" />
+<x-codeart::select name="plan" label="Plan" :options="['free' => 'Free', 'pro' => 'Pro']" placeholder="Choose..." required />
+```
+
+### `checkbox`, `radio`, `switch`
+Props: `id`, `label`, `hint`, `bag`, `checked` (`radio` also `value`). The plain attribute `name` ties them to `old()` (after a failed submit the sent state wins) and, for checkbox and switch, to the error bag. `switch` is a real checkbox with `role="switch"`, styled by CSS only.
+```blade
+<x-codeart::checkbox id="terms" name="terms" label="I accept" />
+<x-codeart::radio id="plan-pro" name="plan" value="pro" label="Pro" />
+<x-codeart::switch id="active" name="active" label="Active" :checked="true" />
+```
 
 ### `button`
-Props: `variant` (`primary` default, `secondary`, `ghost`), `type` (`submit` default), `icon` (trailing), `href` (renders a link), `full` (default true).
-52px high, 14px radius. As a submit button it shows a spinner after the first submit and ignores further clicks (no double submit);
-`pageshow` resets it for the back button.
+Props: `variant` (`primary` default, `secondary`, `ghost`, `danger`), `size` (`sm` 36px, `md` 44px, `lg` 52px default), `type` (`submit` default), `icon` (trailing), `icon-left`, `href` (renders a link), `full` (default true), `loading` (spinner, `aria-busy`, no clicks), `disabled`. As a submit button it shows a spinner after the first submit and ignores further clicks (no double submit); `pageshow` resets it. A disabled link gets `aria-disabled` and `tabindex=-1`.
+```blade
+<x-codeart::button variant="danger" size="md" :full="false" icon-left="trash-2">Delete</x-codeart::button>
+```
+
+### `badge`
+Props: `tone` (`primary|success|warning|danger|neutral`), `dot` (true). The label is the meaning; the dot is decoration.
+```blade
+<x-codeart::badge tone="success">Published</x-codeart::badge>
+```
 
 ### `alert`
-Props: `type` (`info|success|warning|danger`), `title`, `messages` (list). `danger` = `role="alert"`; the others
-`role="status" aria-live="polite"`. Always has an icon, so color is never the only signal.
+Props: `type` (`info|success|warning|danger`), `title`, `messages` (list), `dismissible` (close button, needs JS). `danger` = `role="alert"`; the others `role="status" aria-live="polite"`. Always has an icon, so color is never the only signal.
+```blade
+<x-codeart::alert type="warning" title="Careful" :dismissible="true">Text</x-codeart::alert>
+```
+
+### `modal`
+Native `<dialog>`. Props: `id`, `title`, `size` (`sm|md|lg`). Slots: `title` (markup, overrides the prop), default = body, `footer`. Open with any element that has `data-modal-open="id"`; `data-modal-close` closes; Esc and backdrop click close; focus is trapped and restored by the browser. Opening needs JS.
+```blade
+<x-codeart::button type="button" data-modal-open="m1">Open</x-codeart::button>
+<x-codeart::modal id="m1" title="Title">Body <x-slot:footer>...</x-slot:footer></x-codeart::modal>
+```
+
+### `confirm`
+Destructive form with a confirmation dialog. Props: `action`, `method` (POST; others are spoofed), `title`, `text`, `confirm`, `cancel`, `button` (label if the slot is empty), `variant` (danger), `size` (md), `icon`. The default slot is the trigger label. With JS the trigger opens the dialog (danger confirm button); without JS it submits as a plain form.
+```blade
+<x-codeart::confirm :action="route('pages.destroy', $page)" method="DELETE" title="Delete page?" text="This cannot be undone.">Delete</x-codeart::confirm>
+```
+
+### `toasts`
+Once per page (the admin layout has it). Shows `session('toast')` (string, `['type' => 'success', 'message' => '...']` or a list), `session('status')` (success) and `session('error')` (danger) in an `aria-live` stack and listens to the window event `codeart:toast`. Auto-dismiss 5 s (danger 8 s); without JS the flashes are alerts.
+```blade
+return back()->with('toast', ['type' => 'success', 'message' => __('Saved')]);
+<button x-data x-on:click="$dispatch('codeart:toast', { message: 'Copied', type: 'info' })">Copy</button>
+```
+
+### `empty-state`
+Props: `title`, `text`, `icon` (inbox). The default slot holds the action.
+```blade
+<x-codeart::empty-state title="No pages yet" text="Create the first one."><x-codeart::button href="...">New page</x-codeart::button></x-codeart::empty-state>
+```
+
+### `dropdown`
+The one dropdown (the user menu uses it). Props: `label` (aria-label of the button), `id` (panel id), `align` (`end|start`), `width` (`w-56`), `trigger-class`. Slot `trigger` = button content, default = panel; mark items `data-menu-item` for arrow-key navigation (Esc closes and refocuses, tabbing out closes).
+```blade
+<x-codeart::dropdown label="Actions"><x-slot:trigger>Actions</x-slot:trigger><a data-menu-item href="...">Edit</a></x-codeart::dropdown>
+```
+
+### Showcase
+`/admin/_ui` (route `codeart.ui-showcase`) lists every component in all states for review in light/dark. Local environment only (404 elsewhere), super-admin only (403), no menu item.
 
 ### `link`, `divider`, `icon`, `logout`
 `link` (prop `href`), `divider` (prop `text`: a labeled separator), `icon` (prop `name`: mail, lock, eye, eye-off, arrow-right,
@@ -106,7 +165,7 @@ Spec: `docs/admin-ui.md`. Only semantic utilities; the sidebar and top bar follo
 | `admin.layout` | Page shell. Prop `title`. Skip link, `aside > nav` (sidebar), `header` (top bar), `main#main`, command palette. Builds the menu and search items for the signed-in user. Alpine `codeartShell` holds drawer, collapse, theme and palette state. |
 | `admin.sidebar`, `admin.menu-node` | Logo, menu tree (`NavNode`s), version line. Groups collapse; `aria-current="page"` on the active link. |
 | `admin.topbar` | Hamburger, search button (Ctrl+K), `admin.user-menu`. |
-| `admin.user-menu` | Dropdown: name and role, theme radiogroup, language items, 2FA link (when offered), sign out. |
+| `admin.user-menu` | Built on `dropdown`: name and role, theme radiogroup, language items, 2FA link (when offered), sign out. |
 | `admin.command-palette` | Prop `items` (list of `{label, url, icon, group}`); rendered as JSON, filtered in the browser, arrow keys, Enter, Esc, focus trap. |
 | `admin.page-header` | Props `title`, `description`, `breadcrumbs` (`[['label' => 'Pages', 'url' => '...'], ['label' => 'Edit']]`); named slot `actions` aligned to the end. |
 | `admin.card` | Rounded surface with border. Props `title`, `icon` (header shown when `title` is set). |

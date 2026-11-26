@@ -246,8 +246,8 @@ Alpine.data('codeartShell', () => ({
     },
 }));
 
-/** User dropdown: aria-expanded button, arrows/Home/End move between items, Esc closes and refocuses, tabbing out closes. */
-Alpine.data('codeartUserMenu', () => ({
+/** Dropdown (<x-codeart::dropdown>, also the user menu): aria-expanded button, arrows/Home/End move between items, Esc closes and refocuses, tabbing out closes. */
+Alpine.data('codeartDropdown', () => ({
     open: false,
 
     items() {
@@ -359,6 +359,56 @@ Alpine.data('codeartPalette', () => ({
 
     scrollToActive() {
         this.$nextTick(() => document.getElementById('palette-option-' + this.index)?.scrollIntoView({ block: 'nearest' }));
+    },
+}));
+
+/**
+ * Modals are native <dialog> elements: showModal() gives the focus trap, Esc, inert page and focus restore.
+ * Triggers: [data-modal-open="id"], closers: [data-modal-close]; a click on the backdrop closes too.
+ * Confirm forms: the submit button marked [data-confirm-trigger] opens the dialog inside its form instead of submitting.
+ */
+document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+    const opener = target.closest('[data-modal-open]');
+    if (opener) {
+        event.preventDefault();
+        document.getElementById(opener.getAttribute('data-modal-open'))?.showModal();
+        return;
+    }
+    const confirmer = target.closest('[data-confirm-trigger]');
+    if (confirmer) {
+        event.preventDefault();
+        confirmer.form?.querySelector('dialog')?.showModal();
+        return;
+    }
+    const closer = target.closest('[data-modal-close]');
+    if (closer) {
+        closer.closest('dialog')?.close();
+        return;
+    }
+    if (target instanceof HTMLDialogElement && target.hasAttribute('data-modal')) target.close(); // backdrop
+});
+
+/** Toasts: items come from the server flash (JSON) and from the window event `codeart:toast` ({message, type, timeout}). */
+Alpine.data('codeartToasts', (initial = []) => ({
+    items: [],
+    seq: 0,
+
+    init() {
+        initial.forEach((toast) => this.add(toast));
+    },
+
+    add({ message, type = 'info', timeout }) {
+        if (!message) return;
+        const id = ++this.seq;
+        this.items.push({ id, message, type });
+        const ms = timeout ?? (type === 'danger' ? 8000 : 5000);
+        if (ms > 0) setTimeout(() => this.remove(id), ms);
+    },
+
+    remove(id) {
+        this.items = this.items.filter((item) => item.id !== id);
     },
 }));
 

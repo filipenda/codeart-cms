@@ -12,17 +12,15 @@
     $enabled = $locales->enabled();
     $current = $locales->current();
 @endphp
-<div class="relative" x-data="codeartUserMenu" x-on:keydown="onKey($event)" x-on:focusout="onFocusOut($event)" x-on:click.outside="close(false)">
-    <button type="button" x-ref="button" x-on:click="toggle()" aria-haspopup="true" aria-controls="user-menu-panel" x-bind:aria-expanded="open ? 'true' : 'false'" aria-expanded="false"
-        class="flex cursor-pointer items-center gap-3 rounded-control py-1 ps-1 pe-2 hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-focus" aria-label="{{ __('codeart::admin.user.menu') }}">
+<x-codeart::dropdown id="user-menu-panel" :label="__('codeart::admin.user.menu')" width="w-64" trigger-class="flex items-center gap-3 rounded-control py-1 ps-1 pe-2 hover:bg-surface-alt">
+    <x-slot:trigger>
         <span class="inline-flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-on-primary" aria-hidden="true">{{ $initials }}</span>
         <span class="hidden min-w-0 text-start leading-tight md:block">
             <span class="block max-w-40 truncate text-sm font-semibold text-text">{{ $name }}</span>
             <span class="block max-w-40 truncate text-xs text-text-muted">{{ $roleLabel }}</span>
         </span>
         <x-codeart::icon name="chevron-down" class="hidden size-4 text-text-muted md:block" />
-    </button>
-    <div id="user-menu-panel" x-show="open" x-cloak x-ref="panel" class="absolute end-0 z-20 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-control border border-border bg-surface p-1 shadow-card">
+    </x-slot:trigger>
         <div class="border-b border-border px-3 py-2.5">
             <p class="truncate text-sm font-semibold text-text">{{ $name }}</p>
             <p class="truncate text-xs text-text-muted">{{ $roleLabel }}</p>
@@ -65,5 +63,4 @@
                 <x-codeart::icon name="log-out" class="size-4" /> {{ __('codeart::admin.user.logout') }}
             </button>
         </form>
-    </div>
-</div>
+</x-codeart::dropdown>

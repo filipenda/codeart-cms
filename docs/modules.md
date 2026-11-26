@@ -172,7 +172,7 @@ app(SettingsManager::class)->update($user, $key, $value);  // checks permission 
 
 **Who may change what:** a definition's `permission` (core: `settings.appearance` for `theme.*` and `locales.*`, granted to `admin`); `null` = `super-admin` only (security settings). `super-admin` can lock/unlock any key; a locked key is changeable by `super-admin` only. CLI: `settings:list|get|set|lock|unlock` (CLI = super-admin; secrets masked).
 
-**Appearance:** `theme.primary|secondary|mode|logo_light|logo_dark|favicon`. `theme.mode` is `light|dark|auto`; `<html @include('codeart::partials.theme-attributes')>` prints `data-theme="..."`, `auto` follows the visitor's system preference through a `prefers-color-scheme` block in tokens.css. Logos/favicon are uploaded with `BrandingImageUploader` (png, jpg, webp by real content; size and dimension limits in `codeart.branding`; SVG refused).
+**Appearance:** `theme.primary|secondary|mode|logo_light|logo_dark|favicon`. `theme.mode` is `light|dark|auto`; `<html @include('codeart::partials.theme-attributes')>` prints `data-theme="..."`, `auto` follows the visitor's system preference through a `prefers-color-scheme` block in tokens.css. Logos/favicon are uploaded with `BrandingImageUploader` (png, jpg, webp by real content, read by the `ImageProcessor`; transparent margins of PNG/WebP are trimmed and the original kept, see DECISIONS I1-I4; size and dimension limits in `codeart.branding`; SVG refused).
 
 **Locales:** `locales.default|enabled|fallbacks` (config values are only the defaults; `available` stays in config). The default must be enabled; a derived locale (`sr-Cyrl`) needs its source (`sr`) enabled.
 

@@ -67,3 +67,4 @@ star
 message-square
 palette
 bolt
+inbox
