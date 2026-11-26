@@ -54,6 +54,11 @@
     /* Admin content: max width on very wide screens (content stays left-aligned) */
     --content-max: 100rem; /* 1600px */
 
+    /* Admin sidebar logo: fixed height (header is 4rem), width follows the image but never exceeds the max; collapsed mark */
+    --logo-height: 2.25rem; /* 36px */
+    --logo-max-width: 12.5rem; /* 200px: fits the 16rem sidebar and the mobile drawer next to its close button */
+    --logo-mark-size: 2rem; /* 32px */
+
     /* Radius */
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;

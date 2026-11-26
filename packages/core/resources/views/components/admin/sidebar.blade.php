@@ -8,14 +8,14 @@
     aria-label="{{ __('codeart::admin.menu.main') }}">
     <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-sidebar-border px-4 lg:in-data-[sidebar=collapsed]:justify-center lg:in-data-[sidebar=collapsed]:px-0">
         <a href="{{ Route::has('admin.dashboard') ? route('admin.dashboard') : url('/') }}" class="flex min-w-0 items-center rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:in-data-[sidebar=collapsed]:hidden">
-            <x-codeart::logo class="h-8 w-auto max-w-44 object-contain" />
+            <x-codeart::logo class="h-(--logo-height) w-auto max-w-(--logo-max-width) object-contain" />
         </a>
         {{-- Collapsed (icons only): the brand mark = the favicon from the theme settings, else the first letter of the site name. --}}
         <a href="{{ Route::has('admin.dashboard') ? route('admin.dashboard') : url('/') }}" data-brand-mark aria-label="{{ config('app.name') }}" class="hidden size-10 items-center justify-center rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus lg:in-data-[sidebar=collapsed]:flex">
             @if ($mark)
-                <img src="{{ $mark }}" alt="" class="size-8 object-contain">
+                <img src="{{ $mark }}" alt="" class="size-(--logo-mark-size) object-contain">
             @else
-                <span class="inline-flex size-9 items-center justify-center rounded-control bg-primary text-base font-bold text-on-primary" aria-hidden="true">{{ mb_strtoupper(mb_substr((string) config('app.name', 'C'), 0, 1)) ?: 'C' }}</span>
+                <span class="inline-flex size-(--logo-mark-size) items-center justify-center rounded-control bg-primary text-base font-bold text-on-primary" aria-hidden="true">{{ mb_strtoupper(mb_substr((string) config('app.name', 'C'), 0, 1)) ?: 'C' }}</span>
             @endif
         </a>
         <button type="button" hidden x-bind:hidden="!isMobile" x-on:click="closeDrawer()" class="inline-flex size-10 items-center justify-center rounded-control text-sidebar-muted hover:bg-sidebar-hover hover:text-sidebar-text focus-visible:outline-2 focus-visible:outline-focus lg:hidden" aria-label="{{ __('codeart::admin.menu.close') }}">
