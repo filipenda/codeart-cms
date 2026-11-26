@@ -1,9 +1,9 @@
 <x-codeart::admin.card :title="__($widget->label)" :icon="$widget->icon" class="h-full">
     <dl class="space-y-3 text-sm">
         @foreach ($data['checks'] as $check)
-            <div class="flex items-center justify-between gap-3">
-                <dt class="text-text-muted">{{ __('codeart::admin.widgets.check.'.$check['label']) }}</dt>
-                <dd class="font-medium text-text">
+            <div class="flex items-start justify-between gap-4">
+                <dt class="shrink-0 whitespace-nowrap text-text-muted">{{ __('codeart::admin.widgets.check.'.$check['label']) }}</dt>
+                <dd class="min-w-0 text-end font-medium text-text [overflow-wrap:anywhere]">
                     @if ($check['ok'] === null)
                         {{ $check['value'] }}
                     @else
