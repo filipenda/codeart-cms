@@ -34,7 +34,7 @@ There is **no `version` field**. The version is read from Composer's installed m
 - **Enable** (`php artisan module:enable pages`): checks `requires` (installed, enabled, version constraint; `dev-*` installs skip the version check), runs the module's migrations, creates its permissions, boots it, fires `ModuleEnabled`.
 - **Disable** (`module:disable pages`): refused while another enabled module requires it. Never deletes data, tables or permissions. Fires `ModuleDisabled`.
 - **Boot** (every request, only enabled modules): registers the provider, `routes/web.php` (with the `web` middleware), `resources/views` and the migrations path. The enabled list is cached; with the database not ready (install time) nothing is booted and nothing crashes.
-- **Menu**: `MenuRegistry::items($user)` returns the menu items of enabled modules the user may see, sorted by `order`.
+- **Menu**: `module.json` `menu` entries become flat sidebar links; richer menus (groups, children) are registered from the provider, see "Admin menu, dashboard, search". `MenuRegistry::items($user)` still returns the manifest entries the user may see.
 - `module:list` shows what is installed and enabled.
 
 Only a super-admin may manage modules (Gate `manage-modules`); for now the commands are CLI-only.
@@ -88,6 +88,58 @@ The model must be saved before `setTranslation()`. Disabled or unknown locales t
 - Saving `sr-Cyrl` directly: a value that differs from the generated one is added to `manual_fields` (and is never overwritten again); a value equal to it is removed from the list.
 - Transliteration is rule based: `lj nj dž` become Љ Њ Џ, `đ` becomes ђ, a plain `dj` stays д+ј. HTML tags and attribute values, script/style, entities, URLs, e-mail addresses and placeholders (`:name`, `%s`, `{name}`, `{{ }}`) are left alone.
 - **Known limitation:** ambiguous words cannot be solved by rules: "injekcija" comes out as "ињекција" (correct: "инјекција"). The editor corrects the Cyrillic by hand; that edit is kept (`manual_fields`).
+
+## Admin menu, dashboard, search
+Register everything from your provider's `boot()` (it only runs while the module is enabled, so a disabled module disappears by itself).
+Every admin route of a module must use `['web', 'auth:admin', 'admin.access']`. Layout: `<x-codeart::admin.layout>`, see `docs/components.md`.
+```php
+use Codeart\Core\Admin\Dashboard\{QuickAction, QuickActions, Widget, WidgetData, WidgetRegistry};
+use Codeart\Core\Admin\Navigation\{AdminMenu, NavItem};
+use Codeart\Core\Admin\Search\{SearchProvider, SearchRegistry, SearchResult};
+
+public function boot(): void
+{
+    // Menu: a group (no route) with children; labels may be translation keys.
+    $this->app->make(AdminMenu::class)->add(
+        new NavItem('pages', 'pages::menu.pages', 'file-text', order: 20, children: [
+            new NavItem('pages.list', 'pages::menu.list', 'list', 'pages.index', 'pages.view', 10),
+            new NavItem('pages.new', 'pages::menu.new', 'plus', 'pages.create', 'pages.edit', 20),
+        ]),
+    );
+
+    // Dashboard widget: a Blade view plus a data class. size: sm (3/12), md (6/12), lg (12/12) on desktop.
+    $this->app->make(WidgetRegistry::class)->add(
+        new Widget('pages.drafts', 'pages::widgets.drafts', 'file-text', 'pages::widgets.drafts', DraftsWidget::class,
+            permission: 'pages.view', size: 'sm', order: 40, module: 'pages'),
+    );
+
+    // Quick action: collected into the "Quick actions" widget.
+    $this->app->make(QuickActions::class)->add(new QuickAction('pages.new', 'pages::menu.new', 'plus', 'pages.create', 'pages.edit', 10));
+
+    // Command palette results.
+    $this->app->make(SearchRegistry::class)->add(PagesSearch::class);
+}
+
+class DraftsWidget implements WidgetData
+{
+    public function data(?Authenticatable $user): ?array   // null = leave the widget out
+    {
+        return ['count' => Page::where('status', 'draft')->count()];   // the view gets $widget, $data, $user
+    }
+}
+
+class PagesSearch implements SearchProvider
+{
+    public function results(?Authenticatable $user): array   // short, cheap, only what the user may open
+    {
+        return [new SearchResult('New page', route('pages.create'), 'plus', 'Pages')];
+    }
+}
+```
+- **NavItem**: `key` (unique), `label`, `icon` (Lucide name, see below), `route` (null = group), `permission` (Gate ability; null = everyone who may enter), `order`, `parent`, `children`, `module`. Hidden: items the user may not see, items whose route does not exist, groups without a visible child. Active: the item's route, or any route of its section when the item's route ends in `.index`. The Dashboard item belongs to core. A "Modules" item (permission `manage-modules`, super-admin only) comes later.
+- **Widget**: a throwing provider or view is logged and shown as a small error card; the rest of the dashboard is unaffected. Sizes and order as in the example. No made-up numbers: show real data or no widget.
+- **Icons**: the Lucide names in `packages/core/scripts/icons.txt` (add yours there and run `npm run build:icons` in core), or `app(Codeart\Core\Admin\Icons::class)->register('my-icon', '<path d="..."/>')` (24x24, stroke style). An unknown name renders nothing.
+- **Core registers**: menu item `dashboard`; widgets `core.recent-activity` (permission `users.view`), `core.system-status` (`system.status`, admin and super-admin), `core.quick-actions`; the menu search provider.
 
 ## Settings
 Settings live in the `settings` table (typed, cached as one entry, secrets encrypted). A module registers its definitions in its service provider; they exist only while the module is enabled (stored values survive a disable). Keys must start with `<module>.`.
