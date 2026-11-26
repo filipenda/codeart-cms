@@ -9,7 +9,7 @@ return [
         'close' => 'Zatvori meni',
         'expand_group' => 'Prikaži ili sakrij podstavke',
     ],
-    'version' => 'CMS v:version',
+    'version' => 'CMS :version',
     'breadcrumb' => 'Putanja',
     'home' => 'Početna',
 

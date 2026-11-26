@@ -9,7 +9,7 @@ return [
         'close' => 'Close menu',
         'expand_group' => 'Show or hide sub-items',
     ],
-    'version' => 'CMS v:version',
+    'version' => 'CMS :version',
     'breadcrumb' => 'Breadcrumb',
     'home' => 'Home',
 

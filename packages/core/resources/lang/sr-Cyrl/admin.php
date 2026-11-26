@@ -9,7 +9,7 @@ return [
         'close' => 'Затвори мени',
         'expand_group' => 'Прикажи или сакриј подставке',
     ],
-    'version' => 'ЦМС в:версион',
+    'version' => 'ЦМС :version',
     'breadcrumb' => 'Путања',
     'home' => 'Почетна',
     'search' => [

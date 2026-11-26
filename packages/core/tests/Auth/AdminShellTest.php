@@ -101,7 +101,7 @@ it('shows the user, the highest role and the dashboard link as the current page'
 
     expect(text_of($xp, '//header'))->toContain('Mila Petrović')->toContain('Administrator')
         ->and(attr($xp, '//aside//a[@aria-current="page"]', 'href'))->toBe(route('admin.dashboard'))
-        ->and(text_of($xp, '//aside'))->toContain('CMS v');
+        ->and(text_of($xp, '//aside'))->toContain('CMS ');
 });
 
 it('shows the two-step link only while two-step verification is offered', function () {

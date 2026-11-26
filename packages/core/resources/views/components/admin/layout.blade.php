@@ -12,6 +12,7 @@
     $theme = app(ThemeSettings::class);
     $favicon = $theme->favicon() !== null ? app(\Codeart\Core\Branding\BrandingImageUploader::class)->url('theme.favicon') : null;
     $version = Version::cms();
+    $version = ctype_digit($version[0] ?? '') ? 'v'.$version : $version; // 1.2.0 -> v1.2.0, dev-main stays
 @endphp
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @include('codeart::partials.theme-attributes')>
