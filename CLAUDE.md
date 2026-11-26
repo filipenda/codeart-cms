@@ -12,7 +12,7 @@ Env: PHP >= 8.4 (composer `platform` 8.4.1, CI on 8.4 and latest stable), Larave
 
 ## Commands
 - `ddev start`, then `ddev composer setup` (first time)
-- `ddev composer check` = check:colors + Pint (test mode) + Larastan + Pest for core and starter
+- `ddev composer check:fast` = check:colors + Pint + Larastan + only the tests affected by the change (`tools/affected-tests.php`); `ddev composer check` = full run + Pint (test mode) + Larastan + Pest for core and starter
 - `ddev composer check:colors` alone; inside a package: `composer check`, `composer test`
 - Rebuild CSS and JS: `ddev exec "cd packages/core && npm run build"` (commit `resources/dist`)
 
