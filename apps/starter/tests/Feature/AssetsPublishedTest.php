@@ -34,3 +34,12 @@ it('publishes the assets automatically on composer install and update', function
     expect(implode(' ', (array) $scripts['post-install-cmd']))->toContain('--tag=codeart-assets')
         ->and(implode(' ', (array) $scripts['post-update-cmd']))->toContain('--tag=codeart-assets');
 });
+
+it('publishes the self-hosted Inter font files next to the css', function () {
+    foreach (['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'] as $subset) {
+        $file = "fonts/inter-{$subset}-wght-normal.woff2";
+
+        expect(is_file(public_path('vendor/codeart/'.$file)))->toBeTrue("{$file} is not published: run php artisan vendor:publish --tag=codeart-assets --force");
+    }
+    expect((string) file_get_contents(Assets::packagePath('codeart.css')))->toContain('fonts/inter-latin-wght-normal.woff2');
+});
