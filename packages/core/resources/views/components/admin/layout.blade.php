@@ -34,12 +34,12 @@
 
     <div x-show="drawer" x-cloak x-transition.opacity class="fixed inset-0 z-30 bg-scrim lg:hidden" x-on:click="closeDrawer()" aria-hidden="true"></div>
 
-    <x-codeart::admin.sidebar :tree="$tree" :version="$version" />
+    <x-codeart::admin.sidebar :tree="$tree" :version="$version" :mark="$favicon" />
 
     <div class="flex min-h-screen flex-col lg:ps-64 lg:in-data-[sidebar=collapsed]:ps-18">
         <x-codeart::admin.topbar :user="$user" />
 
-        <main id="main" tabindex="-1" class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
+        <main id="main" tabindex="-1" class="w-full max-w-(--content-max) flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
             @if (session('status'))
                 <x-codeart::alert type="success" class="mb-6">{{ session('status') }}</x-codeart::alert>
             @endif

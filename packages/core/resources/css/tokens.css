@@ -51,6 +51,9 @@
     --color-qr-fg: #000000;
     --color-qr-bg: #ffffff;
 
+    /* Admin content: max width on very wide screens (content stays left-aligned) */
+    --content-max: 100rem; /* 1600px */
+
     /* Radius */
     --radius-sm: 0.25rem;
     --radius-md: 0.5rem;
