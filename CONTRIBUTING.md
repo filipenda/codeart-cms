@@ -14,6 +14,14 @@
 - Work on short-lived branches: `feat/...`, `fix/...`, `chore/...`.
 - Open a pull request; it is **squash-merged**. The PR title must be a Conventional Commit.
 
+## Workflow: one branch per feature
+- `main` contains only finished, working features (for example a whole module), never half-done pieces.
+- One branch per feature (`feat/admin-ui`, later `feat/module-pages`). Several prompts or sessions may add commits to the same branch.
+- While working, run only the fast local check (`ddev composer check:fast`). No CI wait, no PR. Pushing the branch is fine.
+- A PR is opened only when the whole feature is done. Then the full `ddev composer check` runs locally once, CI runs once, and on green the PR is squash-merged: one clean commit per feature on `main`.
+- Version tags only when a feature set is stable.
+- Unless a task says "finish the feature", Claude does not open a PR, wait for CI or merge: it commits, pushes and reports.
+
 ## Commits
 [Conventional Commits](https://www.conventionalcommits.org): `feat(core): add theme settings`, `fix(pages): ...`, `chore: ...`, `docs: ...`.
 Small commits on the branch are fine.
@@ -22,11 +30,12 @@ Small commits on the branch are fine.
 ```
 ddev start
 ddev composer setup   # first time
-ddev composer check   # Pint, Larastan, Pest, color check
+ddev composer check:fast  # while working: colors, Pint (check only), Larastan, tests of changed files (~1 min)
+ddev composer check       # full run, once before opening a PR (also what CI runs)
 ```
 
 ## CI
-GitHub Actions runs `composer check` on PHP 8.4 (the minimum) and the latest stable PHP, against a MariaDB 12.3 service (tests need a `test` database; DDEV creates it on `ddev start`).
+GitHub Actions runs `composer check` on pull requests and on pushes to `main` only (not on every branch push; superseded runs of the same ref are cancelled), on PHP 8.4 (the minimum) and the latest stable PHP, against a MariaDB 12.3 service (tests need a `test` database; DDEV creates it on `ddev start`).
 **Branch protection is not available on our GitHub plan, so CI is informational only**: nothing stops a red PR from being merged. Check that CI is green before merging.
 
 ## Rules

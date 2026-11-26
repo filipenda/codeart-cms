@@ -178,3 +178,11 @@ New dev dependencies (npm, newest stable on 2026-11-26): `@fontsource-variable/i
 - **D22. Collapsed sidebar mark and tooltips.** The brand mark is the favicon (one image, so no light/dark pair); without a favicon a primary-colored letter tile is used. In collapsed mode the nav does not clip (`overflow-visible`) so CSS tooltips fit; the trade-off is that a menu taller than the screen does not scroll while collapsed.
 - **D23. Content width.** Content is left-aligned up to `--content-max` (1600px, in `tokens.css`) instead of a centered 80rem column.
 
+## 2026-11-26 (workflow and faster checks)
+
+- **W1. `main` holds only finished features.** A whole module or feature lands as one squash commit, never half-done pieces. Reason: fewer needless merges and CI waits.
+- **W2. One branch per feature.** Several prompts/sessions add commits to the same branch (`feat/admin-ui`, later `feat/module-pages`).
+- **W3. Fast checks while working.** Only `composer check:fast` locally; no CI, no PR. CI runs on `pull_request` and pushes to `main` only, with `concurrency` cancelling superseded runs.
+- **W4. PR only when the feature is done.** Then full `composer check` once locally, CI once, squash-merge on green. Unless a prompt says "finish the feature", Claude does not open a PR, wait for CI or merge; it commits, pushes and reports.
+- **W5. Tags only for a stable feature set.** Task briefs now state branch and whether they finish the feature.
+
