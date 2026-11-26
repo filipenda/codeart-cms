@@ -25,9 +25,9 @@ final class CoreSettings
             new SettingDefinition('theme.primary', SettingType::Color, $cfg('primary'), permission: $perm, label: 'Primary color', description: 'Main brand color; hover, link and text colors are derived from it.'),
             new SettingDefinition('theme.secondary', SettingType::Color, $cfg('secondary'), permission: $perm, label: 'Secondary color', description: 'Accent color.'),
             new SettingDefinition('theme.mode', SettingType::Enum, $cfg('mode'), permission: $perm, options: ['light', 'dark', 'auto'], label: 'Color mode', description: 'Light, dark, or follow the visitor\'s system preference.'),
-            new SettingDefinition('theme.logo_light', SettingType::Image, $cfg('logo_light'), permission: $perm, label: 'Logo (light background)', description: 'PNG, JPG or WebP.'),
-            new SettingDefinition('theme.logo_dark', SettingType::Image, $cfg('logo_dark'), permission: $perm, label: 'Logo (dark background)', description: 'PNG, JPG or WebP.'),
-            new SettingDefinition('theme.favicon', SettingType::Image, $cfg('favicon'), permission: $perm, label: 'Favicon', description: 'PNG, JPG or WebP.'),
+            new SettingDefinition('theme.logo_light', SettingType::Image, $cfg('logo_light'), permission: $perm, label: 'Logo (light background)', description: 'Best: PNG or WebP with a transparent background (empty margins are trimmed automatically; the original is kept). JPG also works.'),
+            new SettingDefinition('theme.logo_dark', SettingType::Image, $cfg('logo_dark'), permission: $perm, label: 'Logo (dark background)', description: 'Best: PNG or WebP with a transparent background (empty margins are trimmed automatically; the original is kept). JPG also works.'),
+            new SettingDefinition('theme.favicon', SettingType::Image, $cfg('favicon'), permission: $perm, label: 'Favicon', description: 'Best: PNG or WebP with a transparent background. JPG also works.'),
         ];
     }
 

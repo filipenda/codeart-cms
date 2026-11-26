@@ -3,9 +3,11 @@
 namespace Codeart\Core\Console;
 
 use Codeart\Core\Branding\BrandingImageUploader;
+use Codeart\Core\Images\ImageProcessor;
 use Codeart\Core\Settings\InvalidSettingValue;
 use Illuminate\Console\Command;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Loads the brand files into the theme settings through the normal image upload service (so the same checks
@@ -24,7 +26,7 @@ class BrandLoadCommand extends Command
 
     protected $description = 'Load the logos and favicon from a folder into the appearance settings';
 
-    public function handle(BrandingImageUploader $uploader): int
+    public function handle(BrandingImageUploader $uploader, ImageProcessor $images): int
     {
         $directory = $this->directory();
         if ($directory === null) {
@@ -43,8 +45,10 @@ class BrandLoadCommand extends Command
             }
             try {
                 // test mode: the file is already on disk, not an HTTP upload; the uploader still checks its content.
-                $uploader->store($key, new UploadedFile($file, $name, null, null, true));
-                $this->components->info("{$key} <- {$name}");
+                $path = $uploader->store($key, new UploadedFile($file, $name, null, null, true));
+                $before = $images->inspect((string) file_get_contents($file));
+                $after = $images->inspect(Storage::disk((string) config('codeart.branding.disk', 'public'))->get($path) ?? '');
+                $this->components->info("{$key} <- {$name} ({$before?->width}x{$before?->height} -> {$after?->width}x{$after?->height})");
                 $loaded++;
             } catch (InvalidSettingValue $e) {
                 $this->components->error("{$name}: {$e->getMessage()}");

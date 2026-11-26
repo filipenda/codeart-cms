@@ -42,6 +42,16 @@ return [
     ],
 
     /*
+    | Image processing (the single ImageProcessor service). `driver`: gd (default) or imagick; imagick is used only
+    | when the extension exists, otherwise gd. `trim_alpha_tolerance` (0-255): opacity at or below it counts as empty
+    | when transparent logo margins are trimmed, so faint shadows do not block the trim.
+    */
+    'images' => [
+        'driver' => 'gd',
+        'trim_alpha_tolerance' => 8,
+    ],
+
+    /*
     | Logo/favicon uploads (png, jpg, webp only).
     */
     'branding' => [

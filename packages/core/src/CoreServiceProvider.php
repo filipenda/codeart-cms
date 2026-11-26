@@ -32,6 +32,8 @@ use Codeart\Core\Console\UserCreateCommand;
 use Codeart\Core\Console\UserDeactivateCommand;
 use Codeart\Core\Console\UserInviteCommand;
 use Codeart\Core\Console\UserReset2faCommand;
+use Codeart\Core\Images\ImageProcessor;
+use Codeart\Core\Images\InterventionImageProcessor;
 use Codeart\Core\Modules\MenuRegistry;
 use Codeart\Core\Modules\ModuleDiscovery;
 use Codeart\Core\Modules\ModuleRegistry;
@@ -81,6 +83,10 @@ class CoreServiceProvider extends ServiceProvider
         ));
 
         $this->app->singleton(Assets::class);
+        $this->app->singleton(ImageProcessor::class, fn (): ImageProcessor => new InterventionImageProcessor(
+            (string) config('codeart.images.driver', 'gd'),
+            (int) config('codeart.images.trim_alpha_tolerance', 8),
+        ));
         $this->app->singleton(ThemeSettings::class, fn (): ThemeSettings => new ThemeSettings(
             $this->app->make(Settings::class),
             (array) config('codeart.theme_base', []),
