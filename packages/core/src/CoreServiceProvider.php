@@ -2,6 +2,17 @@
 
 namespace Codeart\Core;
 
+use Codeart\Core\Admin\Dashboard\QuickActions;
+use Codeart\Core\Admin\Dashboard\Widget;
+use Codeart\Core\Admin\Dashboard\WidgetRegistry;
+use Codeart\Core\Admin\Dashboard\Widgets\QuickActionsWidget;
+use Codeart\Core\Admin\Dashboard\Widgets\RecentActivityWidget;
+use Codeart\Core\Admin\Dashboard\Widgets\SystemStatusWidget;
+use Codeart\Core\Admin\Icons;
+use Codeart\Core\Admin\Navigation\AdminMenu;
+use Codeart\Core\Admin\Navigation\NavItem;
+use Codeart\Core\Admin\Search\MenuSearchProvider;
+use Codeart\Core\Admin\Search\SearchRegistry;
 use Codeart\Core\Auth\AuthServiceProvider;
 use Codeart\Core\Console\ActivityLogPruneCommand;
 use Codeart\Core\Console\BrandLoadCommand;
@@ -46,6 +57,11 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singletonIf(ModuleDiscovery::class);
         $this->app->singleton(ModuleRegistry::class);
         $this->app->singleton(MenuRegistry::class);
+        $this->app->singleton(AdminMenu::class);
+        $this->app->singleton(WidgetRegistry::class);
+        $this->app->singleton(QuickActions::class);
+        $this->app->singleton(SearchRegistry::class);
+        $this->app->singleton(Icons::class);
 
         $this->mergeConfigFrom(__DIR__.'/../config/codeart.php', 'codeart');
 
@@ -87,6 +103,8 @@ class CoreServiceProvider extends ServiceProvider
         Gate::before(fn ($user) => $this->hasSuperAdminRole($user) ? true : null);
         Gate::define('manage-modules', fn ($user): bool => $this->hasSuperAdminRole($user));
 
+        $this->registerAdminShell();
+
         // cron `schedule:run` is the only scheduler on client servers
         $this->callAfterResolving(Schedule::class, fn (Schedule $schedule) => $schedule->command('activity-log:prune')->daily());
 
@@ -115,6 +133,20 @@ class CoreServiceProvider extends ServiceProvider
                 __DIR__.'/../resources/views/components' => resource_path('views/vendor/codeart/components'),
             ], 'codeart-views');
         }
+    }
+
+    /** What core itself puts into the admin: the Dashboard menu item, its widgets, the menu search provider. */
+    private function registerAdminShell(): void
+    {
+        $this->app->make(AdminMenu::class)->add(
+            new NavItem('dashboard', 'codeart::admin.menu.dashboard', 'layout-dashboard', 'admin.dashboard', order: 0, module: 'core'),
+        );
+        $this->app->make(WidgetRegistry::class)->add(
+            new Widget('core.recent-activity', 'codeart::admin.widgets.recent_activity', 'history', 'codeart::admin.widgets.recent-activity', RecentActivityWidget::class, permission: 'users.view', size: 'md', order: 10, module: 'core'),
+            new Widget('core.system-status', 'codeart::admin.widgets.system_status', 'activity', 'codeart::admin.widgets.system-status', SystemStatusWidget::class, permission: 'system.status', size: 'sm', order: 20, module: 'core'),
+            new Widget('core.quick-actions', 'codeart::admin.widgets.quick_actions', 'zap', 'codeart::admin.widgets.quick-actions', QuickActionsWidget::class, size: 'sm', order: 30, module: 'core'),
+        );
+        $this->app->make(SearchRegistry::class)->add(MenuSearchProvider::class);
     }
 
     /**

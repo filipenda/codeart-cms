@@ -20,6 +20,7 @@ class CreateDefaultRoles
     public const array PERMISSIONS = [
         CoreSettings::PERMISSION_APPEARANCE => ['admin'],
         'admin.access' => ['admin', 'editor'],
+        'system.status' => ['admin'],
         'users.view' => ['admin'],
         'users.invite' => ['admin'],
         'users.manage' => ['admin'],
