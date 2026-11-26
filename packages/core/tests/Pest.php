@@ -9,6 +9,7 @@ use Codeart\Core\Tests\AuthTestCase;
 use Codeart\Core\Tests\Support\AdminTestUser;
 use Codeart\Core\Tests\Support\FakeDiscovery;
 use Codeart\Core\Tests\Support\StubUser;
+use Codeart\Core\Tests\Support\TestDatabase;
 use Codeart\Core\Tests\TestCase;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Database\Schema\Blueprint;
@@ -22,8 +23,8 @@ uses(TestCase::class)->in('Unit', 'Feature');
 uses(AuthTestCase::class)->in('Auth');
 
 pest()->beforeEach(function () {
-    // Enabling a module runs DDL (implicit commits), so no transaction-based refresh: rebuild from scratch.
-    $this->artisan('migrate:fresh', ['--force' => true]);
+    // Enabling a module runs DDL (implicit commits), so no transaction-based refresh: back to the migrated baseline.
+    TestDatabase::reset($this, 'plain');
     // The app booted against the previous test's leftovers and cached them; start clean.
     app(ModuleRegistry::class)->forgetCache();
     FakeDiscovery::$modules = [];
@@ -37,7 +38,7 @@ pest()->beforeEach(function () {
 
 // Settings tests: fresh schema, roles, and no cached leftovers.
 pest()->beforeEach(function () {
-    $this->artisan('migrate:fresh', ['--force' => true]);
+    TestDatabase::reset($this, 'plain');
     app(ModuleRegistry::class)->forgetCache();
     app(Settings::class)->flush();
     FakeDiscovery::$modules = [];
@@ -51,7 +52,7 @@ pest()->beforeEach(function () {
 
 // Auth tests: fresh schema (framework users + sessions + core's columns), roles and permissions, no real HTTP.
 pest()->beforeEach(function () {
-    $this->artisan('migrate:fresh', ['--force' => true]);
+    TestDatabase::reset($this, 'auth');
     app(ModuleRegistry::class)->forgetCache();
     app(Settings::class)->flush();
     FakeDiscovery::$modules = [];

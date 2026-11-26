@@ -12,7 +12,7 @@ Env: PHP >= 8.4 (composer `platform` 8.4.1, CI on 8.4 and latest stable), Larave
 
 ## Commands
 - `ddev start`, then `ddev composer setup` (first time)
-- `ddev composer check` = check:colors + Pint (test mode) + Larastan + Pest for core and starter
+- `ddev composer check:fast` = check:colors + Pint + Larastan + only the tests affected by the change (`tools/affected-tests.php`); `ddev composer check` = full run + Pint (test mode) + Larastan + Pest for core and starter
 - `ddev composer check:colors` alone; inside a package: `composer check`, `composer test`
 - Rebuild CSS and JS: `ddev exec "cd packages/core && npm run build"` (commit `resources/dist`)
 
@@ -58,6 +58,12 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 
 ## Release rules (short; full text in CONTRIBUTING.md)
 `main` = next release, NOT production; nothing deploys from it. Releases are Git tags: `x.y.z-rc.N` only on a test site, `x.y.z` stable for clients (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only for old lines. Client app repos differ: PR -> staging -> main = production.
+
+## Workflow (details: CONTRIBUTING.md, DECISIONS W1-W5)
+- `main` holds only finished, working features (a whole module), never half-done pieces. One branch per feature (`feat/admin-ui`); several sessions may add commits to it.
+- While working: run only `ddev composer check:fast`; no CI, no PR. Commit and push the branch (push is fine), then report.
+- Open a PR, wait for CI and merge ONLY when the prompt says "finish the feature": then run full `ddev composer check` once, CI once, squash-merge on green.
+- Version tags only when a feature set is stable. Every task brief states its branch and whether it finishes the feature.
 
 ## Git rules
 - `main` is always releasable; short-lived branches `feat/`, `fix/`, `chore/`; Conventional Commits; PRs are squash-merged.

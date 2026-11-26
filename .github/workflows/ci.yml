@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -40,6 +44,13 @@ jobs:
           coverage: none
           tools: composer:v2
           extensions: mbstring, pdo_mysql, intl, xml, ctype, fileinfo
+      - id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ matrix.php }}-${{ hashFiles('packages/core/composer.lock', 'apps/starter/composer.lock') }}
+          restore-keys: composer-${{ matrix.php }}-
       - run: composer setup
       - run: cp apps/starter/.env.example apps/starter/.env && php apps/starter/artisan key:generate
       - run: composer check

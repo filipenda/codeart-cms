@@ -38,7 +38,7 @@
     "scripts": {
         "pint": "pint --test",
         "stan": "phpstan analyse --memory-limit=1G",
-        "test": "pest",
+        "test": "pest --parallel",
         "check": [
             "@pint",
             "@stan",

@@ -18,6 +18,14 @@
             "@check:colors",
             "@check:core",
             "@check:starter"
+        ],
+        "check:fast": [
+            "@check:colors",
+            "@composer --working-dir=packages/core pint",
+            "@composer --working-dir=apps/starter pint",
+            "@composer --working-dir=packages/core stan",
+            "@composer --working-dir=apps/starter stan",
+            "@php tools/affected-tests.php"
         ]
     },
     "config": {
