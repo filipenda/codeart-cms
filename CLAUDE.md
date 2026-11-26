@@ -52,6 +52,10 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 - UI building blocks: anonymous components `<x-codeart::...>` (`docs/components.md`), only semantic utilities. Rebuild CSS + JS after touching views/CSS/JS: `ddev exec "cd packages/core && npm run build"` and commit `resources/dist`. Screens are overridable with `vendor:publish --tag=codeart-views`.
 - First super-admin: `php artisan codeart:roles`, then `php artisan user:create "Name" email super-admin`.
 
+## Admin shell (details: docs/admin-ui.md, docs/modules.md)
+- Admin pages use `<x-codeart::admin.layout>`; modules add menu items, dashboard widgets, quick actions and search results from their provider (`AdminMenu`, `WidgetRegistry`, `QuickActions`, `SearchRegistry`). Never link to a page that does not exist, never show invented numbers.
+- Icons: Lucide names from `packages/core/scripts/icons.txt` (`npm run build:icons`); font Inter is self-hosted. `npm run build` also copies the fonts.
+
 ## Release rules (short; full text in CONTRIBUTING.md)
 `main` = next release, NOT production; nothing deploys from it. Releases are Git tags: `x.y.z-rc.N` only on a test site, `x.y.z` stable for clients (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only for old lines. Client app repos differ: PR -> staging -> main = production.
 
