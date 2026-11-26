@@ -1,6 +1,8 @@
 @php
     $first = $user !== null ? \Illuminate\Support\Str::of((string) ($user->name ?? ''))->trim()->before(' ')->toString() : '';
-    $spans = ['sm' => 'md:col-span-6 lg:col-span-3', 'md' => 'md:col-span-6', 'lg' => 'md:col-span-12'];
+    $tablet = ['sm' => 'md:col-span-6', 'md' => 'md:col-span-6', 'lg' => 'md:col-span-12'];
+    $cols = ['sm' => 3, 'md' => 6, 'lg' => 12];
+    $spans = \Codeart\Core\Admin\Dashboard\WidgetRows::spans(array_map(fn ($r) => $cols[$r->widget->size], $widgets));
 @endphp
 <x-codeart::admin.layout :title="__('codeart::admin.dashboard.title')">
     <x-codeart::admin.page-header :title="__('codeart::admin.dashboard.title')"
@@ -16,8 +18,8 @@
         </x-codeart::admin.card>
     @else
         <div class="grid grid-cols-1 gap-6 md:grid-cols-12" data-widgets>
-            @foreach ($widgets as $rendered)
-                <div class="col-span-1 min-w-0 {{ $spans[$rendered->widget->size] }}" data-widget="{{ $rendered->widget->key }}" data-size="{{ $rendered->widget->size }}" @if ($rendered->failed) data-failed @endif>
+            @foreach ($widgets as $i => $rendered)
+                <div class="col-span-1 min-w-0 {{ $tablet[$rendered->widget->size] }} lg:col-span-(--span)" style="--span: {{ $spans[$i] }}" data-span="{{ $spans[$i] }}" data-widget="{{ $rendered->widget->key }}" data-size="{{ $rendered->widget->size }}" @if ($rendered->failed) data-failed @endif>
                     {!! $rendered->html !!}
                 </div>
             @endforeach
