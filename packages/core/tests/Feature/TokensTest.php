@@ -24,7 +24,7 @@ it('defines every semantic token for light and dark', function (string $token) {
     '--color-warning', '--color-warning-bg', '--color-warning-text',
     '--color-danger', '--color-danger-bg', '--color-danger-text',
     '--color-info', '--color-info-bg', '--color-info-text',
-    '--sidebar-bg', '--sidebar-text', '--radius-md', '--space-md', '--font-sans',
+    '--sidebar-bg', '--sidebar-text', '--sidebar-muted', '--sidebar-hover', '--sidebar-border', '--color-topbar', '--color-surface-sunken', '--color-neutral', '--color-neutral-bg', '--color-neutral-text', '--radius-md', '--space-md', '--font-sans',
 ]);
 
 it('uses the CodeArt brand defaults', function () {
@@ -33,7 +33,7 @@ it('uses the CodeArt brand defaults', function () {
     expect($tokens)->toContain('--color-primary: #c9f31d')
         ->toContain('--color-on-primary: #22201f')
         ->toContain('--color-secondary: #a0bb47')
-        ->toContain('--sidebar-bg: #373435')
+        ->toContain('--sidebar-bg: #ffffff')
         ->toContain('--color-link: #4a6210');
 });
 

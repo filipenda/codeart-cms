@@ -3,7 +3,7 @@
     "type": "module",
     "scripts": {
         "build": "npm run build:fonts && npm run build:css && npm run build:js",
-        "build:fonts": "mkdir -p resources/dist/fonts && cp node_modules/@fontsource-variable/inter/files/inter-{latin,latin-ext,cyrillic,cyrillic-ext}-wght-normal.woff2 resources/dist/fonts/",
+        "build:fonts": "node scripts/copy-fonts.mjs",
         "build:icons": "node scripts/build-icons.mjs",
         "build:css": "tailwindcss -i resources/css/app.css -o resources/dist/codeart.css --minify",
         "build:js": "esbuild resources/js/app.js --bundle --minify --target=es2020 --legal-comments=none --outfile=resources/dist/codeart.js"
