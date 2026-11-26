@@ -62,7 +62,19 @@ class BrandingImageUploader
     {
         $path = $this->settings->get($key);
 
-        return is_string($path) && $path !== '' ? Storage::disk($this->disk())->url($path) : null;
+        if (! is_string($path) || $path === '') {
+            return null;
+        }
+
+        // Local files are linked root-relative: an absolute URL built from APP_URL breaks as soon as the
+        // site is opened under another host (http://localhost vs the real domain), and the logo vanishes.
+        $url = Storage::disk($this->disk())->url($path);
+        $base = rtrim((string) config('app.url'), '/');
+        if ($base !== '' && str_starts_with($url, $base.'/')) {
+            return substr($url, strlen($base));
+        }
+
+        return $url;
     }
 
     /** @return string the extension for the detected type */

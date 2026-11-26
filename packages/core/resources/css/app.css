@@ -3,7 +3,7 @@
 
 @source "../views";
 @source "../js";
-@source inline("{bg,text,border}-{primary,primary-hover,on-primary,secondary,on-secondary,surface,surface-alt,text,text-muted,border,link,success,success-bg,success-text,warning,warning-bg,warning-text,danger,danger-bg,danger-text,info,info-bg,info-text,sidebar,sidebar-text}");
+@source inline("{bg,text,border}-{primary,primary-hover,on-primary,secondary,on-secondary,surface,surface-alt,text,text-muted,border,link,success,success-bg,success-text,warning,warning-bg,warning-text,danger,danger-bg,danger-text,info,info-bg,info-text,sidebar,sidebar-text,qr-fg,qr-bg}");
 
 /*
  * Map Tailwind to the semantic variables. The default palette is removed so
@@ -39,6 +39,8 @@
     --color-info-text: var(--color-info-text);
     --color-sidebar: var(--sidebar-bg);
     --color-sidebar-text: var(--sidebar-text);
+    --color-qr-fg: var(--color-qr-fg);
+    --color-qr-bg: var(--color-qr-bg);
     --color-primary-soft: var(--color-primary-soft);
     --color-focus: var(--color-focus);
 
