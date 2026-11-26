@@ -72,6 +72,7 @@ Fortify's routes keep Fortify's names, all under the admin prefix. Core's own st
 | GET `user/two-factor-qr-code`, `user/two-factor-secret-key` | `two-factor.qr-code`, `two-factor.secret-key` | `{svg, url}`, `{secretKey}` |
 | GET / POST `user/two-factor-recovery-codes` | `two-factor.recovery-codes`, `two-factor.regenerate-recovery-codes` | list / regenerate |
 | GET `session` | `admin.session` | signed-in state for the screens (user, roles, `can_access_admin`, `denial`, `two_factor.{available,enabled,must_set_up}`) |
+| GET `/` (the admin path itself) | `admin.dashboard` | the dashboard, behind `auth:admin` + `admin.access`; the page after sign-in |
 | GET `access` | `admin.access.check` | behind `admin.access`: 204 or 403 |
 | GET `sessions`, DELETE `sessions/{id}`, DELETE `sessions` | `admin.sessions.index`, `.destroy`, `.destroy-others` | own sessions; the last needs `password` |
 | GET / POST `invitation/{token}` | `admin.invitation.show`, `admin.invitation.accept` | signed; see Invitations |

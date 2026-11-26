@@ -112,6 +112,7 @@ class AuthServiceProvider extends ServiceProvider
         $fortify = dirname((string) (new \ReflectionClass(Fortify::class))->getFileName(), 2).'/routes/routes.php';
         Route::group(['namespace' => 'Laravel\\Fortify\\Http\\Controllers', 'prefix' => $path], fn () => require $fortify);
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/auth.php');
+        Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/admin.php');
     }
 
     /** Guard, Fortify config and the settings-driven parts. Values come from settings with config fallbacks. */

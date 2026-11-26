@@ -33,3 +33,4 @@ parameters:
             message: '#\$view of function view expects view-string#'
             paths:
                 - src/Auth
+                - src/Admin

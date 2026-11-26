@@ -13,5 +13,6 @@
     @case('shield')<path d="M12 3 4.5 6v5.5c0 4.4 3 8 7.5 9.5 4.5-1.5 7.5-5.1 7.5-9.5V6L12 3Z"/><path d="m9 12 2.2 2.2L15.5 10"/>@break
     @case('chevron-down')<path d="m6 9.5 6 6 6-6"/>@break
     @case('user')<circle cx="12" cy="8" r="3.75"/><path d="M4.5 20c.8-3.6 3.8-5.5 7.5-5.5s6.7 1.9 7.5 5.5"/>@break
+@default{!! app(\Codeart\Core\Admin\Icons::class)->get($name) !!}
 @endswitch
 </svg>

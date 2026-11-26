@@ -34,9 +34,18 @@
     --color-info-bg: #e5f0fb;
     --color-info-text: #0d3f78;
 
-    /* Sidebar (admin) */
-    --sidebar-bg: #373435;
-    --sidebar-text: #f1f0ee;
+    /* Admin shell: the sidebar follows the theme (light sidebar in light, dark in dark). Active item = primary / on-primary. */
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #22201f;
+    --sidebar-muted: #5d5a58;
+    --sidebar-hover: #f4f4f2;
+    --sidebar-border: #dcdad7;
+    --color-topbar: #ffffff;
+    --color-scrim: rgb(34 32 31 / 0.5); /* backdrop behind the mobile drawer and the command palette */
+    --color-surface-sunken: #ebeae7;
+    --color-neutral: #5d5a58;
+    --color-neutral-bg: #efeeeb;
+    --color-neutral-text: #3b3937;
 
     /* QR code: ALWAYS dark modules on white, in every theme (scanners need that contrast). Never derive from theme or brand. */
     --color-qr-fg: #000000;
@@ -62,7 +71,7 @@
     --space-xl: 2.5rem;
 
     /* Fonts */
-    --font-sans: ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
     --font-heading: var(--font-sans);
     --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
 }
@@ -99,6 +108,15 @@
 
     --sidebar-bg: #151313;
     --sidebar-text: #f1f0ee;
+    --sidebar-muted: #b5b1ae;
+    --sidebar-hover: #262323;
+    --sidebar-border: #2f2c2c;
+    --color-topbar: #1c1a1a;
+    --color-scrim: rgb(0 0 0 / 0.6);
+    --color-surface-sunken: #151313;
+    --color-neutral: #b5b1ae;
+    --color-neutral-bg: #2f2c2c;
+    --color-neutral-text: #dcdad7;
 
     --color-primary-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);
     --shadow-card: 0 12px 40px -8px color-mix(in srgb, var(--color-surface) 80%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-text) 8%, transparent);
@@ -138,6 +156,15 @@
 
         --sidebar-bg: #151313;
         --sidebar-text: #f1f0ee;
+        --sidebar-muted: #b5b1ae;
+        --sidebar-hover: #262323;
+        --sidebar-border: #2f2c2c;
+        --color-topbar: #1c1a1a;
+        --color-scrim: rgb(0 0 0 / 0.6);
+        --color-surface-sunken: #151313;
+        --color-neutral: #b5b1ae;
+        --color-neutral-bg: #2f2c2c;
+        --color-neutral-text: #dcdad7;
 
         --color-primary-soft: color-mix(in srgb, var(--color-primary) 14%, transparent);
         --shadow-card: 0 12px 40px -8px color-mix(in srgb, var(--color-surface) 80%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-text) 8%, transparent);

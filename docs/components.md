@@ -97,3 +97,25 @@ check, alert, globe, shield, chevron-down, user; inline SVG, `aria-hidden`), `lo
 ## JavaScript (`resources/js/app.js`, built to `resources/dist/codeart.js`)
 Alpine 3 plus two components: `codeartOtp(length)` and `codeartRecoveryCodes(filename)` (copy and download .txt).
 Rebuild both bundles after changing views, CSS or JS: `ddev exec "cd packages/core && npm run build"` and commit `resources/dist`.
+
+## Admin shell (`<x-codeart::admin.*>`, `resources/views/components/admin`)
+Spec: `docs/admin-ui.md`. Only semantic utilities; the sidebar and top bar follow the theme.
+
+| Component | Purpose |
+|---|---|
+| `admin.layout` | Page shell. Prop `title`. Skip link, `aside > nav` (sidebar), `header` (top bar), `main#main`, command palette. Builds the menu and search items for the signed-in user. Alpine `codeartShell` holds drawer, collapse, theme and palette state. |
+| `admin.sidebar`, `admin.menu-node` | Logo, menu tree (`NavNode`s), version line. Groups collapse; `aria-current="page"` on the active link. |
+| `admin.topbar` | Hamburger, search button (Ctrl+K), `admin.theme-toggle`, `admin.language-switcher`, `admin.user-menu`. |
+| `admin.command-palette` | Prop `items` (list of `{label, url, icon, group}`); rendered as JSON, filtered in the browser, arrow keys, Enter, Esc, focus trap. |
+| `admin.page-header` | Props `title`, `description`, `breadcrumbs` (`[['label' => 'Pages', 'url' => '...'], ['label' => 'Edit']]`); named slot `actions` aligned to the end. |
+| `admin.card` | Rounded surface with border. Props `title`, `icon` (header shown when `title` is set). |
+
+```blade
+<x-codeart::admin.layout :title="__('pages::menu.list')">
+    <x-codeart::admin.page-header :title="__('pages::menu.list')" :breadcrumbs="[['label' => 'CMS', 'url' => route('admin.dashboard')], ['label' => 'Pages']]">
+        <x-slot:actions><x-codeart::button href="{{ route('pages.create') }}" :full="false">New</x-codeart::button></x-slot:actions>
+    </x-codeart::admin.page-header>
+    <x-codeart::admin.card title="Latest" icon="file-text">...</x-codeart::admin.card>
+</x-codeart::admin.layout>
+```
+`icon` now also knows every Lucide icon listed in `scripts/icons.txt`. Widget views get `$widget`, `$data`, `$user`; core's live in `views/admin/widgets`.

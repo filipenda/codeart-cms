@@ -1,0 +1,8 @@
+{
+    "name": "shell",
+    "package": "fixture/module-shell",
+    "title": "Shell",
+    "description": "Fixture module that registers a menu group, children, widgets and a quick action.",
+    "permissions": ["shell.view", "shell.edit"],
+    "provider": "Codeart\\Core\\Tests\\Fixtures\\ShellProvider"
+}
