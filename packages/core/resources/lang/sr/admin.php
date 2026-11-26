@@ -41,6 +41,40 @@ return [
         'no_role' => 'Bez uloge',
     ],
 
+    'activity' => [
+        'auth' => [
+            'login' => 'Prijava',
+            'login_failed' => 'Neuspela prijava',
+            'logout' => 'Odjava',
+            'lockout' => 'Previše pokušaja prijave',
+        ],
+        'registration' => ['created' => 'Registracija'],
+        'user' => [
+            'created' => 'Korisnik kreiran',
+            'deactivated' => 'Korisnik deaktiviran',
+            'approved' => 'Registracija odobrena',
+        ],
+        'invitation' => ['sent' => 'Pozivnica poslata', 'accepted' => 'Pozivnica prihvaćena'],
+        'password' => [
+            'changed' => 'Lozinka promenjena',
+            'reset_requested' => 'Zatraženo resetovanje lozinke',
+            'reset_completed' => 'Lozinka resetovana',
+        ],
+        'email' => ['verified' => 'E-pošta potvrđena'],
+        'session' => ['others_revoked' => 'Odjava sa drugih uređaja'],
+        'two_factor' => [
+            'setup_started' => 'Počelo podešavanje dvostepene provere',
+            'enabled' => 'Dvostepena provera uključena',
+            'disabled' => 'Dvostepena provera isključena',
+            'failed' => 'Odbijen kod dvostepene provere',
+            'recovery_code_used' => 'Iskorišćen rezervni kod',
+            'recovery_codes_regenerated' => 'Novi rezervni kodovi',
+            'reset' => 'Dvostepena provera resetovana',
+        ],
+        'role' => ['attached' => 'Uloga dodeljena', 'detached' => 'Uloga uklonjena'],
+        'permission' => ['attached' => 'Dozvola dodeljena', 'detached' => 'Dozvola uklonjena'],
+    ],
+
     'dashboard' => [
         'title' => 'Kontrolna tabla',
         'welcome' => 'Dobro došli, :name.',

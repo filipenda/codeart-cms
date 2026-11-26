@@ -41,6 +41,40 @@ return [
         'no_role' => 'No role',
     ],
 
+    'activity' => [
+        'auth' => [
+            'login' => 'Signed in',
+            'login_failed' => 'Sign-in failed',
+            'logout' => 'Signed out',
+            'lockout' => 'Too many sign-in attempts',
+        ],
+        'registration' => ['created' => 'Registration'],
+        'user' => [
+            'created' => 'User created',
+            'deactivated' => 'User deactivated',
+            'approved' => 'Registration approved',
+        ],
+        'invitation' => ['sent' => 'Invitation sent', 'accepted' => 'Invitation accepted'],
+        'password' => [
+            'changed' => 'Password changed',
+            'reset_requested' => 'Password reset requested',
+            'reset_completed' => 'Password reset completed',
+        ],
+        'email' => ['verified' => 'E-mail address verified'],
+        'session' => ['others_revoked' => 'Signed out of other devices'],
+        'two_factor' => [
+            'setup_started' => 'Two-factor setup started',
+            'enabled' => 'Two-factor authentication enabled',
+            'disabled' => 'Two-factor authentication disabled',
+            'failed' => 'Two-factor code rejected',
+            'recovery_code_used' => 'Recovery code used',
+            'recovery_codes_regenerated' => 'Recovery codes regenerated',
+            'reset' => 'Two-factor authentication reset',
+        ],
+        'role' => ['attached' => 'Role assigned', 'detached' => 'Role removed'],
+        'permission' => ['attached' => 'Permission granted', 'detached' => 'Permission removed'],
+    ],
+
     'dashboard' => [
         'title' => 'Dashboard',
         'welcome' => 'Welcome back, :name.',

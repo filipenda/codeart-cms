@@ -251,3 +251,26 @@ it('shows system status to admins only, with real checks', function () {
     expect(text_of($xp, $widget))->toContain(__('codeart::admin.widgets.check.database'))->toContain(PHP_VERSION)
         ->and(count_nodes(dom(dashboard($this, staff('editor'))->getContent()), $widget))->toBe(0);
 });
+
+// ---- activity feed -----------------------------------------------------------------------------------------------
+
+it('translates activity descriptions per locale, falls back to the raw text and hides technical events', function () {
+    $admin = staff('admin', ['name' => 'Ana Admin']);
+    activity()->event('auth.login')->causedBy($admin)->log('Signed in');
+    activity()->event('role.attached')->causedBy($admin)->log('Role attached');
+    activity()->event('unknown.thing')->log('Something custom');
+    $widget = '//*[@data-widget="core.recent-activity"]';
+
+    app()->setLocale('sr');
+    $sr = text_of(dom(dashboard($this, $admin->fresh())->getContent()), $widget);
+    expect($sr)->toContain('Prijava')->toContain('Something custom')->toContain('Sistem')->not->toContain('Signed in')->not->toContain('Uloga dodeljena')->not->toContain('Role attached');
+
+    app()->setLocale('en');
+    expect(\Codeart\Core\ActivityLog\ActivityDescription::for('auth.login', 'x'))->toBe('Signed in');
+    app()->setLocale('sr-Cyrl');
+    expect(\Codeart\Core\ActivityLog\ActivityDescription::for('auth.login', 'x'))->toBe('Пријава')
+        ->and(\Codeart\Core\ActivityLog\ActivityDescription::for('nope', 'raw'))->toBe('raw')
+        ->and(\Codeart\Core\ActivityLog\ActivityDescription::for(null, 'raw'))->toBe('raw');
+
+    expect(Activity::where('event', 'role.attached')->count())->toBeGreaterThanOrEqual(1); // still in the log
+});
