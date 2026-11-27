@@ -348,6 +348,50 @@ final class DataTable
         return new TableResult($this, $state, $rows, $total, $baseUrl, $user);
     }
 
+    /**
+     * Walk the rows of `$state` in the table's order, `$size` at a time (with the eager loads); never loads them all.
+     * Ordering by the key uses keyset paging (constant cost); any other sort uses offsets (later chunks cost more).
+     * Stops after `$limit` rows when given. `$each` gets the chunk (an Eloquent collection) and returns false to stop.
+     *
+     * @param  Closure(EloquentCollection<int, Model>): mixed  $each
+     */
+    public function eachOrdered(TableState $state, int $size, Closure $each, ?int $limit = null): void
+    {
+        $column = $this->sortableColumn($state->sort);
+        $dir = $state->dir === 'desc' ? 'desc' : 'asc';
+        $sample = ($this->query)();
+        $byKey = $column === null || $this->isKey($column, $sample);
+        $key = $sample->getModel()->getKeyName();
+        $qualified = $sample->getModel()->qualifyColumn($key);
+        $seen = 0;
+        $after = null;
+        $offset = 0;
+
+        while (true) {
+            $take = $limit === null ? $size : min($size, $limit - $seen);
+            if ($take <= 0) {
+                return;
+            }
+            $query = $byKey ? $this->filteredQuery($state)->orderBy($qualified, $column === null ? 'desc' : $dir) : $this->orderedQuery($state);
+            if ($byKey && $after !== null) {
+                $query->where($qualified, ($column === null || $dir === 'desc') ? '<' : '>', $after);
+            }
+            if (! $byKey) {
+                $query->offset($offset);
+            }
+            $rows = $query->with($this->with)->limit($take)->get();
+            if ($rows->isEmpty() || ($each($rows) === false)) {
+                return;
+            }
+            $seen += $rows->count();
+            $offset += $rows->count();
+            $after = $rows->last()->getAttribute($key);
+            if ($rows->count() < $take) {
+                return;
+            }
+        }
+    }
+
     /** @return list<string> */
     public function eagerLoads(): array
     {

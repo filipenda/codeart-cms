@@ -3,6 +3,7 @@
 use Codeart\Core\Admin\Http\DashboardController;
 use Codeart\Core\Admin\Http\LocalEnvironmentOnly;
 use Codeart\Core\Admin\Http\UiShowcaseController;
+use Codeart\Core\Tables\TableController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,6 +13,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:'.config('codeart.auth.guard', 'admin'), 'admin.access'])->group(function () {
     Route::get('/', DashboardController::class)->name('admin.dashboard');
+
+    // Bulk actions and CSV export of every registered table (TableRegistry); permissions are checked in the controller.
+    Route::post('tables/{table}/bulk', [TableController::class, 'bulk'])->name('codeart.tables.bulk');
+    Route::get('tables/{table}/export', [TableController::class, 'export'])->name('codeart.tables.export');
 });
 
 /*

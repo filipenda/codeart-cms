@@ -1,0 +1,56 @@
+<?php
+
+/* Tekstovi tabele podataka (docs/components.md). sr-Cyrl se generiše: php artisan lang:transliterate */
+return [
+    'search' => 'Pretraga',
+    'search_placeholder' => 'Pretraži…',
+    'apply' => 'Primeni',
+    'reset' => 'Resetuj',
+    'filters' => 'Filteri',
+    'more_filters' => 'Više filtera',
+    'all' => 'Sve',
+    'yes' => 'Da',
+    'no' => 'Ne',
+    'from' => 'Od',
+    'to' => 'Do',
+    'export' => 'Izvezi CSV',
+
+    'sort_by' => 'Sortiraj po :column',
+    'sorted_ascending' => 'sortirano rastuće',
+    'sorted_descending' => 'sortirano opadajuće',
+    'select_all_page' => 'Izaberi sve redove na ovoj strani',
+    'select_row' => 'Izaberi red',
+    'actions' => 'Radnje',
+    'missing_translation' => 'nema prevoda',
+
+    'showing' => 'Prikazano :from–:to od :total',
+    'per_page' => 'Po strani',
+    'pagination' => 'Straničenje',
+    'page' => 'Strana :page',
+    'first' => 'Prva strana',
+    'previous' => 'Prethodna strana',
+    'next' => 'Sledeća strana',
+    'last' => 'Poslednja strana',
+
+    'selected' => 'Izabrano (:count)',
+    'bulk' => 'Grupna radnja',
+    'bulk_choose' => 'Izaberite radnju…',
+    'bulk_run' => 'Pokreni',
+    'select_all_matching' => 'Izaberi sve rezultate (:count)',
+    'bulk_done' => 'Završeno: :done, neuspešno: :failed, preskočeno: :skipped.',
+    'bulk_queued' => 'Radnja je zakazana i izvršava se u pozadini (:count redova).',
+    'bulk_too_many' => 'Previše redova (:count, najviše :max). Suzite filter i pokušajte ponovo.',
+    'bulk_unknown' => 'Nepoznata radnja ili ništa nije izabrano.',
+    'bulk_confirm' => 'Pokrenuti ovu radnju nad izabranim redovima?',
+
+    'empty_title' => 'Još nema podataka',
+    'empty_text' => 'Nema redova za prikaz.',
+    'no_results_title' => 'Nema rezultata',
+    'no_results_text' => 'Nijedan red ne odgovara ovoj pretrazi ili filteru.',
+
+    'edit' => 'Izmeni',
+    'duplicate' => 'Dupliraj',
+    'duplicate_confirm' => 'Napraviti kopiju ove stavke?',
+    'delete' => 'Obriši',
+    'delete_confirm' => 'Ova stavka će biti obrisana. Radnja se ne može poništiti.',
+];
