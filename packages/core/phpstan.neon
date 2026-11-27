@@ -36,3 +36,4 @@ parameters:
                 - src/Admin
                 - src/Tables
                 - src/Confirmation
+                - src/Users

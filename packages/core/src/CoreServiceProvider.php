@@ -2,6 +2,7 @@
 
 namespace Codeart\Core;
 
+use Codeart\Core\Admin\Dashboard\QuickAction;
 use Codeart\Core\Admin\Dashboard\QuickActions;
 use Codeart\Core\Admin\Dashboard\Widget;
 use Codeart\Core\Admin\Dashboard\WidgetRegistry;
@@ -15,6 +16,7 @@ use Codeart\Core\Admin\Navigation\NavItem;
 use Codeart\Core\Admin\Search\MenuSearchProvider;
 use Codeart\Core\Admin\Search\SearchRegistry;
 use Codeart\Core\Auth\AuthServiceProvider;
+use Codeart\Core\Auth\UserPolicy;
 use Codeart\Core\Console\ActivityLogPruneCommand;
 use Codeart\Core\Console\BrandLoadCommand;
 use Codeart\Core\Console\LangTransliterateCommand;
@@ -47,7 +49,11 @@ use Codeart\Core\Tables\TableRegistry;
 use Codeart\Core\Theme\Assets;
 use Codeart\Core\Theme\ThemeSettings;
 use Codeart\Core\Translations\Locales;
+use Codeart\Core\Users\InvitationsTable;
+use Codeart\Core\Users\PendingUsersWidget;
+use Codeart\Core\Users\UsersTable;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Spatie\Permission\PermissionServiceProvider;
@@ -110,11 +116,14 @@ class CoreServiceProvider extends ServiceProvider
 
         // Only a super-admin may manage modules (future admin screen). The commands are CLI-only.
         // Super-admin passes every check, including permissions declared by modules.
-        Gate::before(fn ($user) => $this->hasSuperAdminRole($user) ? true : null);
+        Gate::before(fn ($user, string $ability, array $arguments = []) => $this->hasSuperAdminRole($user)
+            && ! (in_array($ability, UserPolicy::GUARDED, true) && ($arguments[0] ?? null) instanceof Model) ? true : null);
         Gate::define('manage-modules', fn ($user): bool => $this->hasSuperAdminRole($user));
 
         $this->registerAdminShell();
         $this->app->make(TableRegistry::class)->register(ActivityLogTable::KEY, ActivityLogTable::class);
+        $this->app->make(TableRegistry::class)->register(UsersTable::KEY, UsersTable::class);
+        $this->app->make(TableRegistry::class)->register(InvitationsTable::KEY, InvitationsTable::class);
 
         // cron `schedule:run` is the only scheduler on client servers
         $this->callAfterResolving(Schedule::class, fn (Schedule $schedule) => $schedule->command('activity-log:prune')->daily());
@@ -151,12 +160,15 @@ class CoreServiceProvider extends ServiceProvider
     {
         $this->app->make(AdminMenu::class)->add(
             new NavItem('dashboard', 'codeart::admin.menu.dashboard', 'layout-dashboard', 'admin.dashboard', order: 0, module: 'core'),
+            new NavItem('users', 'codeart::users.title', 'users', 'admin.users.index', 'users.view', order: 900, module: 'core'),
         );
         $this->app->make(WidgetRegistry::class)->add(
             new Widget('core.recent-activity', 'codeart::admin.widgets.recent_activity', 'history', 'codeart::admin.widgets.recent-activity', RecentActivityWidget::class, permission: 'users.view', size: 'md', order: 10, module: 'core'),
             new Widget('core.system-status', 'codeart::admin.widgets.system_status', 'activity', 'codeart::admin.widgets.system-status', SystemStatusWidget::class, permission: 'system.status', size: 'sm', order: 20, module: 'core'),
+            new Widget('core.pending-users', 'codeart::users.widget.pending', 'user-plus', 'codeart::admin.widgets.pending-users', PendingUsersWidget::class, permission: 'users.approve', size: 'sm', order: 25, module: 'core'),
             new Widget('core.quick-actions', 'codeart::admin.widgets.quick_actions', 'zap', 'codeart::admin.widgets.quick-actions', QuickActionsWidget::class, size: 'sm', order: 30, module: 'core'),
         );
+        $this->app->make(QuickActions::class)->add(new QuickAction('users.invite', 'codeart::users.invite.title', 'user-plus', 'admin.users.invite', 'users.create', 5));
         $this->app->make(SearchRegistry::class)->add(MenuSearchProvider::class);
     }
 

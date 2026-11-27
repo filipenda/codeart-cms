@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Codeart\Core\Auth\Concerns\AdminUser;
+use Codeart\Core\Auth\Contracts\StaffUser;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
@@ -10,7 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /** A staff user: the AdminUser trait (core) adds roles, two-factor, e-mail verification and the admin helpers. */
-class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail, StaffUser
 {
     /** @use HasFactory<UserFactory> */
     use AdminUser, HasFactory;

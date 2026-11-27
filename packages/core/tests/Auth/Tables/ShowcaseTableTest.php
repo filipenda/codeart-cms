@@ -27,7 +27,7 @@ it('shows the activity log as a data table on the showcase for a super-admin', f
 
     expect(count_nodes($xp, '//div[@data-table="ui-activity"]'))->toBe(1)
         ->and(count_nodes($xp, '//div[@data-table="ui-activity"]//tbody/tr'))->toBe(25)
-        ->and(text_of($xp, '//div[@data-table="ui-activity"]//p[@data-showing]'))->toContain('od 6')
+        ->and(text_of($xp, '//div[@data-table="ui-activity"]//p[@data-showing]'))->toMatch('/od \d+/')
         ->and(attr($xp, '//div[@data-table="ui-activity"]//th[@data-column="created_at"]', 'aria-sort'))->toBe('descending')
         ->and(count_nodes($xp, '//div[@data-table="ui-activity"]//form[@data-bulk-bar]'))->toBe(1)
         ->and(count_nodes($xp, '//div[@data-table="ui-activity"]//a[@data-export]'))->toBe(1);

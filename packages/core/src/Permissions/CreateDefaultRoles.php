@@ -22,9 +22,13 @@ class CreateDefaultRoles
         'admin.access' => ['admin', 'editor'],
         'system.status' => ['admin'],
         'users.view' => ['admin'],
-        'users.invite' => ['admin'],
-        'users.manage' => ['admin'],
+        'users.create' => ['admin'],
+        'users.update' => ['admin'],
+        'users.block' => ['admin'],
         'users.approve' => ['admin'],
+        'users.delete' => ['admin'],
+        'users.force-delete' => [],
+        'users.reset-2fa' => ['admin'],
     ];
 
     /** @return list<string> roles that were created (existing ones are left alone) */

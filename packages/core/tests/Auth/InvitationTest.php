@@ -124,7 +124,7 @@ it('does not invite someone who already has an account', function () {
     expect(fn () => invite(staff('admin'), $existing->email))->toThrow(ValidationException::class);
 });
 
-it('lets an admin invite up to their own rank and never a super-admin', function (string $role, bool $allowed) {
+it('lets an admin invite only roles strictly below their own', function (string $role, bool $allowed) {
     $admin = staff('admin');
 
     if ($allowed) {
@@ -137,7 +137,7 @@ it('lets an admin invite up to their own rank and never a super-admin', function
 })->with([
     'member' => ['member', true],
     'editor' => ['editor', true],
-    'admin' => ['admin', true],
+    'admin' => ['admin', false],
     'super-admin' => ['super-admin', false],
 ]);
 
@@ -147,13 +147,13 @@ it('lets a super-admin invite a super-admin', function () {
     expect(UserInvitation::query()->count())->toBe(1);
 });
 
-it('does not let users without users.invite invite anyone', function (string $role) {
+it('does not let users without users.create invite anyone', function (string $role) {
     expect(fn () => invite(staff($role), roles: ['member']))->toThrow(AuthorizationException::class);
 })->with(['editor', 'member']);
 
 it('refuses to accept when the inviter lost the rank to hand out that role', function () {
     $inviter = staff('admin');
-    $url = invite($inviter, roles: ['admin']);
+    $url = invite($inviter, roles: ['editor']);
     $inviter->syncRoles(['editor']);
 
     $this->postJson($url, NEW_PASSWORD)->assertStatus(410);

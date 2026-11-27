@@ -2,10 +2,13 @@
 
 namespace Codeart\Core\Auth;
 
+use Codeart\Core\Auth\Contracts\StaffUser;
 use Codeart\Core\Settings\Settings;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -42,6 +45,18 @@ final class Admin
         }
 
         return $model;
+    }
+
+    /** The model as a staff user (soft deletes, roles, two-factor); the app's User must implement StaffUser. */
+    public static function staff(Model $user): Model&StaffUser
+    {
+        return $user instanceof StaffUser ? $user : throw new RuntimeException($user::class.' must implement '.StaffUser::class.' (use the AdminUser trait).');
+    }
+
+    /** @return Builder<Model> every user, deleted ones included */
+    public static function usersWithTrashed(): Builder
+    {
+        return self::userModel()::query()->withoutGlobalScope(SoftDeletingScope::class);
     }
 
     public static function findByEmail(string $email): ?Model

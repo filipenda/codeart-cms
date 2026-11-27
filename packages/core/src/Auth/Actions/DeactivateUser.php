@@ -26,6 +26,6 @@ class DeactivateUser
 
         $user->forceFill(['is_active' => false, 'remember_token' => Str::random(60)])->save();
         $this->sessions->revokeAll($user->getKey());
-        $this->log->record('user.deactivated', 'User deactivated', $user, $actor instanceof Model ? $actor : null, ['email' => $user->email], 'users');
+        $this->log->record('user.deactivated', 'User deactivated', $user, $actor instanceof Model ? $actor : null, ['name' => $user->name, 'email' => $user->email], 'users');
     }
 }

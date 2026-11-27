@@ -10,6 +10,7 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $email
  * @property list<string> $roles
+ * @property string|null $message
  * @property string $token_hash
  * @property int|null $invited_by
  * @property Carbon $expires_at

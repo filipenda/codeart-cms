@@ -30,7 +30,7 @@ class InviteUser
      *
      * @throws AuthorizationException|ValidationException
      */
-    public function __invoke(string $name, string $email, array $roles, ?Authenticatable $actor = null): UserInvitation
+    public function __invoke(string $name, string $email, array $roles, ?Authenticatable $actor = null, ?string $message = null): UserInvitation
     {
         if ($actor !== null) {
             Gate::forUser($actor)->authorize('invite', Admin::userModel());
@@ -44,7 +44,7 @@ class InviteUser
             }
             Role::findByName($role, Admin::guardName());
         }
-        if (Admin::findByEmail($email) !== null) {
+        if (Admin::usersWithTrashed()->where('email', $email)->exists()) {
             throw ValidationException::withMessages(['email' => [__('codeart::auth.email_taken')]]);
         }
 
@@ -57,15 +57,16 @@ class InviteUser
             'name' => $name,
             'email' => $email,
             'roles' => $roles,
+            'message' => $message !== null && trim($message) !== '' ? mb_substr(trim($message), 0, 500) : null,
             'token_hash' => UserInvitation::hashToken($token),
             'invited_by' => $actor?->getAuthIdentifier(),
             'expires_at' => now()->addDays($days),
         ]);
 
         $url = Admin::signedUrl('admin.invitation.show', $invitation->expires_at, ['token' => $token]);
-        $this->mailer->send($email, new InvitationMail($name, $url, $days));
+        $this->mailer->send($email, new InvitationMail($name, $url, $days, $invitation->message));
 
-        $this->log->record('invitation.sent', 'Invitation sent', $invitation, $actor instanceof Model ? $actor : null, ['email' => $email, 'roles' => $roles], 'users');
+        $this->log->record('invitation.sent', 'Invitation sent', $invitation, $actor instanceof Model ? $actor : null, ['name' => $name, 'email' => $email, 'roles' => $roles, 'with_message' => $invitation->message !== null], 'users');
 
         return $invitation;
     }

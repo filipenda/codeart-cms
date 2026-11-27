@@ -3,12 +3,13 @@
 namespace Codeart\Core\Tests\Support;
 
 use Codeart\Core\Auth\Concerns\AdminUser;
+use Codeart\Core\Auth\Contracts\StaffUser;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Foundation\Auth\User;
 
 /** What an app's User looks like once it uses core's trait. */
-class AdminTestUser extends User implements HasLocalePreference, MustVerifyEmail
+class AdminTestUser extends User implements HasLocalePreference, MustVerifyEmail, StaffUser
 {
     use AdminUser;
 

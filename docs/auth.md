@@ -35,14 +35,14 @@ All under guard name `admin`. `CreateDefaultRoles` grants a permission to roles 
 | Permission | admin | editor | member | super-admin |
 |---|---|---|---|---|
 | `admin.access` | yes | yes | no | Gate bypass |
-| `users.view`, `users.invite`, `users.manage`, `users.approve` | yes | no | no | Gate bypass |
+| `users.view`, `users.create`, `users.update`, `users.approve` | yes | no | no | Gate bypass |
 | `settings.appearance` | yes | no | no | Gate bypass |
 
 `member` is the role of registered visitors: it has no permission, so it never reaches the admin (403).
 
 Rank (`config('codeart.auth.role_rank')`): super-admin 100, admin 50, editor 10, member 0, unknown roles 98. Nobody may assign, remove or touch a role above their own; **only a super-admin touches a super-admin** (`RoleRank`, enforced in every action and in `UserPolicy`). A null actor (command line) counts as super-admin.
 
-`UserPolicy` abilities (registered for the app's User model): `viewAny`, `view` (`users.view`), `invite` (`users.invite`), `create`, `update`, `deactivate`, `delete` (`users.manage` + rank; never yourself for deactivate/delete), `approve` (`users.approve` + rank).
+`UserPolicy` abilities (registered for the app's User model): `viewAny`, `view` (`users.view`), `invite` (`users.create`), `create`, `update`, `deactivate`, `delete` (`users.update` + rank; never yourself for deactivate/delete), `approve` (`users.approve` + rank).
 
 ## Middleware
 
@@ -110,7 +110,7 @@ Mail settings override `.env` only for values that were saved. 2FA mode: `off` h
 
 **E-mail verification.** The mail links to the signed `verification.verify` route; the user must be signed in. Required only while `auth.registration.require_email_verification` is on.
 
-**Invitations (the main way to add staff).** `InviteUser` (action) or `php artisan user:invite name email role`. Needs `users.invite`, and the role must not be above the inviter's (admin: up to admin, never super-admin). One open invitation per address; the token is random, stored only as a SHA-256 hash, valid `auth.invitation.expiry_days`, single use. The mail contains a signed URL to `admin.invitation.show`. The invitation screen renders the "set your password" form at that URL and POSTs the same URL with `password`, `password_confirmation` and optional `locale` (`admin.invitation.accept`): accepting creates the user (verified, active, approved, roles from the invitation, `invited_at`). Unknown, used, expired or no-longer-allowed invitations all answer 410; a tampered link 403.
+**Invitations (the main way to add staff).** `InviteUser` (action) or `php artisan user:invite name email role`. Needs `users.create`, and the role must not be above the inviter's (admin: up to admin, never super-admin). One open invitation per address; the token is random, stored only as a SHA-256 hash, valid `auth.invitation.expiry_days`, single use. The mail contains a signed URL to `admin.invitation.show`. The invitation screen renders the "set your password" form at that URL and POSTs the same URL with `password`, `password_confirmation` and optional `locale` (`admin.invitation.accept`): accepting creates the user (verified, active, approved, roles from the invitation, `invited_at`). Unknown, used, expired or no-longer-allowed invitations all answer 410; a tampered link 403.
 
 **Registration** (off by default). When enabled, `register.store` creates a user with the default role. With approval required the user is `is_active=false`, `approved_at=null` and cannot sign in until approved; they are signed in right after registering, so they can verify the e-mail in that session. Mails: verification, "registration received", and a "new registration pending" to every active user with `users.approve` plus super-admins. Approve with `ApproveUser` (needs `users.approve`) or `php artisan user:approve email`; the user gets "registration approved". Known trade-off: the e-mail uniqueness check reveals that an address is registered (login and reset do not).
 
@@ -160,3 +160,21 @@ Sent in the user's `locale` (`sr`, `sr-Cyrl`, `en`; falls back to the app locale
 ## Commands
 
 `codeart:brand:load {path?}`, `user:create {name} {email} {role}`, `user:invite`, `user:approve`, `user:deactivate`, `user:reset-2fa`, `activity-log:prune`, `mail:test {address}`, `lang:transliterate`, `codeart:roles`.
+
+## Users management (core, always on)
+
+Screens under the admin path: `admin.users.index` (list, menu "Korisnici"), `admin.users.edit` / `update` / `role`, row and bulk actions (`block`, `unblock`, `destroy` = soft delete, `restore`, `force-destroy`, `reset-2fa`, `approve`, `reject`). Dashboard widget "Čeka odobrenje" (only with `users.approve`) and quick action "Pozovi korisnika".
+
+- **Permissions:** `users.view`, `users.create` (invite), `users.update`, `users.block`, `users.approve`, `users.delete`, `users.force-delete`, `users.reset-2fa` (the old `users.invite` / `users.manage` became `users.create` / `users.update`). `admin` gets all but `users.force-delete`; `editor` and `member` none; super-admin passes the Gate, except the self / last-super-admin rules.
+- **Policy rules** (`UserPolicy`, tested): an admin manages only users STRICTLY below their rank (editor, member); admins and super-admins only by a super-admin. Roles can be assigned only strictly below the actor's own (`RoleRank::canAssign`); nobody changes their own role, blocks or deletes themselves; the last active super-admin cannot be blocked, deleted or demoted. Super-admin abilities `changeRole`, `block`, `delete`, `restore`, `forceDelete`, `resetTwoFactor` still go through the policy (`UserPolicy::GUARDED`, Gate::before skips them).
+- **Status** (`UserStatus`): deleted > pending (no `approved_at`) > blocked (`is_active` = 0) > unverified (e-mail) > active. Blocked reuses `is_active`.
+- **Soft delete:** `users.deleted_at` (the app's User uses `AdminUser`, which brings `SoftDeletes`). Deleted users vanish from the list (filter "Obrisani" shows them), cannot sign in, can be restored; permanent delete is super-admin only. Log entries keep `name` and `email` in their properties.
+- **Dangerous actions** (role change, block, delete, force delete, reset 2FA) carry middleware `password.confirm` then `codeart.confirmed`: a fresh password confirmation AND the server-issued confirmation token.
+- **Edit:** only `name` and `email` (generic update) and `role` (own route) are read from the request. A new e-mail clears `email_verified_at` and sends the verification mail when verification is required. New people are added only through invitations.
+- **Registrations:** `approve` / `reject` (reason optional, max 500) both mail the person; reject soft-deletes the pending account.
+- **Bulk:** approve, block, unblock, delete; each row passes the policy, forbidden rows are skipped and counted ("preskočeno"). Block and delete need the confirmation.
+- **Log events** (`users` log): `user.updated`, `user.email_changed`, `user.role_changed`, `user.deactivated`, `user.unblocked`, `user.deleted`, `user.restored`, `user.force_deleted`, `user.approved`, `user.rejected`, `two_factor.reset`.
+
+
+### Invitations screen
+`admin.users.invite` (form: name, e-mail, role from the assignable roles, optional message up to 500 characters; `users.create`) posts to `admin.users.invite.store` (throttle 10/min) and uses the existing `InviteUser` flow (hashed token, signed URL, expiry; the token appears only in the mail). `admin.users.invitations` lists open invitations (DataTable `user-invitations`, translated state/role search): `resend` (new token, the old link stops) and `revoke` (confirmation + password). A role above the actor's rank can neither be invited nor resent nor revoked. Events: `invitation.sent`, `invitation.revoked`.

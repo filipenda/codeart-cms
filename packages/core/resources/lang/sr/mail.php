@@ -7,6 +7,7 @@ return [
         'subject' => 'Pozvani ste na :app',
         'heading' => 'Dobro došli na :app',
         'intro' => 'Zdravo :name, pozvani ste da se pridružite sistemu :app. Postavite lozinku da biste aktivirali nalog.',
+        'note' => 'Poruka: :message',
         'expires' => 'Poziv se može iskoristiti samo jednom i važi :days dana.',
         'action' => 'Prihvati poziv',
     ],
@@ -36,6 +37,12 @@ return [
         'heading' => 'Vaš nalog je odobren',
         'intro' => 'Zdravo :name, vaš nalog na :app je odobren. Sada se možete prijaviti.',
         'action' => 'Prijavi se',
+    ],
+    'registration_rejected' => [
+        'subject' => 'Vaša registracija nije odobrena',
+        'heading' => 'Registracija nije odobrena',
+        'intro' => 'Zdravo :name, nažalost, vaša registracija na :app nije odobrena.',
+        'reason' => 'Razlog: :reason',
     ],
     'registration_pending' => [
         'subject' => 'Nova registracija čeka odobrenje',
