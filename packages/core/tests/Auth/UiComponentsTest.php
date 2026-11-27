@@ -284,7 +284,7 @@ it('shows every component to a super-admin in local, with no menu item for it', 
         ->and(count_nodes($xp, '//input[@role="switch"]'))->toBe(3)
         ->and(count_nodes($xp, '//*[@data-counter]'))->toBeGreaterThanOrEqual(3)
         ->and(count_nodes($xp, '//button[@aria-busy="true"]'))->toBe(1)
-        ->and(count_nodes($xp, '//*[@data-tone]'))->toBe(6)
+        ->and(count_nodes($xp, '//*[@data-tone][not(ancestor::*[@data-table])]'))->toBe(6)
         ->and(count_nodes($xp, '//aside//a[contains(@href,"_ui")]'))->toBe(0)
         ->and(unlabelled_controls($xp))->toBe([]);
 });

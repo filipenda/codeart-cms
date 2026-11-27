@@ -56,6 +56,9 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 - Admin pages use `<x-codeart::admin.layout>`; modules add menu items, dashboard widgets, quick actions and search results from their provider (`AdminMenu`, `WidgetRegistry`, `QuickActions`, `SearchRegistry`). Never link to a page that does not exist, never show invented numbers.
 - Icons: Lucide names from `packages/core/scripts/icons.txt` (`npm run build:icons`); font Inter is self-hosted. `npm run build` also copies the fonts.
 
+## Lists (details: docs/components.md "Data table", DECISIONS TB)
+- Every list is a `DataTable` definition (registered in `TableRegistry`) rendered by `<x-codeart::table>`: one page per request (25, max 100), state in the query string, exact count, no N+1 (declare `with()`), bulk actions and CSV export in chunks, permissions hidden and enforced. Never load all rows or all ids; slow tables are optimized only after `codeart:bench:table`-style measurement.
+
 ## Release rules (short; full text in CONTRIBUTING.md)
 `main` = next release, NOT production; nothing deploys from it. Releases are Git tags: `x.y.z-rc.N` only on a test site, `x.y.z` stable for clients (`^x.y`). Hotfix = branch from the released tag; `1.x` maintenance branches only for old lines. Client app repos differ: PR -> staging -> main = production.
 

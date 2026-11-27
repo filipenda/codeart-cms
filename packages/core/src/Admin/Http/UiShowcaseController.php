@@ -2,6 +2,8 @@
 
 namespace Codeart\Core\Admin\Http;
 
+use Codeart\Core\Admin\Demo\ActivityLogTable;
+use Codeart\Core\Auth\Admin;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,11 +15,17 @@ use Illuminate\Support\Facades\Gate;
  */
 class UiShowcaseController
 {
-    public function show(): View
+    public function show(Request $request): View|RedirectResponse
     {
         Gate::authorize('manage-modules');
 
-        return view('codeart::admin.ui-showcase');
+        $users = $request->user(Admin::guardName());
+        $table = (new ActivityLogTable)->table()->resolve($request, $users);
+        if ($table->redirectTo !== null) {
+            return redirect($table->redirectTo);
+        }
+
+        return view('codeart::admin.ui-showcase', ['tableResult' => $table]);
     }
 
     /** The demo form: fails on purpose so the error display can be reviewed, or flashes a toast. */

@@ -43,3 +43,8 @@ it('publishes the self-hosted Inter font files next to the css', function () {
     }
     expect((string) file_get_contents(Assets::packagePath('codeart.css')))->toContain('fonts/inter-latin-wght-normal.woff2');
 });
+
+it('ships the data table script and styles in the published assets', function () {
+    expect((string) file_get_contents(public_path('vendor/codeart/codeart.js')))->toContain('codeartTable')
+        ->and((string) file_get_contents(public_path('vendor/codeart/codeart.css')))->toContain('sticky')->toContain('overflow-x:auto');
+});

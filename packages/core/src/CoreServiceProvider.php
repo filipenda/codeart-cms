@@ -8,6 +8,7 @@ use Codeart\Core\Admin\Dashboard\WidgetRegistry;
 use Codeart\Core\Admin\Dashboard\Widgets\QuickActionsWidget;
 use Codeart\Core\Admin\Dashboard\Widgets\RecentActivityWidget;
 use Codeart\Core\Admin\Dashboard\Widgets\SystemStatusWidget;
+use Codeart\Core\Admin\Demo\ActivityLogTable;
 use Codeart\Core\Admin\Icons;
 use Codeart\Core\Admin\Navigation\AdminMenu;
 use Codeart\Core\Admin\Navigation\NavItem;
@@ -113,6 +114,7 @@ class CoreServiceProvider extends ServiceProvider
         Gate::define('manage-modules', fn ($user): bool => $this->hasSuperAdminRole($user));
 
         $this->registerAdminShell();
+        $this->app->make(TableRegistry::class)->register(ActivityLogTable::KEY, ActivityLogTable::class);
 
         // cron `schedule:run` is the only scheduler on client servers
         $this->callAfterResolving(Schedule::class, fn (Schedule $schedule) => $schedule->command('activity-log:prune')->daily());

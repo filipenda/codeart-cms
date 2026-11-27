@@ -177,3 +177,12 @@ app(SettingsManager::class)->update($user, $key, $value);  // checks permission 
 **Locales:** `locales.default|enabled|fallbacks` (config values are only the defaults; `available` stays in config). The default must be enabled; a derived locale (`sr-Cyrl`) needs its source (`sr`) enabled.
 
 **Security settings** (`security.*`: 2FA mode and roles, password rules, session lifetime, login attempts, log retention) are defined and validated but not enforced until login exists.
+
+## Lists (data tables)
+A module's list page is a `TableDefinition` plus `<x-codeart::table>` (`docs/components.md`, rules in `docs/DECISIONS.md` TB). Register the definition in the provider so bulk actions and CSV export work (they exist only while the module is enabled):
+```php
+use Codeart\Core\Tables\TableRegistry;
+
+$this->callAfterResolving(TableRegistry::class, fn (TableRegistry $tables) => $tables->register('pages', PagesTable::class));
+```
+Declare permissions `pages.view|edit|delete|...` on the table and its actions, eager loads with `with()`, and never load all rows: a bulk action handler gets one row at a time.

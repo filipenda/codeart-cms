@@ -153,6 +153,79 @@ The one dropdown (the user menu uses it). Props: `label` (aria-label of the butt
 `link` (prop `href`), `divider` (prop `text`: a labeled separator), `icon` (prop `name`: mail, lock, eye, eye-off, arrow-right,
 check, alert, globe, shield, chevron-down, user; inline SVG, `aria-hidden`), `logout` (a POST form to `logout` with a ghost button; slot = label).
 
+## Data table (`<x-codeart::table>` and `DataTable`)
+
+Server-side lists for tables of any size. A module defines the table in PHP, the controller loads one page, the component draws it.
+Everything is plain HTML (GET form, links, POST bulk form); Alpine (`codeartTable`) only adds debounced search, auto-submit on filter
+change and the selection counter. Strings: `codeart::table.*` (sr, en, generated sr-Cyrl). Rules and reasons: `docs/DECISIONS.md` section TB.
+
+```php
+// definition (registered once in the module provider: app(TableRegistry::class)->register('pages', PagesTable::class))
+final class PagesTable implements TableDefinition
+{
+    public function table(): DataTable
+    {
+        return DataTable::make('pages', Page::query())
+            ->columns(
+                Column::titleSubtitle('title', 'Naslov')->using(fn (Page $p) => ['title' => $p->title, 'subtitle' => $p->slug, 'url' => route('pages.edit', $p)]),
+                Column::status('status', 'Status', ['draft' => ['Nacrt', 'neutral'], 'published' => ['Objavljeno', 'success']]),
+                Column::date('updated_at', 'Izmenjeno'),
+            )
+            ->filters(Filter::status('status', 'Status', ['draft' => 'Nacrt', 'published' => 'Objavljeno']), Filter::dateRange('updated_at', 'Izmenjeno'))
+            ->with('author')                                   // eager loads: the query count must not grow with the rows
+            ->defaultSort('updated_at', 'desc')
+            ->permission('pages.view')
+            ->rowActions(RowAction::edit(fn (Page $p) => route('pages.edit', $p), 'pages.edit'), RowAction::delete(fn (Page $p) => route('pages.destroy', $p), 'pages.delete'))
+            ->bulkActions(BulkAction::make('publish', 'Objavi', fn (Page $p) => $p->publish(), 'pages.publish', 'Objaviti izabrane stranice?'))
+            ->export('pages');
+    }
+}
+
+// controller
+public function index(Request $request, PagesTable $pages)
+{
+    $result = $pages->table()->resolve($request, $request->user('admin'));
+    return $result->redirectTo ? redirect($result->redirectTo) : view('pages::index', ['result' => $result]);
+}
+// view
+<x-codeart::table :result="$result" label="Stranice" />
+```
+
+**Query string** (the whole state, so every list is linkable): `q`, `sort`, `dir`, `filter[key]` (`filter[key][from|to]` for ranges), `per_page`, `page`.
+Invalid values are ignored or clamped: `per_page` 1..100 (default 25, nonsense = default), `page` >= 1, unknown sort keys and filters dropped, and a page past
+the last redirects to the last page (`TableResult::$redirectTo`). A request loads exactly one page and the exact total (`count(*)`).
+
+**Columns** (`Column::text|number|date|boolean|status|badge|avatar|titleSubtitle|thumbnail|languageChips`): key, label, DB expression (default the key; a plain
+identifier is quoted and qualified, anything else is your own raw SQL). All columns sort, search and filter unless `->sortable(false)`, `->searchable(false)` or
+`->filterable(false)`. `->using(fn ($row) => ...)` shapes the cell value (avatar `['name', 'subtitle', 'image']`, title-subtitle `['title', 'subtitle', 'url']`, language chips
+`['sr' => true, 'en' => false]`, thumbnail a URL), `->exportUsing()` the CSV value, `->options([...])` the label and tone of status and badge cells.
+The base query must return one row per model (no GROUP BY). Sorting uses only the declared expressions, with the primary key as a stable tie-breaker.
+
+**Search** is "contains" over the searchable columns, `%`, `_` and `!` are literal (`LIKE ? ESCAPE '!'`), words are AND-ed (each word in any column).
+**Filters**: declared `Filter::select|status|boolean|dateRange|numberRange|text` (own control in the toolbar, `->using(fn ($q, $v) => ...)` for a custom constraint); every other
+column has an implicit filter of its type, reachable through the URL and the "Više filtera" panel.
+
+**Permissions**: `->permission()` on the table (list, export, bulk), on each `RowAction` and `BulkAction`. They are hidden when missing and, for bulk and export, checked again
+on the server (403). A row action only links to a module route; that route must authorize again.
+
+**Bulk actions and export** are served by core's `POST admin/tables/{key}/bulk` and `GET admin/tables/{key}/export`, so the table must be registered in `TableRegistry` (the key
+is the `DataTable` id). Bulk: `BulkActionRunner`, `chunkById` (500), the handler returns true/false/null (done/failed/skipped) per row; "select all results" sends the filter, never ids.
+Over `codeart.tables.bulk.queue_limit` (1000) rows it queues `RunBulkActionJob` when a real queue driver is configured; otherwise it runs in chunks up to `hard_cap` (10000) and
+refuses above with "narrow the filter". Export: `CsvExporter`, streamed, UTF-8 BOM, current filter and sort, formula-looking cells prefixed with `'`, `export.max_rows` 500000.
+
+Benchmark: `php artisan codeart:bench:table` (MariaDB, creates and drops a temporary table, 1,000,000 rows by default).
+
+| Class | Purpose |
+|---|---|
+| `DataTable` | definition, `resolve(Request, ?user): TableResult`, `filteredQuery`, `orderedQuery`, `eachOrdered` |
+| `Column`, `Filter`, `RowAction`, `BulkAction` | the parts |
+| `TableState` | the parsed query string (clamped) |
+| `TableResult` | page rows, total, `url()`, `hiddenFields()` for the view |
+| `TableRegistry`, `TableDefinition` | key => definition, so bulk and export can rebuild a table |
+| `BulkActionRunner`, `RunBulkActionJob`, `CsvExporter`, `TableController` | actions and export |
+
+Sub-components: `table.cell` (one renderer per column type), `table.filter`, `table.select` (compact 44px select), `table.pagination`. The showcase page `/admin/_ui` has a demo backed by the activity log.
+
 ## JavaScript (`resources/js/app.js`, built to `resources/dist/codeart.js`)
 Alpine 3 plus two components: `codeartOtp(length)` and `codeartRecoveryCodes(filename)` (copy and download .txt).
 Rebuild both bundles after changing views, CSS or JS: `ddev exec "cd packages/core && npm run build"` and commit `resources/dist`.

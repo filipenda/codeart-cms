@@ -8,6 +8,11 @@
     <x-codeart::admin.page-header title="UI components" description="Every component in every state. Switch the theme in the user menu to review light and dark." />
 
     <div class="space-y-6" data-showcase>
+        <x-codeart::admin.card title="Data table (the activity log)" icon="list">
+            <p class="mb-4 text-sm text-text-muted">Read-only: search, sort, filter, page, export CSV. The bulk action only shows a toast. Select every row on a page to try "select all results".</p>
+            <x-codeart::table :result="$tableResult" label="Activity log" />
+        </x-codeart::admin.card>
+
         <x-codeart::admin.card title="Buttons" icon="bolt">
             <div class="space-y-4">
                 @foreach ($sizes as $size)
