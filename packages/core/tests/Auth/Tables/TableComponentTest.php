@@ -178,10 +178,11 @@ it('shows row actions per permission: edit as a link, delete through the confirm
     $xp = renderItems();
 
     expect(attr($xp, '//tbody/tr[1]//a[@data-action="edit"]', 'href'))->toBe('/items/1/edit')
-        ->and(attr($xp, '//tbody/tr[1]//form[@data-action="delete"]', 'action'))->toBe('/items/1')
-        ->and(attr($xp, '//tbody/tr[1]//form[@data-action="delete"]//input[@name="_method"]', 'value'))->toBe('DELETE')
-        ->and(count_nodes($xp, '//tbody/tr[1]//form[@data-action="delete"]//dialog'))->toBe(1)
-        ->and(attr($xp, '//tbody/tr[1]//form[@data-action="delete"]//dialog', 'role'))->toBe('alertdialog');
+        ->and(attr($xp, '//tbody/tr[1]//div[@data-action="delete"]//form[@data-confirm-form]', 'action'))->toBe('/items/1')
+        ->and(attr($xp, '//tbody/tr[1]//div[@data-action="delete"]//form[@data-confirm-step]', 'action'))->toBe(route('codeart.confirm'))
+        ->and(attr($xp, '//tbody/tr[1]//div[@data-action="delete"]//form[@data-confirm-form]//input[@name="_method"]', 'value'))->toBe('DELETE')
+        ->and(count_nodes($xp, '//tbody/tr[1]//div[@data-action="delete"]//form[@data-confirm-form]//dialog'))->toBe(1)
+        ->and(attr($xp, '//tbody/tr[1]//div[@data-action="delete"]//form[@data-confirm-form]//dialog', 'role'))->toBe('alertdialog');
 
     $editorOnly = renderItems([], ['items.view', 'items.edit']);
     expect(count_nodes($editorOnly, '//tbody//a[@data-action="edit"]'))->toBe(2)->and(count_nodes($editorOnly, '//tbody//form[@data-action="delete"]'))->toBe(0);

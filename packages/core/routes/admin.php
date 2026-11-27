@@ -3,6 +3,7 @@
 use Codeart\Core\Admin\Http\DashboardController;
 use Codeart\Core\Admin\Http\LocalEnvironmentOnly;
 use Codeart\Core\Admin\Http\UiShowcaseController;
+use Codeart\Core\Confirmation\ConfirmController;
 use Codeart\Core\Tables\TableController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,9 @@ Route::middleware(['auth:'.config('codeart.auth.guard', 'admin'), 'admin.access'
 
     // Bulk actions and CSV export of every registered table (TableRegistry); permissions are checked in the controller.
     Route::post('tables/{table}/bulk', [TableController::class, 'bulk'])->name('codeart.tables.bulk');
+    // Confirmation step of `<x-codeart::confirm>`; GET only returns to the page the confirmation came from.
+    Route::post('confirm', [ConfirmController::class, 'show'])->name('codeart.confirm');
+    Route::get('confirm', [ConfirmController::class, 'back']);
     Route::get('tables/{table}/export', [TableController::class, 'export'])->name('codeart.tables.export');
 });
 

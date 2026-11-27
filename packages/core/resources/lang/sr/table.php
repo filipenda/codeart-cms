@@ -53,4 +53,12 @@ return [
     'duplicate_confirm' => 'Napraviti kopiju ove stavke?',
     'delete' => 'Obriši',
     'delete_confirm' => 'Ova stavka će biti obrisana. Radnja se ne može poništiti.',
+
+    'confirm_title' => 'Potvrdite radnju',
+    'confirm_run' => 'Da, izvrši',
+    'confirm_rows' => 'Broj zahvaćenih redova',
+    'confirm_filter' => 'Filter',
+    'confirm_no_filter' => 'bez filtera, svi redovi',
+    'confirm_expired' => 'Potvrda je istekla ili je već iskorišćena. Potvrdite ponovo.',
+    'confirm_required' => 'Ova radnja zahteva potvrdu. Ništa nije promenjeno.',
 ];

@@ -188,13 +188,17 @@ it('renders a modal as a native dialog with title, body and footer', function ()
         ->and(attr($xp, '//dialog', 'class'))->toContain('backdrop:bg-scrim');
 });
 
-it('wraps a destructive form in a confirm dialog with a danger confirm button', function () {
+it('wraps a destructive form in a confirm dialog with a danger confirm button and a server-side confirmation step', function () {
     $xp = render('<x-codeart::confirm action="/things/1" method="DELETE" title="Delete it?" text="Gone forever." confirm="Yes">Delete</x-codeart::confirm>');
 
-    expect(attr($xp, '//form', 'method'))->toBe('POST')
-        ->and(attr($xp, '//form//input[@name="_method"]', 'value'))->toBe('DELETE')
-        ->and(count_nodes($xp, '//form//input[@name="_token"]'))->toBe(1)
-        ->and(count_nodes($xp, '//form/button[@data-confirm-trigger][@aria-haspopup="dialog"]'))->toBe(1)
+    expect(attr($xp, '//form[@data-confirm-step]', 'method'))->toBe('POST')
+        ->and(attr($xp, '//form[@data-confirm-step]', 'action'))->toBe(route('codeart.confirm'))
+        ->and(attr($xp, '//form[@data-confirm-step]//input[@name="target"]', 'value'))->toBe('/things/1')
+        ->and(count_nodes($xp, '//form[@data-confirm-step]//input[@name="sig"]'))->toBe(1)
+        ->and(count_nodes($xp, '//form[@data-confirm-step]/button[@data-confirm-trigger][@aria-haspopup="dialog"]'))->toBe(1)
+        ->and(attr($xp, '//form[@data-confirm-form]', 'action'))->toBe('/things/1')
+        ->and(attr($xp, '//form[@data-confirm-form]//input[@name="_method"]', 'value'))->toBe('DELETE')
+        ->and(count_nodes($xp, '//form[@data-confirm-form]//input[@name="_token"]'))->toBe(1)
         ->and(attr($xp, '//form/dialog', 'role'))->toBe('alertdialog')
         ->and(text_of($xp, '//form/dialog//h2'))->toBe('Delete it?')
         ->and(text_of($xp, '//form/dialog//p'))->toBe('Gone forever.')

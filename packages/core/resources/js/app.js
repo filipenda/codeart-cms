@@ -378,8 +378,10 @@ document.addEventListener('click', (event) => {
     }
     const confirmer = target.closest('[data-confirm-trigger]');
     if (confirmer) {
+        // The server confirms: ask the confirmation step for a token (JSON), put it in the dialog's form and open the dialog.
+        // Without JS this click is a plain submit of the step form, which answers with a confirmation page.
         event.preventDefault();
-        confirmer.form?.querySelector('dialog')?.showModal();
+        openConfirm(confirmer);
         return;
     }
     const closer = target.closest('[data-modal-close]');
@@ -389,6 +391,28 @@ document.addEventListener('click', (event) => {
     }
     if (target instanceof HTMLDialogElement && target.hasAttribute('data-modal')) target.close(); // backdrop
 });
+
+async function openConfirm(trigger) {
+    const step = trigger.closest('[data-confirm-step]');
+    const form = trigger.closest('[data-confirm-step]')?.parentElement?.querySelector('[data-confirm-form]');
+    if (!step || !form) return;
+    trigger.disabled = true;
+    try {
+        const response = await fetch(step.action, {
+            method: 'POST',
+            body: new FormData(step),
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        form.querySelector('[data-confirm-token]').value = (await response.json()).token;
+        form.querySelector('dialog')?.showModal();
+    } catch {
+        step.submit(); // fall back to the confirmation page
+    } finally {
+        trigger.disabled = false;
+    }
+}
 
 /** Toasts: items come from the server flash (JSON) and from the window event `codeart:toast` ({message, type, timeout}). */
 Alpine.data('codeartToasts', (initial = []) => ({
@@ -414,7 +438,7 @@ Alpine.data('codeartToasts', (initial = []) => ({
 
 /**
  * Data table enhancements (the table works without them): debounced search and auto-submit of the toolbar form,
- * the selection counter, select-all for the page, "all results" (sends the filter, never ids) and a confirm before a bulk run.
+ * the selection counter, select-all for the page, "all results" (sends the filter, never ids) and the confirm dialog before a bulk run.
  */
 Alpine.data('codeartTable', ({ total = 0, rows = 0 } = {}) => ({
     total,
@@ -461,11 +485,61 @@ Alpine.data('codeartTable', ({ total = 0, rows = 0 } = {}) => ({
         return template.replace(':count', new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.allMatching ? this.total : this.count));
     },
 
-    /** Ask before running; the server does not depend on this (it checks permissions itself). */
-    confirmBulk(event) {
-        const select = event.target.querySelector('select[name="action"]');
-        const text = select?.selectedOptions[0]?.dataset.confirm;
-        if (text && !window.confirm(text)) event.preventDefault();
+    /**
+     * Before a bulk run: a destructive action asks the server for a token (JSON answer with the texts and the row count) and
+     * the dialog shows them; any other action with a confirm text only opens the dialog. The dialog's Confirm button submits
+     * the form again with the token. Nothing here replaces the server: a destructive request without a valid token does nothing.
+     */
+    async confirmBulk(event) {
+        const form = event.target;
+        if (form.dataset.confirmed === '1') {
+            delete form.dataset.confirmed;
+            return;
+        }
+        const option = form.querySelector('select[name="action"]')?.selectedOptions[0];
+        const destructive = option?.dataset.destructive === '1';
+        const text = option?.dataset.confirm;
+        if (!destructive && !text) return;
+
+        event.preventDefault();
+        const dialog = document.getElementById(form.id.replace(/-bulk$/, '-confirm'));
+        const set = (selector, value) => {
+            const node = dialog.querySelector(selector);
+            node.textContent = value ?? '';
+            node.closest('p').hidden = value == null;
+        };
+        const token = form.querySelector('[data-bulk-token]');
+        token.disabled = true;
+        token.value = '';
+        let info = { text, count: null, filter: null };
+
+        if (destructive) {
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+                if (!response.ok) throw new Error(String(response.status));
+                info = await response.json();
+                token.value = info.token;
+                token.disabled = false;
+            } catch {
+                form.submit(); // the server answers with the confirmation page
+                return;
+            }
+        }
+
+        dialog.querySelector('[data-bulk-text]').textContent = info.text ?? text;
+        set('[data-bulk-count]', info.count != null ? new Intl.NumberFormat(document.documentElement.lang || undefined).format(info.count) : null);
+        set('[data-bulk-filter]', info.filter ?? null);
+        dialog.querySelector('[data-bulk-confirm]').onclick = () => {
+            dialog.close();
+            form.dataset.confirmed = '1';
+            form.requestSubmit();
+        };
+        dialog.showModal();
     },
 
     later() {

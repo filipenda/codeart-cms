@@ -122,9 +122,11 @@ Native `<dialog>`. Props: `id`, `title`, `size` (`sm|md|lg`). Slots: `title` (ma
 ```
 
 ### `confirm`
-Destructive form with a confirmation dialog. Props: `action`, `method` (POST; others are spoofed), `title`, `text`, `confirm`, `cancel`, `button` (label if the slot is empty), `variant` (danger), `size` (md), `icon`. The default slot is the trigger label. With JS the trigger opens the dialog (danger confirm button); without JS it submits as a plain form.
+Destructive action with a SERVER-side confirmation (TB11). Props: `action`, `method` (POST; others are spoofed), `title`, `text`, `confirm`, `cancel`, `button` (label if the slot is empty), `variant` (danger), `size` (md), `icon`. The default slot is the trigger label.
+It renders two forms: the trigger posts to core's confirmation step (`codeart.confirm`) with the signed target, never to the target itself. Without JS the answer is a confirmation page (`codeart::admin.confirm`: text, Confirm, Cancel); with JS the trigger asks the step for a token (JSON), opens the dialog, and the dialog's own form posts the real request with `confirmation=<token>`. The target route MUST use the `codeart.confirmed` middleware, which refuses a request without a valid, unused token (10 minutes, bound to user, method and path).
 ```blade
 <x-codeart::confirm :action="route('pages.destroy', $page)" method="DELETE" title="Delete page?" text="This cannot be undone.">Delete</x-codeart::confirm>
+Route::delete('pages/{page}', [PageController::class, 'destroy'])->middleware('codeart.confirmed')->name('pages.destroy');
 ```
 
 ### `toasts`
@@ -207,6 +209,8 @@ column has an implicit filter of its type, reachable through the URL and the "Vi
 
 **Permissions**: `->permission()` on the table (list, export, bulk), on each `RowAction` and `BulkAction`. They are hidden when missing and, for bulk and export, checked again
 on the server (403). A row action only links to a module route; that route must authorize again.
+
+**Destructive actions**: `BulkAction::destructive(key, label, handle, permission, confirmText)` (or `destructive: true`) never runs without a server-issued confirmation token (TB11): the first request returns the confirmation page (action, affected rows, active filter for "all matching"), JSON for the dialog. Row actions with a non-GET method go through `<x-codeart::confirm>` and their routes need `codeart.confirmed`. Other bulk actions with a confirm text only open the dialog.
 
 **Bulk actions and export** are served by core's `POST admin/tables/{key}/bulk` and `GET admin/tables/{key}/export`, so the table must be registered in `TableRegistry` (the key
 is the `DataTable` id). Bulk: `BulkActionRunner`, `chunkById` (500), the handler returns true/false/null (done/failed/skipped) per row; "select all results" sends the filter, never ids.

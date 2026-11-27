@@ -13,6 +13,7 @@ use Codeart\Core\Auth\Middleware\ConfigureAuthRequest;
 use Codeart\Core\Auth\Middleware\EnsureAdminAccess;
 use Codeart\Core\Auth\Middleware\SetAuthLocale;
 use Codeart\Core\Auth\Middleware\ValidInvitationLink;
+use Codeart\Core\Confirmation\RequireConfirmation;
 use Codeart\Core\Mail\MailConfig;
 use Codeart\Core\Settings\Settings;
 use Illuminate\Auth\Middleware\Authenticate;
@@ -63,6 +64,7 @@ class AuthServiceProvider extends ServiceProvider
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware('admin.access', EnsureAdminAccess::class);
         $router->aliasMiddleware('admin.invitation', ValidInvitationLink::class);
+        $router->aliasMiddleware('codeart.confirmed', RequireConfirmation::class);
         $this->registerScreens();
         try {
             Gate::policy(Admin::userModel(), UserPolicy::class);

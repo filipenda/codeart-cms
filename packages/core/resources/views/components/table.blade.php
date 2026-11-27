@@ -74,6 +74,8 @@
         <form method="POST" action="{{ route('codeart.tables.bulk', ['table' => $table->id]) }}" id="{{ $id }}-bulk" x-ref="bulk" x-show="count > 0" x-on:submit="confirmBulk($event)" data-bulk-bar
             class="flex flex-wrap items-center gap-3 rounded-card border border-border bg-primary-soft px-4 py-3">
             @csrf
+            <input type="hidden" name="return" value="{{ request()->getRequestUri() }}">
+            <input type="hidden" name="confirmation" value="" data-bulk-token disabled>
             @foreach ($result->hiddenFields(['page', 'per_page']) as $name => $value)
                 <input type="hidden" name="{{ $name }}" value="{{ $value }}">
             @endforeach
@@ -87,12 +89,22 @@
             <div class="min-w-48">
                 <x-codeart::table.select name="action" :label="__('codeart::table.bulk')" :placeholder="__('codeart::table.bulk_choose')" required>
                     @foreach ($bulkActions as $action)
-                        <option value="{{ $action->key }}" data-confirm="{{ $action->confirm ?? __('codeart::table.bulk_confirm') }}">{{ $action->label }}</option>
+                        <option value="{{ $action->key }}" data-confirm="{{ $action->confirm ?? __('codeart::table.bulk_confirm') }}" @if ($action->destructive) data-destructive="1" @endif>{{ $action->label }}</option>
                     @endforeach
                 </x-codeart::table.select>
             </div>
             <x-codeart::button type="submit" size="md" :full="false">{{ __('codeart::table.bulk_run') }}</x-codeart::button>
         </form>
+        {{-- Confirmation dialog for bulk runs. A destructive action gets its token from the server first (the same endpoint answers JSON). --}}
+        <x-codeart::modal :id="$id.'-confirm'" size="sm" role="alertdialog" :title="__('codeart::table.confirm_title')" data-bulk-dialog>
+            <p data-bulk-text></p>
+            <p class="mt-2 text-text-muted" data-bulk-count-line hidden>{{ __('codeart::table.confirm_rows') }}: <span data-bulk-count></span></p>
+            <p class="mt-1 text-text-muted" data-bulk-filter-line hidden>{{ __('codeart::table.confirm_filter') }}: <span data-bulk-filter></span></p>
+            <x-slot:footer>
+                <x-codeart::button type="button" variant="secondary" size="md" :full="false" data-modal-close>{{ __('codeart::ui.c.cancel') }}</x-codeart::button>
+                <x-codeart::button type="button" variant="danger" size="md" :full="false" data-bulk-confirm>{{ __('codeart::table.confirm_run') }}</x-codeart::button>
+            </x-slot:footer>
+        </x-codeart::modal>
     @endif
 
     @if ($empty)

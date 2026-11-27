@@ -99,6 +99,11 @@ class ItemsDefinition implements TableDefinition
                     return (self::$handler ?? fn () => true)($item);
                 }, 'items.publish', 'Publish the selected items?'),
                 BulkAction::make('open', 'Open', fn () => true),
+                BulkAction::destructive('remove', 'Remove', function (TableItem $item) {
+                    self::$seen[] = $item->id;
+
+                    return true;
+                }, 'items.remove', 'Remove the selected items?'),
             );
     }
 }

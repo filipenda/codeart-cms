@@ -45,6 +45,7 @@ final class ActivityLogTable implements TableDefinition
             ->permission('manage-modules')
             ->export('activity-log')
             ->rowActions(RowAction::make('details', 'Details', 'eye', fn (Model $a): string => route('codeart.ui-showcase').'#activity-'.$a->getKey(), 'manage-modules'))
-            ->bulkActions(BulkAction::make('review', 'Mark as reviewed (does nothing)', fn (): bool => true, 'manage-modules', 'This demo action changes nothing. Run it?'));
+            ->bulkActions(BulkAction::make('review', 'Mark as reviewed (does nothing)', fn (): bool => true, 'manage-modules', 'This demo action changes nothing. Run it?'),
+                BulkAction::destructive('purge', 'Purge (demo, does nothing)', fn (): bool => true, 'manage-modules', 'This demo action deletes nothing, but it shows the server-side confirmation.'));
     }
 }

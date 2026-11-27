@@ -53,4 +53,12 @@ return [
     'duplicate_confirm' => 'Make a copy of this item?',
     'delete' => 'Delete',
     'delete_confirm' => 'This item will be deleted. This cannot be undone.',
+
+    'confirm_title' => 'Please confirm',
+    'confirm_run' => 'Yes, run it',
+    'confirm_rows' => 'Affected rows',
+    'confirm_filter' => 'Filter',
+    'confirm_no_filter' => 'no filter, all rows',
+    'confirm_expired' => 'The confirmation expired or was already used. Please confirm again.',
+    'confirm_required' => 'This action needs a confirmation. Nothing was changed.',
 ];
