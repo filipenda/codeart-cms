@@ -6,7 +6,6 @@ use Closure;
 use DateTimeImmutable;
 use Illuminate\Contracts\Database\Query\Expression;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  * A query constraint driven by `filter[key]`. Declared filters get a control in the toolbar; every column also has an
@@ -91,7 +90,7 @@ final class Filter
     /**
      * Add the constraint to `$query`. `$value` must come from `normalize()`.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<*>  $query
      */
     public function applyTo(DataTable $table, Builder $query, mixed $value): void
     {
@@ -118,7 +117,7 @@ final class Filter
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<*>  $query
      * @param  array<string, string>  $range
      */
     private function dates(Builder $query, Expression $column, array $range): void
@@ -132,7 +131,7 @@ final class Filter
     }
 
     /**
-     * @param  Builder<Model>  $query
+     * @param  Builder<*>  $query
      * @param  array<string, string>  $range
      */
     private function numbers(Builder $query, Expression $column, array $range): void

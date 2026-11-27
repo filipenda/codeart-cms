@@ -27,6 +27,7 @@ use Codeart\Core\Console\SettingsListCommand;
 use Codeart\Core\Console\SettingsLockCommand;
 use Codeart\Core\Console\SettingsSetCommand;
 use Codeart\Core\Console\SettingsUnlockCommand;
+use Codeart\Core\Console\TableBenchCommand;
 use Codeart\Core\Console\UserApproveCommand;
 use Codeart\Core\Console\UserCreateCommand;
 use Codeart\Core\Console\UserDeactivateCommand;
@@ -124,7 +125,7 @@ class CoreServiceProvider extends ServiceProvider
             $this->commands([ModuleListCommand::class, ModuleEnableCommand::class, ModuleDisableCommand::class, RolesCommand::class,
                 SettingsListCommand::class, SettingsGetCommand::class, SettingsSetCommand::class, SettingsLockCommand::class, SettingsUnlockCommand::class,
                 UserCreateCommand::class, UserInviteCommand::class, UserApproveCommand::class, UserDeactivateCommand::class, UserReset2faCommand::class,
-                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class, BrandLoadCommand::class]);
+                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class, BrandLoadCommand::class, TableBenchCommand::class]);
 
             $this->publishes([
                 __DIR__.'/../config/codeart.php' => config_path('codeart.php'),

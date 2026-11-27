@@ -55,13 +55,13 @@ final class DataTable
 
     private ?string $exportName = null;
 
-    /** @param Closure(): Builder<Model> $query a fresh base query each call */
+    /** @param Closure(): Builder<*> $query a fresh base query each call */
     private function __construct(public readonly string $id, private readonly Closure $query)
     {
         $this->perPage = max(1, min(TableState::MAX_PER_PAGE, (int) config('codeart.tables.default_per_page', 25)));
     }
 
-    /** @param Builder<Model>|Closure(): Builder<Model> $query */
+    /** @param Builder<*>|Closure(): Builder<*> $query */
     public static function make(string $id, Builder|Closure $query): self
     {
         return new self($id, $query instanceof Closure ? $query : fn (): Builder => clone $query);
@@ -277,7 +277,7 @@ final class DataTable
     /**
      * Base query narrowed by the search and the filters; no order, no eager loads.
      *
-     * @return Builder<Model>
+     * @return Builder<*>
      */
     public function filteredQuery(TableState $state): Builder
     {
@@ -293,7 +293,7 @@ final class DataTable
     /**
      * The same rows in the table's order (the sort column, then the key as a stable tie-breaker).
      *
-     * @return Builder<Model>
+     * @return Builder<*>
      */
     public function orderedQuery(TableState $state): Builder
     {
@@ -303,8 +303,8 @@ final class DataTable
     /**
      * Add the declared order of `$state` (sort column, then the key) to `$query`.
      *
-     * @param  Builder<Model>  $query
-     * @return Builder<Model>
+     * @param  Builder<*>  $query
+     * @return Builder<*>
      */
     public function order(Builder $query, TableState $state): Builder
     {
@@ -321,7 +321,7 @@ final class DataTable
     /**
      * True when ordering by this column is already ordering by the primary key.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<*>  $query
      */
     public function isKey(Column $column, Builder $query): bool
     {
@@ -403,7 +403,7 @@ final class DataTable
     /**
      * Words are AND-ed; each word must be contained (case-insensitive by the column collation) in at least one searchable column.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<*>  $query
      */
     private function search(Builder $query, string $q): void
     {

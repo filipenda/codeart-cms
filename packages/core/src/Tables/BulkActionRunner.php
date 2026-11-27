@@ -63,7 +63,7 @@ final class BulkActionRunner
     /**
      * The chunked loop itself (also used by the queued job). Counts what each row's handler returned.
      *
-     * @param  Builder<Model>  $query
+     * @param  Builder<*>  $query
      */
     public function process(DataTable $table, BulkAction $action, Builder $query): BulkResult
     {
@@ -98,7 +98,7 @@ final class BulkActionRunner
      * The rows an action applies to.
      *
      * @param  list<string>|null  $ids
-     * @return Builder<Model>
+     * @return Builder<*>
      */
     public function query(DataTable $table, TableState $state, ?array $ids): Builder
     {
