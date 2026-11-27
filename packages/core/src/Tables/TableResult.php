@@ -5,6 +5,7 @@ namespace Codeart\Core\Tables;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 /** One page of a table, ready to render with `<x-codeart::table :result="$result" />` (or to redirect when the page was past the end). */
 final class TableResult
@@ -41,5 +42,29 @@ final class TableResult
         $query = $this->state->toQuery($this->table, $override);
 
         return $this->baseUrl.($query === [] ? '' : '?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986));
+    }
+
+    /**
+     * The state as hidden form fields (`name` => value, nested keys as `filter[status]`), so a form on the page keeps
+     * the search, filters and sort. Page and any keys in `$except` are left out.
+     *
+     * @param  list<string>  $except  top-level keys to drop (`q`, `sort`, `dir`, `filter`, `per_page`, `page`)
+     * @return array<string, string>
+     */
+    public function hiddenFields(array $except = ['page']): array
+    {
+        $fields = [];
+        foreach (Arr::except($this->state->toQuery($this->table), $except) as $key => $value) {
+            if (is_array($value)) {
+                foreach (Arr::dot($value) as $path => $leaf) {
+                    $parts = explode('.', (string) $path);
+                    $fields[$key.'['.implode('][', $parts).']'] = (string) $leaf;
+                }
+            } else {
+                $fields[$key] = (string) $value;
+            }
+        }
+
+        return $fields;
     }
 }

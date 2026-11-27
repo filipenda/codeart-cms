@@ -68,3 +68,7 @@ message-square
 palette
 bolt
 inbox
+chevrons-up-down
+chevrons-left
+chevrons-right
+rotate-ccw

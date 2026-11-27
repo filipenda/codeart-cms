@@ -412,5 +412,72 @@ Alpine.data('codeartToasts', (initial = []) => ({
     },
 }));
 
+/**
+ * Data table enhancements (the table works without them): debounced search and auto-submit of the toolbar form,
+ * the selection counter, select-all for the page, "all results" (sends the filter, never ids) and a confirm before a bulk run.
+ */
+Alpine.data('codeartTable', ({ total = 0, rows = 0 } = {}) => ({
+    total,
+    rows,
+    count: 0,
+    pageAll: false,
+    allMatching: false,
+    timer: null,
+
+    init() {
+        const form = this.$refs.form;
+        if (form) {
+            form.querySelectorAll('[data-filter-auto]').forEach((el) => el.addEventListener('change', () => this.submit()));
+            form.querySelectorAll('[data-filter-search]').forEach((el) => el.addEventListener('input', () => this.later()));
+        }
+        this.sync();
+        window.addEventListener('pageshow', () => this.sync());
+    },
+
+    boxes() {
+        return Array.from(this.$root.querySelectorAll('[data-row-select]'));
+    },
+
+    sync() {
+        const boxes = this.boxes();
+        const checked = boxes.filter((box) => box.checked).length;
+        this.pageAll = boxes.length > 0 && checked === boxes.length;
+        const all = this.$root.querySelector('[data-select-all]');
+        if (all) {
+            all.checked = this.pageAll;
+            all.indeterminate = checked > 0 && !this.pageAll;
+        }
+        if (!this.pageAll) this.allMatching = false;
+        this.count = this.allMatching ? this.total : checked;
+    },
+
+    toggleAll(event) {
+        this.boxes().forEach((box) => (box.checked = event.target.checked));
+        this.sync();
+    },
+
+    selectedLabel() {
+        const template = this.$root.querySelector('[data-selected-label]')?.dataset.selectedLabel ?? ':count';
+        return template.replace(':count', new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.allMatching ? this.total : this.count));
+    },
+
+    /** Ask before running; the server does not depend on this (it checks permissions itself). */
+    confirmBulk(event) {
+        const select = event.target.querySelector('select[name="action"]');
+        const text = select?.selectedOptions[0]?.dataset.confirm;
+        if (text && !window.confirm(text)) event.preventDefault();
+    },
+
+    later() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.submit(), 400);
+    },
+
+    submit() {
+        clearTimeout(this.timer);
+        this.$refs.form?.requestSubmit();
+    },
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
