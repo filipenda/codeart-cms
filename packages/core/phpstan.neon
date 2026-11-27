@@ -37,3 +37,4 @@ parameters:
                 - src/Tables
                 - src/Confirmation
                 - src/Users
+                - src/Profile

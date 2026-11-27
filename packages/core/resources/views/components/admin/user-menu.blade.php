@@ -52,6 +52,11 @@
             </form>
         @endif
 
+        @if (\Illuminate\Support\Facades\Route::has('admin.profile'))
+            <a href="{{ route('admin.profile') }}" data-menu-item data-profile-link class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-text hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus">
+                <x-codeart::icon name="circle-user" class="size-4 text-text-muted" /> {{ __('codeart::profile.title') }}
+            </a>
+        @endif
         @if ($showSecurity)
             <a href="{{ route('admin.two-factor.setup') }}" data-menu-item class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-text hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus">
                 <x-codeart::icon name="shield-check" class="size-4" /> {{ __('codeart::admin.user.security') }}

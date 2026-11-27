@@ -175,7 +175,8 @@ Alpine.data('codeartShell', () => ({
         });
         this.collapsed = document.documentElement.dataset.sidebar === 'collapsed';
         const saved = store.get('codeart.theme');
-        this.theme = ['light', 'dark', 'auto'].includes(saved) ? saved : this.$root.dataset.themeDefault || 'light';
+        const chosen = this.$root.dataset.themeUser || saved; // the saved profile choice wins over this browser's memory
+        this.theme = ['light', 'dark', 'auto'].includes(chosen) ? chosen : this.$root.dataset.themeDefault || 'light';
     },
 
     get collapsedDesktop() {
@@ -217,6 +218,16 @@ Alpine.data('codeartShell', () => ({
         this.theme = mode;
         document.documentElement.setAttribute('data-theme', mode);
         store.set('codeart.theme', mode);
+        // Signed-in staff: remember the choice on the account too (best effort; the browser keeps working without it).
+        const url = this.$root.dataset.themeUrl;
+        if (url) {
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
+                body: JSON.stringify({ theme: mode }),
+                credentials: 'same-origin',
+            }).catch(() => {});
+        }
     },
 
     openPalette() {

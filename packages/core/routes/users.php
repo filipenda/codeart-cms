@@ -1,5 +1,6 @@
 <?php
 
+use Codeart\Core\Profile\ProfileController;
 use Codeart\Core\Users\Http\InvitationsController;
 use Codeart\Core\Users\Http\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -11,6 +12,14 @@ use Illuminate\Support\Facades\Route;
  */
 $guard = config('codeart.auth.guard', 'admin');
 $dangerous = ['password.confirm', 'codeart.confirmed'];
+
+// "Moj profil": every user who may enter the admin; always the signed-in user's own row.
+Route::middleware(['auth:'.$guard, 'admin.access'])->prefix('profile')->group(function () {
+    Route::get('/', [ProfileController::class, 'show'])->name('admin.profile');
+    Route::put('/', [ProfileController::class, 'update'])->middleware('throttle:30,1')->name('admin.profile.update');
+    Route::put('password', [ProfileController::class, 'password'])->middleware('throttle:10,1')->name('admin.profile.password');
+    Route::post('theme', [ProfileController::class, 'theme'])->middleware('throttle:60,1')->name('admin.profile.theme');
+});
 
 Route::middleware(['auth:'.$guard, 'admin.access'])->prefix('users')->group(function () use ($dangerous) {
     Route::get('/', [UsersController::class, 'index'])->name('admin.users.index');

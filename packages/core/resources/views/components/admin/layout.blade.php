@@ -28,7 +28,7 @@
     @include('codeart::partials.theme-style')
     <noscript><style>[x-cloak]{display:block !important}</style></noscript>
 </head>
-<body class="min-h-screen bg-surface-alt text-text antialiased" x-data="codeartShell" data-theme-default="{{ $theme->mode() }}"
+<body class="min-h-screen bg-surface-alt text-text antialiased" x-data="codeartShell" data-theme-default="{{ $theme->mode() }}" @if ($theme->userMode()) data-theme-user="{{ $theme->userMode() }}" @endif @if (\Illuminate\Support\Facades\Route::has('admin.profile.theme')) data-theme-url="{{ route('admin.profile.theme') }}" @endif
     x-on:keydown.window="onKeydown($event)" x-on:pageshow.window="drawer = false">
     <a href="#main" class="sr-only rounded-control bg-surface px-4 py-2 text-text focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-60 focus-visible:outline-2 focus-visible:outline-focus">{{ __('codeart::ui.skip_to_content') }}</a>
 
