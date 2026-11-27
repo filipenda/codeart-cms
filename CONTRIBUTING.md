@@ -19,6 +19,7 @@
 - One branch per feature (`feat/admin-ui`, later `feat/module-pages`). Several prompts or sessions may add commits to the same branch.
 - While working, run only the fast local check (`ddev composer check:fast`). No CI wait, no PR. Pushing the branch is fine.
 - A PR is opened only when the whole feature is done. Then the full `ddev composer check` runs locally once, CI runs once, and on green the PR is squash-merged: one clean commit per feature on `main`.
+- A commit is made only after `ddev composer check:fast` passes. A failing check is investigated, never skipped or committed over, and a flaky test is fixed at its root cause (shared state, order dependence, time), never retried or skipped (W7).
 - Version tags only when a feature set is stable.
 - Unless a task says "finish the feature", Claude does not open a PR, wait for CI or merge: it commits, pushes and reports.
 
