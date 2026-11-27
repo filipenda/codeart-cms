@@ -61,4 +61,5 @@ return [
     'confirm_no_filter' => 'bez filtera, svi redovi',
     'confirm_expired' => 'Potvrda je istekla ili je već iskorišćena. Potvrdite ponovo.',
     'confirm_required' => 'Ova radnja zahteva potvrdu. Ništa nije promenjeno.',
+    'demo' => ['activity' => 'Aktivnost', 'event' => 'Događaj', 'user' => 'Korisnik', 'system' => 'Sistem', 'ip' => 'IP adresa', 'when' => 'Vreme', 'log' => 'Dnevnik'],
 ];

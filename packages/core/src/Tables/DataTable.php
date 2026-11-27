@@ -415,9 +415,14 @@ final class DataTable
         $grammar = $query->getQuery()->getGrammar();
         foreach ($words as $word) {
             $like = '%'.Filter::escapeLike($word).'%';
-            $query->where(function (Builder $group) use ($columns, $like, $grammar): void {
+            $query->where(function (Builder $group) use ($columns, $like, $grammar, $word): void {
                 foreach ($columns as $column) {
-                    $group->orWhereRaw($this->sql($column->expression)->getValue($grammar)." LIKE ? ESCAPE '!'", [$like]);
+                    $sql = $this->sql($column->expression)->getValue($grammar);
+                    $group->orWhereRaw($sql." LIKE ? ESCAPE '!'", [$like]);
+                    $keys = $column->keysMatching($word);
+                    if ($keys !== []) {
+                        $group->orWhereRaw($sql.' IN ('.implode(',', array_fill(0, count($keys), '?')).')', $keys);
+                    }
                 }
             });
         }

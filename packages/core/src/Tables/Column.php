@@ -39,6 +39,9 @@ final class Column
 
     public string $dateFormat = 'd.m.Y. H:i';
 
+    /** @var (Closure(string): array<string, string>)|null locale => (raw value => translated text); see `searchTranslated()` */
+    public ?Closure $translations = null;
+
     public function __construct(public readonly string $key, public readonly string $label, public readonly string $type = 'text', public readonly string $expression = '')
     {
         if (! in_array($type, self::TYPES, true)) {
@@ -145,6 +148,49 @@ final class Column
         $this->exportUsing = $using;
 
         return $this;
+    }
+
+    /**
+     * The cell shows a translated text for a raw value (an event key, a status ...). Search must find what the user SEES,
+     * so the term is also matched against these texts in the current locale plus sr, sr-Cyrl and en, and every raw value
+     * whose text contains it is searched together with the term itself. `$labels` is `fn (string $locale): array<raw, text>`.
+     *
+     * @param  Closure(string): array<string, string>  $labels
+     */
+    public function searchTranslated(Closure $labels): self
+    {
+        $this->translations = $labels;
+
+        return $this;
+    }
+
+    /** Same, for a column whose `options()` labels are already the translated texts of the current locale only. */
+    public function searchByOptions(): self
+    {
+        return $this->searchTranslated(fn (string $locale): array => array_map(fn (array $o): string => $o[0], $this->options));
+    }
+
+    /**
+     * Raw values whose translated text (in any searched locale) contains the word.
+     *
+     * @return list<string>
+     */
+    public function keysMatching(string $word): array
+    {
+        if ($this->translations === null) {
+            return [];
+        }
+        $locales = array_values(array_unique([app()->getLocale(), 'sr', 'sr-Cyrl', 'en']));
+        $keys = [];
+        foreach ($locales as $locale) {
+            foreach (($this->translations)($locale) as $raw => $text) {
+                if (mb_stripos((string) $text, $word) !== false) {
+                    $keys[(string) $raw] = true;
+                }
+            }
+        }
+
+        return array_map(strval(...), array_keys($keys));
     }
 
     /** @param array<string, array{0: string, 1: string}> $options value => [label, tone] */

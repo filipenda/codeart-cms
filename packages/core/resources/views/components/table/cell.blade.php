@@ -40,7 +40,9 @@
             $name = (string) ($person['name'] ?? '');
         @endphp
         <div class="flex items-center gap-3">
-            @if (! empty($person['image']))
+            @if (! empty($person['system']))
+                <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-text-muted" aria-hidden="true" data-system><x-codeart::icon name="server" class="size-4" /></span>
+            @elseif (! empty($person['image']))
                 <img src="{{ $person['image'] }}" alt="" loading="lazy" class="size-9 shrink-0 rounded-full bg-surface-sunken object-cover">
             @else
                 <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-text" aria-hidden="true">{{ $initials($name) ?: '?' }}</span>

@@ -30,7 +30,7 @@
 <div id="{{ $id }}" class="space-y-4" data-table="{{ $table->id }}" x-data="codeartTable({ total: {{ $result->total }}, rows: {{ $result->rows->count() }} })" x-init="init()">
     @unless ($empty)
         {{-- Toolbar: a GET form, so every list is linkable and works without JavaScript. Page resets to 1 on a new search. --}}
-        <form method="GET" action="{{ $result->baseUrl }}" role="search" aria-label="{{ $label }}" x-ref="form" class="space-y-3" data-toolbar>
+        <form method="GET" action="{{ $result->baseUrl }}" role="search" aria-label="{{ $label }}" x-ref="form" class="space-y-3" data-toolbar x-data="{ filtersOpen: {{ $panelOpen ? 'true' : 'false' }} }">
             @foreach ($result->hiddenFields(['q', 'filter', 'page']) as $name => $value)
                 <input type="hidden" name="{{ $name }}" value="{{ $value }}">
             @endforeach
@@ -44,6 +44,12 @@
                     <div class="min-w-40"><x-codeart::table.filter :filter="$filter" :value="$state->filters[$key] ?? null" /></div>
                 @endforeach
                 <x-codeart::button type="submit" variant="secondary" size="md" :full="false" icon-left="search">{{ __('codeart::table.apply') }}</x-codeart::button>
+                @if ($panel !== [])
+                    <button type="button" x-on:click="filtersOpen = ! filtersOpen" x-bind:aria-expanded="filtersOpen.toString()" aria-controls="{{ $id }}-more" aria-expanded="{{ $panelOpen ? 'true' : 'false' }}" data-more-filters-toggle
+                        class="inline-flex h-11 items-center gap-2 rounded-control border border-border bg-surface px-3 text-sm font-medium text-text hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
+                        <x-codeart::icon name="sliders-horizontal" class="size-4" /> {{ __('codeart::table.more_filters') }}
+                    </button>
+                @endif
                 @if ($state->hasCriteria())
                     <x-codeart::button :href="$result->url(['q' => '', 'filter' => [], 'page' => 1])" variant="ghost" size="md" :full="false" icon-left="rotate-ccw" data-reset>{{ __('codeart::table.reset') }}</x-codeart::button>
                 @endif
@@ -52,11 +58,9 @@
                 @endif
             </div>
             @if ($panel !== [])
-                <details class="rounded-card border border-border bg-surface" @if ($panelOpen) open @endif data-more-filters>
-                    <summary class="flex cursor-pointer items-center gap-2 rounded-card px-4 py-3 text-sm font-medium text-text focus-visible:outline-2 focus-visible:outline-focus">
-                        <x-codeart::icon name="sliders-horizontal" class="size-4" /> {{ __('codeart::table.more_filters') }}
-                    </summary>
-                    <div class="grid gap-4 border-t border-border p-4 sm:grid-cols-2 lg:grid-cols-3">
+                {{-- Without JavaScript the panel is simply shown; Alpine hides it until the toggle button opens it. --}}
+                <div id="{{ $id }}-more" class="rounded-card border border-border bg-surface" x-show="filtersOpen" x-cloak data-more-filters @if ($panelOpen) data-open="1" @endif>
+                    <div class="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($panel as $key => $filter)
                             <div class="space-y-1.5">
                                 <span class="block text-xs font-medium text-text-muted" aria-hidden="true">{{ $filter->label }}</span>
@@ -64,7 +68,7 @@
                             </div>
                         @endforeach
                     </div>
-                </details>
+                </div>
             @endif
         </form>
     @endunless

@@ -77,13 +77,14 @@ it('offers every column without a declared filter in the more-filters panel', fu
     seedMany(5);
     $xp = renderItems(['filter' => ['views' => ['from' => '20']]]);
 
-    expect(count_nodes($xp, '//details[@data-more-filters]'))->toBe(1)
-        ->and(attr($xp, '//details[@data-more-filters]', 'open'))->not->toBeNull() // an active panel filter opens it
-        ->and(attr($xp, '//details//input[@name="filter[views][from]"]', 'value'))->toBe('20')
-        ->and(count_nodes($xp, '//details//input[@name="filter[title]"]'))->toBe(1)
-        ->and(count_nodes($xp, '//details//*[@name="filter[status]"]'))->toBe(0); // declared filters stay in the toolbar
+    expect(count_nodes($xp, '//*[@data-more-filters]'))->toBe(1)
+        ->and(count_nodes($xp, '//form[@data-toolbar]//button[@data-more-filters-toggle]'))->toBe(1)
+        ->and(attr($xp, '//*[@data-more-filters]', 'data-open'))->not->toBeNull() // an active panel filter opens it
+        ->and(attr($xp, '//*[@data-more-filters]//input[@name="filter[views][from]"]', 'value'))->toBe('20')
+        ->and(count_nodes($xp, '//*[@data-more-filters]//input[@name="filter[title]"]'))->toBe(1)
+        ->and(count_nodes($xp, '//*[@data-more-filters]//*[@name="filter[status]"]'))->toBe(0); // declared filters stay in the toolbar
 
-    expect(attr(renderItems(), '//details[@data-more-filters]', 'open'))->toBeNull();
+    expect(attr(renderItems(), '//*[@data-more-filters]', 'data-open'))->toBeNull();
 });
 
 it('shows the export link only for a user who may export, with the current state', function () {

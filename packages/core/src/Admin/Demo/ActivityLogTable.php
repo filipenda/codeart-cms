@@ -26,20 +26,26 @@ final class ActivityLogTable implements TableDefinition
 
         $logs = Activity::query()->whereNotNull('log_name')->distinct()->orderBy('log_name')->pluck('log_name', 'log_name')->all();
 
+        $events = collect(ActivityDescription::labels(app()->getLocale()))->map(fn (string $text): array => [$text, 'neutral'])->all();
+        $searchEvents = fn (string $locale): array => ActivityDescription::labels($locale);
+
         return DataTable::make(self::KEY, Activity::query())
             ->columns(
                 Column::number('id', 'ID'),
-                Column::titleSubtitle('description', 'Activity')->using(fn (Activity $a): array => ['title' => ActivityDescription::for($a->event, (string) $a->description), 'subtitle' => $a->log_name]),
-                Column::badge('event', 'Event'),
-                Column::avatar('causer_id', 'User')->using(function (Activity $a): array {
+                Column::titleSubtitle('description', __('codeart::table.demo.activity'))->using(fn (Activity $a): array => ['title' => ActivityDescription::for($a->event, (string) $a->description), 'subtitle' => $a->log_name]),
+                Column::badge('event', __('codeart::table.demo.event'), $events)->searchTranslated($searchEvents),
+                Column::avatar('causer_id', __('codeart::table.demo.user'))->using(function (Activity $a): array {
                     $causer = $a->causer;
+                    if (! $causer instanceof Model) {
+                        return ['system' => true, 'name' => __('codeart::table.demo.system')];
+                    }
 
-                    return ['name' => $causer instanceof Model ? (string) ($causer->getAttribute('name') ?? '') : '', 'subtitle' => $causer instanceof Model ? (string) ($causer->getAttribute('email') ?? '') : ''];
+                    return ['name' => (string) ($causer->getAttribute('name') ?? ''), 'subtitle' => (string) ($causer->getAttribute('email') ?? '')];
                 })->searchable(false),
-                Column::text('ip_address', 'IP address'),
-                Column::date('created_at', 'When'),
+                Column::text('ip_address', __('codeart::table.demo.ip')),
+                Column::date('created_at', __('codeart::table.demo.when')),
             )
-            ->filters(Filter::select('log_name', 'Log', $logs), Filter::dateRange('created_at', 'When'))
+            ->filters(Filter::select('log_name', __('codeart::table.demo.log'), $logs), Filter::dateRange('created_at', __('codeart::table.demo.when')))
             ->with('causer')
             ->defaultSort('created_at', 'desc')
             ->permission('manage-modules')

@@ -67,3 +67,23 @@ it('exports the demo table as CSV for a super-admin only, and only in the local 
     $this->actingAs(staff('super-admin'), 'admin')->get(route('codeart.tables.export', ['table' => ActivityLogTable::KEY]))->assertNotFound();
     expect(app(TableRegistry::class)->has(ActivityLogTable::KEY))->toBeTrue();
 });
+
+it('searches the event by its translated text, shows system rows and translated headers', function () {
+    DB::table('activity_log')->insert([
+        ['log_name' => 'auth', 'description' => 'x', 'event' => 'auth.login', 'created_at' => now(), 'updated_at' => now()],
+        ['log_name' => 'auth', 'description' => 'y', 'event' => 'auth.logout', 'created_at' => now(), 'updated_at' => now()],
+    ]);
+    $user = staff('super-admin');
+    $get = fn (string $q) => dom($this->actingAs($user, 'admin')->get('/admin/_ui'.$q)->assertOk()->getContent());
+
+    $rows = '//div[@data-table="ui-activity"]//tbody/tr';
+    expect(count_nodes($get('?q=prijava'), $rows))->toBe(1)
+        ->and(count_nodes($get('?q=login'), $rows))->toBe(1)
+        ->and(count_nodes($get('?q=Odjava'), $rows))->toBe(1)
+        ->and(count_nodes($get('?q=nepostojece'), $rows))->toBe(0);
+    $xp = $get('');
+    expect(text_of($xp, '//th[@data-column="event"]'))->toContain('Događaj')
+        ->and(text_of($xp, $rows))->toContain('Sistem')->and(text_of($xp, $rows))->not->toContain('auth.login')
+        ->and(count_nodes($xp, '//span[@data-system]'))->toBeGreaterThanOrEqual(2)
+        ->and(count_nodes($xp, '//input[@type="date"][@lang]'))->toBeGreaterThan(1);
+});

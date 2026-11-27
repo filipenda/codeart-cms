@@ -15,9 +15,9 @@
     @case('date-range')
         <fieldset class="flex items-center gap-2" data-filter-range>
             <legend class="sr-only">{{ $filter->label }}</legend>
-            <input type="date" name="{{ $field }}[from]" value="{{ $range['from'] ?? '' }}" aria-label="{{ $filter->label }}: {{ __('codeart::table.from') }}" class="{{ $input }}" data-filter-auto>
+            <input type="date" lang="{{ app()->getLocale() }}" placeholder="dd.mm.yyyy" name="{{ $field }}[from]" value="{{ $range['from'] ?? '' }}" aria-label="{{ $filter->label }}: {{ __('codeart::table.from') }}" class="{{ $input }}" data-filter-auto>
             <span class="text-text-muted" aria-hidden="true">–</span>
-            <input type="date" name="{{ $field }}[to]" value="{{ $range['to'] ?? '' }}" aria-label="{{ $filter->label }}: {{ __('codeart::table.to') }}" class="{{ $input }}" data-filter-auto>
+            <input type="date" lang="{{ app()->getLocale() }}" placeholder="dd.mm.yyyy" name="{{ $field }}[to]" value="{{ $range['to'] ?? '' }}" aria-label="{{ $filter->label }}: {{ __('codeart::table.to') }}" class="{{ $input }}" data-filter-auto>
         </fieldset>
         @break
     @case('number-range')

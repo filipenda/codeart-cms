@@ -230,6 +230,16 @@ Benchmark: `php artisan codeart:bench:table` (MariaDB, creates and drops a tempo
 
 Sub-components: `table.cell` (one renderer per column type), `table.filter`, `table.select` (compact 44px select), `table.pagination`. The showcase page `/admin/_ui` has a demo backed by the activity log.
 
+### Translated cells are searched by what the user sees
+
+Anything a column displays through a translation (an event key, a status, a role) must also be searchable by the
+translated text. Declare it on the column: `Column::searchTranslated(fn (string $locale): array => [rawValue => text])`
+(or `searchByOptions()` when `options()` already holds the texts). The search term is matched against the texts in the
+current locale plus `sr`, `sr-Cyrl` and `en`; every raw value whose text contains the word is searched (`IN (...)`)
+together with the raw value itself. Other toolbar details: "Više filtera" is a compact toggle button in the toolbar row
+(the panel is visible without JavaScript); a cell of type `avatar` with `['system' => true, 'name' => 'Sistem']` shows
+a server icon instead of initials; date filter inputs carry `lang` of the panel locale.
+
 ## JavaScript (`resources/js/app.js`, built to `resources/dist/codeart.js`)
 Alpine 3 plus two components: `codeartOtp(length)` and `codeartRecoveryCodes(filename)` (copy and download .txt).
 Rebuild both bundles after changing views, CSS or JS: `ddev exec "cd packages/core && npm run build"` and commit `resources/dist`.

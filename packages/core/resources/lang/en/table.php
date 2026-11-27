@@ -61,4 +61,5 @@ return [
     'confirm_no_filter' => 'no filter, all rows',
     'confirm_expired' => 'The confirmation expired or was already used. Please confirm again.',
     'confirm_required' => 'This action needs a confirmation. Nothing was changed.',
+    'demo' => ['activity' => 'Activity', 'event' => 'Event', 'user' => 'User', 'system' => 'System', 'ip' => 'IP address', 'when' => 'When', 'log' => 'Log'],
 ];
