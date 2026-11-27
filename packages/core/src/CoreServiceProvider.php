@@ -41,6 +41,7 @@ use Codeart\Core\Settings\CoreSettings;
 use Codeart\Core\Settings\Settings;
 use Codeart\Core\Settings\SettingsManager;
 use Codeart\Core\Settings\SettingsRegistry;
+use Codeart\Core\Tables\TableRegistry;
 use Codeart\Core\Theme\Assets;
 use Codeart\Core\Theme\ThemeSettings;
 use Codeart\Core\Translations\Locales;
@@ -64,6 +65,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(QuickActions::class);
         $this->app->singleton(SearchRegistry::class);
         $this->app->singleton(Icons::class);
+        $this->app->singleton(TableRegistry::class);
 
         $this->mergeConfigFrom(__DIR__.'/../config/codeart.php', 'codeart');
 

@@ -115,4 +115,15 @@ return [
         // Routes reachable while two-factor setup is still required (besides the Fortify two-factor routes).
         'two_factor_exempt_routes' => ['logout', 'admin.session', 'password.confirm', 'password.confirm.store', 'password.confirmation'],
     ],
+
+    /*
+    | Data tables (docs/components.md). A list always loads one page (default below, hard maximum 100).
+    | Bulk actions work in chunks; above `queue_limit` rows they are queued when a real queue driver is configured,
+    | otherwise they run in chunks inside the request up to `hard_cap` and are refused above it ("narrow the filter").
+    */
+    'tables' => [
+        'default_per_page' => 25,
+        'bulk' => ['chunk' => 500, 'queue_limit' => 1000, 'hard_cap' => 10000],
+        'export' => ['chunk' => 1000, 'max_rows' => 500000],
+    ],
 ];
