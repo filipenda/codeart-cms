@@ -42,6 +42,9 @@ return [
     ],
 
     'activity' => [
+        'media' => ['uploaded' => 'File uploaded', 'updated' => 'File updated', 'moved' => 'Files moved', 'replaced' => 'File replaced', 'deleted' => 'File deleted'],
+        'profile' => ['updated' => 'Profile updated', 'avatar_changed' => 'Profile picture changed', 'avatar_removed' => 'Profile picture removed'],
+        'table' => ['bulk' => 'Bulk action', 'export' => 'Data export'],
         'auth' => [
             'login' => 'Signed in',
             'login_failed' => 'Sign-in failed',
@@ -57,18 +60,26 @@ return [
         ],
         'registration' => ['created' => 'Registration'],
         'user' => [
+            'role_changed' => 'User role changed',
+            'email_changed' => 'User e-mail changed',
+            'updated' => 'User updated',
+            'unblocked' => 'User unblocked',
+            'restored' => 'User restored',
+            'deleted' => 'User deleted',
+            'force_deleted' => 'User permanently deleted',
+            'rejected' => 'Registration rejected',
             'created' => 'User created',
             'deactivated' => 'User deactivated',
             'approved' => 'Registration approved',
         ],
-        'invitation' => ['sent' => 'Invitation sent', 'accepted' => 'Invitation accepted'],
+        'invitation' => ['revoked' => 'Invitation revoked', 'sent' => 'Invitation sent', 'accepted' => 'Invitation accepted'],
         'password' => [
             'changed' => 'Password changed',
             'reset_requested' => 'Password reset requested',
             'reset_completed' => 'Password reset completed',
         ],
         'email' => ['verified' => 'E-mail address verified'],
-        'session' => ['others_revoked' => 'Signed out of other devices'],
+        'session' => ['revoked' => 'Signed out of a device', 'others_revoked' => 'Signed out of other devices'],
         'two_factor' => [
             'setup_started' => 'Two-factor setup started',
             'enabled' => 'Two-factor authentication enabled',

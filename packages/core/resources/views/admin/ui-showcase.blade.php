@@ -122,6 +122,37 @@
             </x-codeart::empty-state>
         </x-codeart::admin.card>
 
+        <x-codeart::admin.card title="Rich-text editor" icon="file-text" data-showcase-editor>
+            <form method="POST" action="{{ route('codeart.ui-showcase.discard') }}" class="space-y-8" data-dirty-guard>
+                @csrf
+                <div class="space-y-3" x-data="{ locale: 'sr' }" data-showcase-editor-tabs>
+                    <p class="text-sm text-text-muted">One editor per language, like the publishing form. Submitting discards everything.</p>
+                    <div role="tablist" class="flex flex-wrap gap-1" aria-label="Languages" data-locale-tabs>
+                        @foreach (['sr' => 'Srpski', 'en' => 'English'] as $code => $name)
+                            <button type="button" role="tab" data-locale-tab="{{ $code }}" x-on:click="locale = @js($code)" x-bind:aria-selected="locale === @js($code)"
+                                class="rounded-control border border-border px-3 py-1.5 text-sm text-text aria-selected:border-primary aria-selected:bg-primary-soft focus-visible:outline-2 focus-visible:outline-focus">{{ $name }}</button>
+                        @endforeach
+                    </div>
+                    <div x-show="locale === 'sr'" data-locale-panel="sr"><x-codeart::form.editor name="demo_translations[sr][body]" id="demo-editor-sr" label="Tekst (sr)" value="<h2>Naslov</h2><p>Primer <strong>teksta</strong> sa <a href=&quot;https://example.com&quot;>vezom</a>.</p>" /></div>
+                    <div x-show="locale === 'en'" x-cloak data-locale-panel="en"><x-codeart::form.editor name="demo_translations[en][body]" id="demo-editor-en" label="Text (en)" value="<h2>Heading</h2><ul><li>First</li><li>Second</li></ul>" /></div>
+                </div>
+                <x-codeart::form.editor name="demo_plain" id="demo-editor-plain" label="Plain, single language" value="<p>One editor, one language.</p>" hint="No language tabs around it." />
+                <x-codeart::form.editor name="demo_readonly" id="demo-editor-readonly" label="Read-only" value="<p>This content cannot be edited.</p>" readonly />
+                <x-codeart::form.editor name="demo" id="demo-editor-error" label="With a validation error" :bag="$errorBag" value="<p>Something is wrong here.</p>" />
+                <x-codeart::button size="md" :full="false">Submit (discarded)</x-codeart::button>
+            </form>
+        </x-codeart::admin.card>
+
+        <x-codeart::admin.card title="Media picker" icon="images" data-showcase-media>
+            <form method="POST" action="{{ route('codeart.ui-showcase.discard') }}" class="space-y-6">
+                @csrf
+                <x-codeart::form.media name="demo_single" id="demo-media-single" label="Single image (empty)" hint="Nothing chosen yet." />
+                <x-codeart::form.media name="demo_multiple" id="demo-media-multiple" label="Several images (empty)" :multiple="true" hint="Choose a file in the library, order them with the arrows." />
+                <x-codeart::form.media name="demo" id="demo-media-error" label="With a validation error" :bag="$errorBag" />
+                <x-codeart::button size="md" :full="false">Submit (discarded)</x-codeart::button>
+            </form>
+        </x-codeart::admin.card>
+
         <x-codeart::admin.card title="Form: validation errors and a flash toast" icon="shield-check">
             <form method="POST" action="{{ route('codeart.ui-showcase.submit') }}" class="grid gap-6 md:grid-cols-2" novalidate>
                 @csrf

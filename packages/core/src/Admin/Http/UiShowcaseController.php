@@ -42,4 +42,12 @@ class UiShowcaseController
 
         return redirect()->route('codeart.ui-showcase')->with('toast', ['type' => 'success', 'message' => 'Form is valid: this is a flash toast.']);
     }
+
+    /** The editor and media demo forms post here: nothing is validated, stored or sanitized-and-kept; the input is discarded. */
+    public function discard(): RedirectResponse
+    {
+        Gate::authorize('manage-modules');
+
+        return redirect()->route('codeart.ui-showcase')->with('toast', ['type' => 'success', 'message' => 'Demo form received and discarded: nothing was saved.']);
+    }
 }

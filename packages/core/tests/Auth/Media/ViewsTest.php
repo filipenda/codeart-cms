@@ -4,6 +4,8 @@ require_once __DIR__.'/../../Support/media.php';
 
 use Codeart\Core\Media\Actions\StoreMedia;
 use Illuminate\Support\Facades\Blade;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(fn () => fake_disk('public'));
 
@@ -17,7 +19,8 @@ it('renders the library page with grid, list, folder tree, drawer and the effect
 
 it('hides what the user may not do', function () {
     $user = mediaAdmin('editor');
-    $user->givePermissionTo('media.view');
+    Role::findByName('editor', 'admin')->revokePermissionTo('media.upload');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
     $html = $this->actingAs($user->fresh(), 'admin')->get(route('admin.media.index'))->assertOk()->getContent();
     expect($html)->not->toContain('data-media-input')->not->toContain('data-bulk-delete')->not->toContain('data-media-settings')->not->toContain('data-media-texts');
 });

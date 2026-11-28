@@ -42,6 +42,9 @@ return [
     ],
 
     'activity' => [
+        'media' => ['uploaded' => 'Fajl otpremljen', 'updated' => 'Fajl izmenjen', 'moved' => 'Fajlovi premešteni', 'replaced' => 'Fajl zamenjen', 'deleted' => 'Fajl obrisan'],
+        'profile' => ['updated' => 'Profil izmenjen', 'avatar_changed' => 'Slika profila promenjena', 'avatar_removed' => 'Slika profila uklonjena'],
+        'table' => ['bulk' => 'Grupna akcija', 'export' => 'Izvoz podataka'],
         'auth' => [
             'login' => 'Prijava',
             'login_failed' => 'Neuspela prijava',
@@ -57,18 +60,26 @@ return [
         ],
         'registration' => ['created' => 'Registracija'],
         'user' => [
+            'role_changed' => 'Uloga korisnika promenjena',
+            'email_changed' => 'E-adresa korisnika promenjena',
+            'updated' => 'Korisnik izmenjen',
+            'unblocked' => 'Korisnik odblokiran',
+            'restored' => 'Korisnik vraćen',
+            'deleted' => 'Korisnik obrisan',
+            'force_deleted' => 'Korisnik trajno obrisan',
+            'rejected' => 'Registracija odbijena',
             'created' => 'Korisnik kreiran',
             'deactivated' => 'Korisnik deaktiviran',
             'approved' => 'Registracija odobrena',
         ],
-        'invitation' => ['sent' => 'Pozivnica poslata', 'accepted' => 'Pozivnica prihvaćena'],
+        'invitation' => ['revoked' => 'Pozivnica opozvana', 'sent' => 'Pozivnica poslata', 'accepted' => 'Pozivnica prihvaćena'],
         'password' => [
             'changed' => 'Lozinka promenjena',
             'reset_requested' => 'Zatraženo resetovanje lozinke',
             'reset_completed' => 'Lozinka resetovana',
         ],
         'email' => ['verified' => 'E-pošta potvrđena'],
-        'session' => ['others_revoked' => 'Odjava sa drugih uređaja'],
+        'session' => ['revoked' => 'Odjava sa uređaja', 'others_revoked' => 'Odjava sa drugih uređaja'],
         'two_factor' => [
             'setup_started' => 'Počelo podešavanje dvostepene provere',
             'enabled' => 'Dvostepena provera uključena',

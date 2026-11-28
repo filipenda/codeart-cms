@@ -92,6 +92,7 @@ export default function registerEditor(Alpine) {
             this.editor = new Editor({
                 element: mount,
                 content: input.value,
+                editable: !config.readonly,
                 extensions: [
                     StarterKit.configure({
                         heading: { levels: [2, 3, 4] },

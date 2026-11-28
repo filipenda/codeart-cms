@@ -29,8 +29,8 @@ class CreateDefaultRoles
         'users.delete' => ['admin'],
         'users.force-delete' => [],
         'users.reset-2fa' => ['admin'],
-        'media.view' => ['admin'],
-        'media.upload' => ['admin'],
+        'media.view' => ['admin', 'editor'],
+        'media.upload' => ['admin', 'editor'],
         'media.update' => ['admin'],
         'media.delete' => ['admin'],
     ];

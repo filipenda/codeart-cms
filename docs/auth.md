@@ -30,13 +30,15 @@ Core makes `admin` the default guard when the app still has `web` (the database 
 
 ## Roles and permissions
 
-All under guard name `admin`. `CreateDefaultRoles` grants a permission to roles only when the permission is first created, so a later revoke sticks.
+All under guard name `admin`. `CreateDefaultRoles` grants a permission to roles only when the permission is first created, so a later revoke sticks. Editors got `media.view`/`media.upload` later (to insert images): new installs through the defaults, existing installs through the migration `grant_editor_media_upload` (runs once, run `php artisan migrate`).
 
 | Permission | admin | editor | member | super-admin |
 |---|---|---|---|---|
 | `admin.access` | yes | yes | no | Gate bypass |
 | `users.view`, `users.create`, `users.update`, `users.approve` | yes | no | no | Gate bypass |
 | `settings.appearance` | yes | no | no | Gate bypass |
+| `media.view`, `media.upload` | yes | yes | no | Gate bypass |
+| `media.update`, `media.delete` | yes | no | no | Gate bypass |
 
 `member` is the role of registered visitors: it has no permission, so it never reaches the admin (403).
 
