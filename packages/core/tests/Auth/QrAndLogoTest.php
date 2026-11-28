@@ -2,7 +2,6 @@
 
 use Codeart\Core\Auth\TwoFactorQrCode;
 use Codeart\Core\Settings\Settings;
-use Illuminate\Support\Facades\Storage;
 
 require_once __DIR__.'/../Support/dom.php';
 
@@ -110,7 +109,7 @@ it('builds every auth screen on the card layout that carries the logo', function
 
 it('links uploaded logos root-relative, so they load under any host (not only APP_URL)', function () {
     config(['app.url' => 'http://localhost']);
-    Storage::fake('public');
+    fake_disk('public');
     app(Settings::class)->set('theme.logo_light', 'branding/light.png');
 
     $src = attr(dom($this->get('/admin/login')->getContent()), '//main//img', 'src');

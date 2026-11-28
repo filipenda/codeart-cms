@@ -12,6 +12,8 @@
             "@composer --working-dir=apps/starter install --no-interaction"
         ],
         "check:colors": "@php tools/check-colors.php",
+        "preview:install": "@php tools/preview-install.php",
+        "preview:install:clean": "@php tools/preview-install.php --clean",
         "check:core": "@composer --working-dir=packages/core check",
         "check:starter": "@composer --working-dir=apps/starter check",
         "check": [

@@ -12,13 +12,21 @@ use Codeart\Core\Tests\Support\FakeDiscovery;
 use Codeart\Core\Tests\Support\StubUser;
 use Codeart\Core\Tests\Support\TestDatabase;
 use Codeart\Core\Tests\TestCase;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use PragmaRX\Google2FA\Google2FA;
+
+/** Storage::fake() with a root of its own per Paratest worker (TEST_TOKEN), so parallel workers cannot wipe each other's files. */
+function fake_disk(string $disk): Filesystem
+{
+    return Storage::fake($disk, ['root' => sys_get_temp_dir().'/codeart-fake-disks-'.TestDatabase::name().'/'.$disk]);
+}
 
 uses(TestCase::class)->in('Unit', 'Feature');
 uses(AuthTestCase::class)->in('Auth');

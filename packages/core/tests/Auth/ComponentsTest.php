@@ -281,7 +281,7 @@ function pngFile(string $path): void
 }
 
 it('loads the logos and favicon through the image upload service', function () {
-    Storage::fake('public');
+    fake_disk('public');
     $dir = sys_get_temp_dir().'/codeart-brand-'.uniqid();
     mkdir($dir);
     foreach (['logo-light-bg.png', 'logo-dark-bg.png', 'favicon.png'] as $file) {
@@ -303,7 +303,7 @@ it('loads the logos and favicon through the image upload service', function () {
 });
 
 it('skips what is missing or not an image, and fails when nothing could be loaded', function () {
-    Storage::fake('public');
+    fake_disk('public');
     $dir = sys_get_temp_dir().'/codeart-brand-'.uniqid();
     mkdir($dir);
     pngFile($dir.'/favicon.png');

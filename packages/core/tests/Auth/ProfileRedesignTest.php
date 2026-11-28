@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     app(Settings::class)->set('security.2fa.mode', 'off');
-    Storage::fake('public');
+    fake_disk('public');
 });
 
 function png_upload(string $name = 'me.png', int $w = 900, int $h = 600): UploadedFile

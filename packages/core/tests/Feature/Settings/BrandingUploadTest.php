@@ -8,7 +8,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-beforeEach(fn () => Storage::fake('public'));
+beforeEach(fn () => fake_disk('public'));
 
 function uploader(): BrandingImageUploader
 {
@@ -89,7 +89,7 @@ it('does not delete files outside the branding folder', function () {
 });
 
 it('only accepts uploads for image settings and honors the configured disk and folder', function () {
-    Storage::fake('branding-disk');
+    fake_disk('branding-disk');
     config(['codeart.branding.disk' => 'branding-disk', 'codeart.branding.directory' => 'brand/x']);
 
     expect(fn () => uploader()->store('theme.primary', UploadedFile::fake()->image('a.png')))->toThrow(InvalidSettingValue::class);
