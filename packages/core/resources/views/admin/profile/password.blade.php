@@ -5,6 +5,7 @@
             <div class="space-y-4">
                 <x-codeart::field name="current_password" type="password" icon="lock" :label="__('codeart::profile.current_password')" required autocomplete="current-password" :bag="$errors->updatePassword" />
                 <x-codeart::field name="password" type="password" icon="key-round" :label="__('codeart::profile.new_password')" required autocomplete="new-password" :bag="$errors->updatePassword" />
+                <x-codeart::form.password-strength for="field-password" :rules="$passwordRules" :breached="$checksBreached" />
                 <x-codeart::field name="password_confirmation" type="password" icon="key-round" :label="__('codeart::profile.confirm_password')" required autocomplete="new-password" :bag="$errors->updatePassword" />
             </div>
             <x-slot:footer>

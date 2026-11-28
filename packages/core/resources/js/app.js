@@ -83,6 +83,88 @@ Alpine.data('codeartOtp', (length = 6) => ({
     },
 }));
 
+/** Copy text to the clipboard; falls back to a hidden textarea + execCommand where the Clipboard API is missing. Resolves true on success. */
+async function copyText(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch {
+        const area = Object.assign(document.createElement('textarea'), { value: text });
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        let ok = false;
+        try {
+            ok = document.execCommand('copy');
+        } catch {
+            ok = false;
+        }
+        area.remove();
+        return ok;
+    }
+}
+
+Alpine.data('codeartCopy', (value = '') => ({
+    copied: false,
+    failed: false,
+
+    async copy() {
+        this.failed = !(await copyText(value));
+        this.copied = !this.failed;
+        setTimeout(() => ((this.copied = false), (this.failed = false)), 2500);
+    },
+}));
+
+/*
+ * Password strength: the server passes the configured rules ([{key, value}]); the score is simple on purpose
+ * (rules met + length headroom). The server stays the only judge; this is feedback while typing.
+ */
+Alpine.data('codeartPasswordStrength', (rules = [], inputId = '') => ({
+    rules,
+    value: '',
+    met: {},
+    score: 0,
+
+    init() {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        this.value = input.value;
+        input.addEventListener('input', () => ((this.value = input.value), this.evaluate()));
+        this.evaluate();
+    },
+
+    check(rule, v) {
+        switch (rule.key) {
+            case 'min_length': return [...v].length >= Number(rule.value);
+            case 'mixed_case': return /\p{Ll}/u.test(v) && /\p{Lu}/u.test(v);
+            case 'number': return /\p{N}/u.test(v);
+            case 'symbol': return /[^\p{L}\p{N}\s]/u.test(v);
+            default: return true;
+        }
+    },
+
+    evaluate() {
+        const v = this.value;
+        this.met = Object.fromEntries(this.rules.map((r) => [r.key, v !== '' && this.check(r, v)]));
+        const all = v !== '' && this.rules.every((r) => this.met[r.key]);
+        const min = Number((this.rules.find((r) => r.key === 'min_length') || { value: 8 }).value);
+        const len = [...v].length;
+        const kinds = [/\p{Ll}/u, /\p{Lu}/u, /\p{N}/u, /[^\p{L}\p{N}\s]/u].filter((re) => re.test(v)).length;
+        let score = v === '' ? 0 : 1;
+        if (all) score = 3;
+        else if (v !== '' && this.rules.some((r) => this.met[r.key])) score = 2;
+        if (all && len >= min + 4) score += 1;
+        if (all && len >= min + 8 && kinds >= 3) score += 1;
+        this.score = Math.min(score, 5);
+    },
+
+    level() {
+        return this.score <= 2 ? 'weak' : this.score === 3 ? 'medium' : 'strong';
+    },
+}));
+
 Alpine.data('codeartRecoveryCodes', (filename = 'recovery-codes.txt') => ({
     copied: false,
 
@@ -91,16 +173,7 @@ Alpine.data('codeartRecoveryCodes', (filename = 'recovery-codes.txt') => ({
     },
 
     async copy() {
-        try {
-            await navigator.clipboard.writeText(this.text());
-        } catch {
-            const area = document.createElement('textarea');
-            area.value = this.text();
-            document.body.appendChild(area);
-            area.select();
-            document.execCommand('copy');
-            area.remove();
-        }
+        if (!(await copyText(this.text()))) return;
         this.copied = true;
         setTimeout(() => (this.copied = false), 2500);
     },

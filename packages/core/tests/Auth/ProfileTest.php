@@ -29,7 +29,7 @@ it('changes only name, language and theme, and only of the signed-in user (mass 
     $other = staff('member', ['name' => 'Other One']);
 
     $this->actingAs($me, 'admin')->put('/admin/profile', [
-        'name' => 'New Name', 'locale' => 'en', 'theme_preference' => 'dark',
+        'first_name' => 'New', 'last_name' => 'Name', 'locale' => 'en', 'theme_preference' => 'dark',
         'email' => 'evil@example.com', 'role' => 'super-admin', 'is_active' => 0, 'id' => $other->id, 'approved_at' => null,
     ])->assertRedirect('/admin/profile');
 
@@ -44,7 +44,7 @@ it('changes only name, language and theme, and only of the signed-in user (mass 
 
 it('validates the profile', function () {
     $me = staff('editor');
-    $this->actingAs($me, 'admin')->put('/admin/profile', ['name' => '', 'locale' => 'xx', 'theme_preference' => 'neon'])->assertSessionHasErrors(['name', 'locale', 'theme_preference']);
+    $this->actingAs($me, 'admin')->put('/admin/profile', ['first_name' => '', 'last_name' => '', 'locale' => 'xx', 'theme_preference' => 'neon'])->assertSessionHasErrors(['first_name', 'last_name', 'locale', 'theme_preference']);
 });
 
 it('saves the theme from the user menu and starts the next page with it', function () {

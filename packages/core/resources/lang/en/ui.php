@@ -128,4 +128,7 @@ return [
         'notifications' => 'Notifications',
         'select_placeholder' => 'Choose…',
     ],
+    'copy' => 'Copy',
+    'copied' => 'Copied',
+    'copy_failed' => 'Copying failed. Select the text and copy it by hand.',
 ];

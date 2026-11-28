@@ -61,13 +61,13 @@ it('keeps the e-mail read-only and validates the phone', function () {
     $xp = dom($this->actingAs($me, 'admin')->get('/admin/profile')->getContent());
     expect(attr($xp, '//input[@id="profile-email"]', 'readonly'))->not->toBeNull()->and(attr($xp, '//input[@id="profile-email"]', 'name'))->toBeNull();
 
-    $this->actingAs($me, 'admin')->put('/admin/profile', ['name' => 'Ok', 'email' => 'evil@example.com', 'phone' => '+381 (11) 123-4567'])->assertRedirect('/admin/profile');
+    $this->actingAs($me, 'admin')->put('/admin/profile', ['first_name' => 'Ok', 'last_name' => 'Ok', 'email' => 'evil@example.com', 'phone' => '+381 (11) 123-4567'])->assertRedirect('/admin/profile');
     expect($me->fresh()->phone)->toBe('+381 (11) 123-4567')->and($me->fresh()->email)->toBe('me@example.com');
 
     foreach (['abc', '12<script>', str_repeat('1', 31)] as $bad) {
-        $this->actingAs($me, 'admin')->put('/admin/profile', ['name' => 'Ok', 'phone' => $bad])->assertSessionHasErrors('phone');
+        $this->actingAs($me, 'admin')->put('/admin/profile', ['first_name' => 'Ok', 'last_name' => 'Ok', 'phone' => $bad])->assertSessionHasErrors('phone');
     }
-    $this->actingAs($me, 'admin')->put('/admin/profile', ['name' => 'Ok', 'phone' => ''])->assertSessionHasNoErrors();
+    $this->actingAs($me, 'admin')->put('/admin/profile', ['first_name' => 'Ok', 'last_name' => 'Ok', 'phone' => ''])->assertSessionHasNoErrors();
     expect($me->fresh()->phone)->toBeNull();
 });
 
@@ -142,7 +142,7 @@ it('shows the avatar in the top bar, the users list and the profile card, as rou
 it('edits only the signed-in user\'s own row', function () {
     $me = staff('editor', ['name' => 'Me']);
     $other = staff('editor', ['name' => 'Other']);
-    $this->actingAs($me, 'admin')->put('/admin/profile', ['name' => 'Changed', 'phone' => '123', 'id' => $other->id])->assertRedirect();
+    $this->actingAs($me, 'admin')->put('/admin/profile', ['first_name' => 'Changed', 'last_name' => 'Name', 'phone' => '123', 'id' => $other->id])->assertRedirect();
     expect($other->fresh()->name)->toBe('Other')->and($other->fresh()->phone)->toBeNull();
 });
 

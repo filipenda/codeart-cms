@@ -264,8 +264,8 @@ it('draws every cell type', function () {
     expect(text_of($xp, $cell('text')))->toBe('First item')
         ->and(text_of($xp, $cell('number')))->toBe('1.234.567')
         ->and(attr($xp, $cell('number').'//span', 'class'))->toContain('tabular-nums')
-        ->and(attr($xp, $cell('date').'//time', 'datetime'))->toStartWith('2026-03-05T14:30:00')
-        ->and(text_of($xp, $cell('date')))->toBe('05.03.2026. 14:30')
+        ->and(attr($xp, $cell('date').'//time', 'datetime'))->toStartWith('2026-03-05T15:30:00') // stored UTC 14:30, shown in the site zone (Europe/Belgrade)
+        ->and(text_of($xp, $cell('date')))->toBe('05.03.2026. 15:30')
         ->and(text_of($xp, $cell('bool')))->toBe('Da')
         ->and(attr($xp, $cell('status').'//span[@data-tone]', 'data-tone'))->toBe('success')
         ->and(text_of($xp, $cell('status')))->toBe('Objavljeno')
@@ -315,6 +315,7 @@ it('runs the same number of queries for 10 rows as for 100', function () {
         return $queries;
     };
 
+    $count(1); // warm-up: settings (display time zone) are loaded once per request, not per row
     $few = $count(10);
     $many = $count(100);
 

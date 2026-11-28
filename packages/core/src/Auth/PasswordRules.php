@@ -36,6 +36,30 @@ class PasswordRules
         return $rules;
     }
 
+    /**
+     * The configured rules as a checklist for the strength meter: [key, label, value]. The breached check is not part of it
+     * (server-side only); see `checksBreached()`.
+     *
+     * @return list<array{key: string, label: string, value: ?int}>
+     */
+    public function requirements(): array
+    {
+        $min = (int) $this->settings->get('security.password.min_length');
+        $list = [['key' => 'min_length', 'label' => __('codeart::profile.pw_min', ['n' => $min]), 'value' => $min]];
+        foreach (['require_mixed_case' => 'mixed_case', 'require_number' => 'number', 'require_symbol' => 'symbol'] as $setting => $key) {
+            if ($this->settings->get('security.password.'.$setting)) {
+                $list[] = ['key' => $key, 'label' => __('codeart::profile.pw_'.$key), 'value' => null];
+            }
+        }
+
+        return $list;
+    }
+
+    public function checksBreached(): bool
+    {
+        return (bool) $this->settings->get('security.password.check_breached');
+    }
+
     /** Laravel's uncompromised check, but an unreachable service never blocks the user and never throws. */
     private function notBreached(): ValidationRule
     {

@@ -128,4 +128,7 @@ return [
         'notifications' => 'Obaveštenja',
         'select_placeholder' => 'Izaberite…',
     ],
+    'copy' => 'Kopiraj',
+    'copied' => 'Kopirano',
+    'copy_failed' => 'Kopiranje nije uspelo. Označite tekst i kopirajte ga ručno.',
 ];

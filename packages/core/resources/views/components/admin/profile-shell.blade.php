@@ -6,7 +6,8 @@
         'password' => [__('codeart::profile.tab_password'), route('admin.profile.password.show'), 'lock'],
         'two-factor' => [__('codeart::profile.tab_two_factor'), route('admin.profile.two-factor'), 'shield'],
     ];
-    $lastLogin = $me->last_login_at;
+    $time = \Codeart\Core\Support\DisplayTime::current();
+    $lastLogin = $time->convert($me->last_login_at);
 @endphp
 <x-codeart::admin.layout :title="__('codeart::profile.title')">
     <div class="mb-6 flex items-center gap-4">
@@ -68,7 +69,7 @@
                 <x-codeart::badge tone="primary" class="mt-3" :dot="false" data-profile-role>{{ $roleLabel }}</x-codeart::badge>
             </div>
             <dl class="divide-y divide-border border-t border-border text-sm">
-                <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.member_since') }}</dt><dd class="text-end font-medium text-text" data-member-since>{{ $me->created_at?->translatedFormat('d.m.Y.') ?? '—' }}</dd></div>
+                <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.member_since') }}</dt><dd class="text-end font-medium text-text" data-member-since>{{ $time->format($me->created_at, 'd.m.Y.') }}</dd></div>
                 <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.last_sign_in') }}</dt><dd class="text-end font-medium text-text" data-last-sign-in @if ($lastLogin) title="{{ $lastLogin->translatedFormat('d.m.Y. H:i') }}" @endif>{{ $lastLogin?->diffForHumans() ?? '—' }}</dd></div>
                 <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.ip_address') }}</dt><dd class="text-end font-medium text-text" data-last-ip>{{ $me->last_login_ip ?: '—' }}</dd></div>
             </dl>

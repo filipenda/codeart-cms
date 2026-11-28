@@ -13,9 +13,7 @@
         @else <span class="tabular-nums">{{ is_numeric($value) ? number_format((float) $value, (float) $value == (int) $value ? 0 : 2, ',', '.') : $value }}</span> @endif
         @break
     @case('date')
-        @php
-            try { $date = $value === null || $value === '' ? null : ($value instanceof \DateTimeInterface ? Carbon::instance($value) : Carbon::parse((string) $value)); } catch (\Throwable) { $date = null; }
-        @endphp
+        @php $date = \Codeart\Core\Support\DisplayTime::current()->convert($value); @endphp
         @if ($date) <time datetime="{{ $date->toIso8601String() }}" class="whitespace-nowrap">{{ $date->translatedFormat($column->dateFormat) }}</time>
         @elseif ($value !== null && $value !== '') {{ $value }}
         @else <span class="text-text-muted">—</span> @endif

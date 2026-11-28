@@ -86,6 +86,11 @@ final class CoreSettings
     private static function profile(): array
     {
         return [
+            new SettingDefinition(
+                'site.timezone', SettingType::String, 'Europe/Belgrade', ['required', 'string'],
+                label: 'Site time zone', description: 'Time zone dates are shown in unless a user chose their own. The database always keeps UTC.',
+                check: fn (mixed $value): ?string => is_string($value) && in_array($value, \DateTimeZone::listIdentifiers(), true) ? null : 'must be a valid time zone identifier, e.g. Europe/Belgrade',
+            ),
             new SettingDefinition('profile.avatar_max_kb', SettingType::Int, 5120, ['integer', 'min:100', 'max:20480'], label: 'Maximum avatar size (KB)', description: 'Largest profile picture people may upload (default 5 MB).'),
         ];
     }

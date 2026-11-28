@@ -5,8 +5,10 @@ namespace Codeart\Core\Profile;
 use Codeart\Core\ActivityLog\ActivityLog;
 use Codeart\Core\Auth\Actions\UpdateUserPassword;
 use Codeart\Core\Auth\Admin;
+use Codeart\Core\Auth\PasswordRules;
 use Codeart\Core\Auth\RoleRank;
 use Codeart\Core\Auth\TwoFactorPolicy;
+use Codeart\Core\Support\DisplayTime;
 use Codeart\Core\Translations\Locales;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\View\View;
@@ -24,6 +26,8 @@ use RuntimeException;
  */
 final class ProfileController
 {
+    private const array FIELDS = ['name', 'first_name', 'last_name', 'phone', 'timezone', 'locale', 'theme_preference'];
+
     public function __construct(private readonly ActivityLog $log) {}
 
     public function show(Request $request, Locales $locales, AvatarUploader $avatars): View
@@ -31,12 +35,15 @@ final class ProfileController
         return view('codeart::admin.profile.show', $this->data($request) + [
             'locales' => collect($locales->enabled())->mapWithKeys(fn (string $c): array => [$c => $locales->label($c)])->all(),
             'avatarMaxMb' => round($avatars->maxKb() / 1024, 1),
+            'nameParts' => PersonName::partsOf($this->me($request)),
+            'timezones' => DisplayTime::options(),
+            'siteZoneLabel' => DisplayTime::label(DisplayTime::current()->siteZone()),
         ]);
     }
 
-    public function passwordPage(Request $request): View
+    public function passwordPage(Request $request, PasswordRules $rules): View
     {
-        return view('codeart::admin.profile.password', $this->data($request));
+        return view('codeart::admin.profile.password', $this->data($request) + ['passwordRules' => $rules->requirements(), 'checksBreached' => $rules->checksBreached()]);
     }
 
     public function twoFactorPage(Request $request, TwoFactorPolicy $twoFactor): View
@@ -54,16 +61,29 @@ final class ProfileController
     {
         $user = $this->me($request);
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:120'],
+            'last_name' => ['required', 'string', 'max:120'],
             'phone' => ['nullable', 'string', 'max:30', 'regex:/^[0-9+\-()\s]+$/'],
+            'timezone' => ['nullable', 'string', Rule::in(\DateTimeZone::listIdentifiers())],
             'locale' => ['nullable', 'string', Rule::in($locales->enabled())],
             'theme_preference' => ['nullable', 'string', Rule::in(['light', 'dark', 'auto'])],
-        ], [], __('codeart::auth.attributes'));
+        ], [], __('codeart::auth.attributes') + __('codeart::profile.attributes'));
 
-        $fields = fn (): array => ['name' => $user->getAttribute('name'), 'phone' => $user->getAttribute('phone'), 'locale' => $user->getAttribute('locale'), 'theme_preference' => $user->getAttribute('theme_preference')];
+        $fields = fn (): array => array_combine(self::FIELDS, array_map(fn (string $f): mixed => $user->getAttribute($f), self::FIELDS));
         $old = $fields();
         $phone = isset($data['phone']) ? trim((string) $data['phone']) : '';
-        $user->forceFill(['name' => $data['name'], 'phone' => $phone === '' ? null : $phone, 'locale' => $data['locale'] ?? null, 'theme_preference' => $data['theme_preference'] ?? null])->save();
+        $first = trim($data['first_name']);
+        $last = trim($data['last_name']);
+        // E-mail, role and status are never read from this request; `name` is always the composed full name.
+        $user->forceFill([
+            'first_name' => $first,
+            'last_name' => $last,
+            'name' => PersonName::compose($first, $last),
+            'phone' => $phone === '' ? null : $phone,
+            'timezone' => ($data['timezone'] ?? '') === '' ? null : $data['timezone'],
+            'locale' => $data['locale'] ?? null,
+            'theme_preference' => $data['theme_preference'] ?? null,
+        ])->save();
         $new = $fields();
         if ($old !== $new) {
             $this->log->record('profile.updated', 'Profile updated', $user, $user, ['old' => $old, 'new' => $new], 'users');

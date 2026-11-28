@@ -1,5 +1,5 @@
 @php
-    $fmt = fn ($d) => $d ? $d->format('d.m.Y. H:i') : '—';
+    $fmt = fn ($d) => \Codeart\Core\Support\DisplayTime::current()->format($d);
     $tone = \Codeart\Core\Users\UserStatus::ALL[$status];
 @endphp
 <x-codeart::admin.layout :title="$target->name">

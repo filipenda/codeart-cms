@@ -9,7 +9,7 @@
                         <p class="truncate text-sm font-medium text-text">{{ $entry['description'] }}</p>
                         <p class="truncate text-xs text-text-muted">{{ $entry['causer'] !== null ? __('codeart::admin.widgets.by', ['name' => $entry['causer']]) : __('codeart::admin.widgets.system') }}</p>
                     </div>
-                    <time datetime="{{ $entry['at'] }}" class="shrink-0 text-xs text-text-muted">{{ $entry['when'] }}</time>
+                    <time datetime="{{ $entry['at'] }}" title="{{ $entry['exact'] }}" class="shrink-0 text-xs text-text-muted">{{ $entry['when'] }}</time>
                 </li>
             @endforeach
         </ul>

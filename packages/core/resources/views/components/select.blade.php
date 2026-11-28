@@ -22,7 +22,15 @@
             ]) }}>
             @if ($placeholder !== null) <option value="">{{ $placeholder }}</option> @endif
             @foreach ($options as $optionValue => $optionLabel)
-                <option value="{{ $optionValue }}" @selected((string) $optionValue === $selected)>{{ $optionLabel }}</option>
+                @if (is_array($optionLabel))
+                    <optgroup label="{{ $optionValue }}">
+                        @foreach ($optionLabel as $groupValue => $groupLabel)
+                            <option value="{{ $groupValue }}" @selected((string) $groupValue === $selected)>{{ $groupLabel }}</option>
+                        @endforeach
+                    </optgroup>
+                @else
+                    <option value="{{ $optionValue }}" @selected((string) $optionValue === $selected)>{{ $optionLabel }}</option>
+                @endif
             @endforeach
             {{ $slot }}
         </select>
