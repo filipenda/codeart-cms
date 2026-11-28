@@ -2,6 +2,7 @@
 
 require_once __DIR__.'/../Support/dom.php';
 
+use Codeart\Core\Auth\UserSessions;
 use Codeart\Core\Confirmation\ConfirmationTokens;
 use Codeart\Core\Confirmation\RequireConfirmation;
 use Codeart\Core\Profile\SessionHandle;
@@ -107,6 +108,7 @@ it('lists the current session first, then the others, without real ids and witho
 });
 
 it('shows the last activity in the user\'s display zone', function () {
+    config(['session.lifetime' => 5256000]); // the fixed 2026 date must still count as live
     $me = staff('editor', ['timezone' => 'America/New_York']);
     sesLogin($this, $me);
     sesRow($me->id, 'zone-session-id-0004', UA_CHROME_WIN, '203.0.113.20', (int) strtotime('2026-01-15 12:00:00 UTC'));
@@ -182,4 +184,18 @@ it('has the session texts in sr, en and sr-Cyrl', function () {
         }
     }
     expect(__('codeart::profile.ses_current', [], 'sr'))->toBe('Trenutna sesija')->and(__('codeart::profile.ses_unknown', [], 'sr'))->toBe('Nepoznat uređaj');
+});
+
+it('lists only live sessions, deletes the expired ones and puts the current one first', function () {
+    $user = staff('editor');
+    config(['session.lifetime' => 60]);
+    sesRow($user->id, 'live-old', UA_CHROME_WIN, '203.0.113.5', time() - 600);
+    sesRow($user->id, 'live-new', UA_CHROME_WIN, '203.0.113.5', time() - 10);
+    sesRow($user->id, 'expired', UA_CHROME_WIN, '203.0.113.5', time() - 7200);
+    sesRow($user->id, 'current', UA_CHROME_WIN, '203.0.113.5', time() - 300);
+
+    $ids = array_column(app(UserSessions::class)->list($user->id, 'current'), 'id');
+
+    expect($ids)->toBe(['current', 'live-new', 'live-old'])
+        ->and(DB::table('sessions')->where('id', 'expired')->exists())->toBeFalse();
 });
