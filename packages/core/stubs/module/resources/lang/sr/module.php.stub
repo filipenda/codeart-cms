@@ -1,0 +1,16 @@
+<?php
+
+return [
+    'title' => '%%TITLE%%',
+    'description' => 'Kreiranje i uređivanje sadržaja: %%TITLE%%.',
+    'new' => 'Nova stavka',
+    'untitled' => 'Bez naslova',
+    'widget' => '%%TITLE%%',
+    'col' => ['title' => 'Naslov'],
+    'fields' => [
+%%FIELD_LABELS_SR%%
+%%if slug%%
+        'slug' => 'Adresa (slug)',
+%%endif%%
+    ],
+];

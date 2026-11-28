@@ -1,0 +1,182 @@
+%%file-if publishable%%
+<?php
+
+use Codeart\Core\Publishing\Preview;
+use Codeart\Core\Publishing\PublishStatus;
+use Codeart\Core\Publishing\Revision;
+use %%NS%%\Models\%%MODEL%%;
+use %%NS%%\Tests\TestCase;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
+use Spatie\Activitylog\Models\Activity;
+
+uses(TestCase::class);
+
+beforeEach(function () {
+    config()->set('%%NAME%%.public_url', '/site/{id}');
+    // What a client site does with the content.
+    Route::middleware('web')->get('/site/{id}', function (Request $request, int $id) {
+        $record = Preview::model($request, %%MODEL%%::class) ?? %%MODEL%%::published()->findOrFail($id);
+        $content = Preview::resolve($request, $record, 'sr');
+
+        return $content->%%TITLE_FIELD%%.($content->isPreview ? '|draft' : '|live');
+    });
+});
+
+function saveAs($test, $user, string $title, array $extra = [], ?%%MODEL%% $record = null)
+{
+    $data = array_merge(['intent' => 'draft', 'translations' => ['sr' => ['%%TITLE_FIELD%%' => $title]]], $extra);
+    $request = $test->actingAs($user, 'admin');
+
+    return $record === null ? $request->post(route('%%NAME%%.store'), $data) : $request->put(route('%%NAME%%.update', $record->id), $data);
+}
+
+/** A published record, made by an admin through the form. */
+function published($test, string $title = 'Objavljeno'): %%MODEL%%
+{
+    saveAs($test, $test->staff('admin'), $title, ['intent' => 'status', 'status' => 'published'])->assertRedirect();
+
+    return %%MODEL%%::query()->latest('id')->firstOrFail();
+}
+
+it('saves a new record as a draft that the public site cannot see', function () {
+    saveAs($this, $this->staff('editor'), 'Prvi nacrt')->assertRedirect()->assertSessionHas('toast');
+
+    $record = %%MODEL%%::query()->firstOrFail();
+    expect($record->status)->toBe(PublishStatus::Draft)
+        ->and(%%MODEL%%::published()->count())->toBe(0)
+        ->and($record->translations()->count())->toBe(0)
+        ->and($record->currentContent()['translations']['sr']['%%TITLE_FIELD%%'])->toBe('Prvi nacrt')
+        ->and($record->revisions()->count())->toBe(1);
+    $this->get('/site/'.$record->id)->assertNotFound();
+});
+
+it('rejects an empty title in the default language and creates nothing', function () {
+    saveAs($this, $this->staff('editor'), '')->assertSessionHasErrors('translations.sr.%%TITLE_FIELD%%');
+
+    expect(%%MODEL%%::query()->count())->toBe(0);
+});
+
+it('keeps editing separate from the live content until it is published', function () {
+    $record = published($this);
+    saveAs($this, $this->staff('editor'), 'Nova verzija', record: $record)->assertRedirect();
+
+    $fresh = $record->fresh();
+    expect($fresh->translated('%%TITLE_FIELD%%', 'sr'))->toBe('Objavljeno')
+        ->and($fresh->hasDraft())->toBeTrue()
+        ->and($fresh->currentContent()['translations']['sr']['%%TITLE_FIELD%%'])->toBe('Nova verzija');
+    auth('admin')->logout();
+    $this->get('/site/'.$record->id)->assertOk()->assertSee('Objavljeno|live');
+});
+
+it('lets only users with the publish permission change the status', function () {
+    saveAs($this, $this->staff('editor'), 'Moj nacrt', ['intent' => 'status', 'status' => 'published'])->assertForbidden();
+
+    expect(%%MODEL%%::query()->count())->toBe(0); // the 403 came before anything was saved
+    $record = published($this, 'Objavljeno');
+    $this->actingAs($this->staff('editor'), 'admin')->post(route('%%NAME%%.unpublish', $record->id))->assertForbidden();
+    $this->actingAs($this->staff('editor'), 'admin')->post(route('%%NAME%%.publish', $record->id))->assertForbidden();
+    expect($record->fresh()->status)->toBe(PublishStatus::Published);
+});
+
+it('publishes the draft, generates Cyrillic, and unpublishes without losing content', function () {
+    $record = published($this, 'Ljubav i njiva');
+
+    expect($record->status)->toBe(PublishStatus::Published)
+        ->and($record->translated('%%TITLE_FIELD%%', 'sr-Cyrl'))->toBe('Љубав и њива')
+        ->and($record->hasDraft())->toBeFalse();
+    $this->actingAs($this->staff('admin'), 'admin')->post(route('%%NAME%%.unpublish', $record->id))->assertRedirect();
+    expect($record->fresh()->status)->toBe(PublishStatus::Draft)
+        ->and(%%MODEL%%::published()->count())->toBe(0)
+        ->and($record->fresh()->translated('%%TITLE_FIELD%%', 'sr'))->toBe('Ljubav i njiva');
+});
+
+it('schedules a record and the scheduler publishes it when the time comes', function () {
+    $admin = $this->staff('admin');
+    $this->travelTo(now()->startOfMinute());
+    $at = now()->addDay()->setTimezone(config('app.timezone'))->format('Y-m-d\TH:i');
+    saveAs($this, $admin, 'Zakazano', ['intent' => 'status', 'status' => 'scheduled', 'scheduled_at' => $at])->assertRedirect();
+
+    $record = %%MODEL%%::query()->firstOrFail();
+    expect($record->status)->toBe(PublishStatus::Scheduled);
+    Artisan::call('publishing:run');
+    expect($record->fresh()->status)->toBe(PublishStatus::Scheduled)->and(%%MODEL%%::published()->count())->toBe(0);
+
+    $this->travel(2)->days();
+    Artisan::call('publishing:run');
+    expect($record->fresh()->status)->toBe(PublishStatus::Published)->and($record->fresh()->translated('%%TITLE_FIELD%%', 'sr'))->toBe('Zakazano');
+});
+
+it('refuses a schedule time in the past', function () {
+    saveAs($this, $this->staff('admin'), 'Staro', ['intent' => 'status', 'status' => 'scheduled', 'scheduled_at' => now()->subDay()->format('Y-m-d\TH:i')])->assertSessionHasErrors('scheduled_at');
+});
+
+it('opens the real public page with a preview link that shows the draft only to the editor', function () {
+    $record = published($this, 'Objavljeno');
+    $editor = $this->staff('editor');
+    $response = saveAs($this, $editor, 'Nacrt za pregled', ['intent' => 'preview', 'preview_locale' => 'sr'], $record);
+
+    $url = $response->assertRedirect()->headers->get('Location');
+    expect($url)->toContain('/site/'.$record->id.'?codeart_preview=');
+    $this->actingAs($editor, 'admin')->get($url)->assertOk()->assertSee('Nacrt za pregled|draft')
+        ->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive')->assertHeader('Cache-Control', 'no-store, private');
+    auth('admin')->logout();
+    $this->get($url)->assertOk()->assertSee('Objavljeno|live');
+    expect($record->fresh()->translated('%%TITLE_FIELD%%', 'sr'))->toBe('Objavljeno');
+});
+
+it('offers the same preview in a responsive frame', function () {
+    $record = published($this, 'Objavljeno');
+    $editor = $this->staff('editor');
+    $response = saveAs($this, $editor, 'Okvir', ['intent' => 'frame'], $record);
+
+    $path = parse_url((string) $response->assertRedirect()->headers->get('Location'), PHP_URL_PATH);
+    $this->actingAs($editor, 'admin')->get((string) $path)->assertOk()->assertSee('data-preview-iframe', false)->assertSee('data-device="mobile"', false);
+});
+
+it('restores an older revision as the current draft', function () {
+    $record = published($this, 'Staro');
+    $old = Revision::query()->where('revisionable_id', $record->id)->firstOrFail();
+    saveAs($this, $this->staff('editor'), 'Novo', record: $record);
+
+    $this->actingAs($this->staff('editor'), 'admin')->post(route('%%NAME%%.restore', [$record->id, $old->id]))->assertRedirect();
+
+    expect($record->fresh()->currentContent()['translations']['sr']['%%TITLE_FIELD%%'])->toBe('Staro')
+        ->and($record->fresh()->revisions()->first()->kind)->toBe('restored');
+});
+
+it('records publishing in the activity log', function () {
+    $record = published($this);
+    $admin = $this->staff('admin');
+    $this->actingAs($admin, 'admin')->post(route('%%NAME%%.unpublish', $record->id));
+
+    expect(Activity::query()->where('log_name', 'content')->pluck('event')->all())->toBe(['publishing.published', 'publishing.unpublished']);
+});
+
+it('refuses to delete without the server-issued confirmation', function () {
+    $record = published($this);
+
+    $this->actingAs($this->staff('admin'), 'admin')->delete(route('%%NAME%%.destroy', $record->id));
+
+    expect(%%MODEL%%::query()->whereKey($record->id)->exists())->toBeTrue();
+});
+
+it('lists records with their status and filters by it', function () {
+    published($this, 'Javno');
+    saveAs($this, $this->staff('editor'), 'Skriveno');
+    $admin = $this->staff('admin');
+
+    $this->actingAs($admin, 'admin')->get(route('%%NAME%%.index'))->assertOk()->assertSee('Javno')->assertSee('Skriveno');
+    $html = $this->actingAs($admin, 'admin')->get(route('%%NAME%%.index', ['filter' => ['status' => 'draft']]))->assertOk()->getContent();
+    expect($html)->toContain('Skriveno')->not->toContain('Javno');
+});
+%%if widget%%
+
+it('shows real counts on the dashboard', function () {
+    published($this);
+    saveAs($this, $this->staff('editor'), 'Nacrt');
+
+    $this->actingAs($this->staff('admin'), 'admin')->get('/admin')->assertOk()->assertSee('data-count-drafts', false)->assertSee('data-count-published', false);
+});
+%%endif%%

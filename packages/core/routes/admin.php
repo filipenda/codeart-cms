@@ -4,6 +4,7 @@ use Codeart\Core\Admin\Http\DashboardController;
 use Codeart\Core\Admin\Http\LocalEnvironmentOnly;
 use Codeart\Core\Admin\Http\UiShowcaseController;
 use Codeart\Core\Confirmation\ConfirmController;
+use Codeart\Core\Publishing\Http\PreviewFrameController;
 use Codeart\Core\Tables\TableController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,8 @@ Route::middleware(['auth:'.config('codeart.auth.guard', 'admin'), 'admin.access'
     // Confirmation step of `<x-codeart::confirm>`; GET only returns to the page the confirmation came from.
     Route::post('confirm', [ConfirmController::class, 'show'])->name('codeart.confirm');
     Route::get('confirm', [ConfirmController::class, 'back']);
+    // The real public page in a frame (desktop / tablet / mobile); the token is the one the form's preview button issued.
+    Route::get('preview/{token}', [PreviewFrameController::class, 'show'])->where('token', '[A-Za-z0-9]{20,128}')->middleware('throttle:60,1')->name('codeart.preview.show');
     Route::get('tables/{table}/export', [TableController::class, 'export'])->name('codeart.tables.export');
 });
 

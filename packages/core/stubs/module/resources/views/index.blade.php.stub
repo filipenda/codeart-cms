@@ -1,0 +1,1 @@
+<x-codeart::publishing.index :module="$module" :result="$result" :can-create="$canCreate" />

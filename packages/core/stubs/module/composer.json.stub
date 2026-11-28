@@ -1,0 +1,27 @@
+{
+    "name": "%%PACKAGE%%",
+    "description": "%%TITLE%% module for CodeArt CMS.",
+    "type": "codeart-module",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "codeart/core": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "%%NS_JSON%%\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "%%NS_JSON%%\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "pint": "pint --test",
+        "stan": "phpstan analyse --memory-limit=1G",
+        "test": "pest"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

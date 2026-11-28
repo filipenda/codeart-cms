@@ -1,0 +1,28 @@
+<?php
+
+namespace %%NS%%\Http;
+
+use Codeart\Core\Publishing\Http\PublishableController;
+use %%NS%%\Models\%%MODEL%%;
+
+/** Thin: the actions (list, create, save draft, publish, schedule, preview, restore, delete) are core's; only the rules are ours. */
+final class %%STUDLY%%Controller extends PublishableController
+{
+    protected function model(): string
+    {
+        return %%MODEL%%::class;
+    }
+
+    protected function module(): string
+    {
+        return '%%NAME%%';
+    }
+
+    /** @return array<string, list<string>> `required` applies to the default language only */
+    protected function fieldRules(): array
+    {
+        return [
+%%RULES%%
+        ];
+    }
+}

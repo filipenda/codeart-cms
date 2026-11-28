@@ -1,0 +1,12 @@
+<?php
+
+return [
+
+    /*
+    | Address of the REAL public page of one record, used by the preview button of the admin form.
+    | Placeholders: {slug} (translated slug), {id}, {locale}. A relative address is made absolute with the site URL.
+    | Set it to the route of the client's site, e.g. '/%%NAME%%/{slug}'. Null = no preview button.
+    */
+    'public_url' => '%%PUBLIC_URL%%',
+
+];

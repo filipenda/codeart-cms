@@ -32,6 +32,7 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 - Client colors come from `ThemeSettings` (derives shades, picks readable text by WCAG contrast).
 
 ## Modules and permissions
+- **New modules are created with the generator**: `php artisan make:module <name> [--translatable=title,body] [--slug] [--publishable=true|false] [--no-widget]` (docs/modules.md, docs/publishing-and-preview.md). Never copy another module by hand. Content modules use core's publishing workflow (drafts, scheduling, preview), not their own.
 - A module = Composer package `type: codeart-module` + `module.json` (`docs/modules.md`). Version comes from Composer, never from module.json. Core owns the registry; only enabled modules boot.
 - Permissions are `<module>.<action>`; roles `super-admin`/`admin`/`editor` (spatie/laravel-permission); `manage-modules` Gate = super-admin only. Core does not own the User model (the app adds `HasRoles`).
 

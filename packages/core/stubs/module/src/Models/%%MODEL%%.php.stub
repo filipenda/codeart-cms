@@ -1,0 +1,50 @@
+<?php
+
+namespace %%NS%%\Models;
+
+use Codeart\Core\Publishing\Publishable;
+use Codeart\Core\Publishing\PublishableModel;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Live content is in `%%TABLE%%` and `%%TRANSLATIONS_TABLE%%` (what the public site shows); drafts and history are in
+ * core's `codeart_revisions`. The text of the current language is `$model->%%TITLE_FIELD%%` (fallback chain applies).
+ */
+class %%MODEL%% extends Model implements PublishableModel
+{
+    use Publishable;
+
+    protected $table = '%%TABLE%%';
+
+    protected $guarded = [];
+
+    /** @return list<string> */
+    public function translatedAttributes(): array
+    {
+        return [%%TRANSLATED%%];
+    }
+
+    /** @return class-string<%%MODEL%%Translation> */
+    public function translationModel(): string
+    {
+        return %%MODEL%%Translation::class;
+    }
+
+    public function permissionPrefix(): string
+    {
+        return '%%NAME%%';
+    }
+
+%%if !publishable%%
+    public function usesWorkflow(): bool
+    {
+        return false; // no drafts: saving the form publishes at once
+    }
+
+%%endif%%
+    /** @return array<string, string> */
+    public function formFields(): array
+    {
+        return [%%FORM_FIELDS%%];
+    }
+}

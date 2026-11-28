@@ -48,6 +48,13 @@ return [
             'logout' => 'Odjava',
             'lockout' => 'Previše pokušaja prijave',
         ],
+        'publishing' => [
+            'published' => 'Sadržaj objavljen',
+            'unpublished' => 'Sadržaj povučen',
+            'scheduled' => 'Sadržaj zakazan',
+            'restored' => 'Verzija vraćena',
+            'deleted' => 'Sadržaj obrisan',
+        ],
         'registration' => ['created' => 'Registracija'],
         'user' => [
             'created' => 'Korisnik kreiran',

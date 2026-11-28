@@ -1,0 +1,16 @@
+%%file-if widget%%
+<?php
+
+namespace %%NS%%;
+
+use Codeart\Core\Publishing\PublishableWidget;
+use %%NS%%\Models\%%MODEL%%;
+
+/** Dashboard card: real counts of drafts, scheduled and published items. */
+final class %%STUDLY%%Widget extends PublishableWidget
+{
+    protected function model(): string
+    {
+        return %%MODEL%%::class;
+    }
+}

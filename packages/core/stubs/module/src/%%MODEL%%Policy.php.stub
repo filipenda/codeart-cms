@@ -1,0 +1,14 @@
+<?php
+
+namespace %%NS%%;
+
+use Codeart\Core\Publishing\PublishablePolicy;
+
+/** viewAny/view = %%NAME%%.view, create, update, publish, delete: each its own permission (editors may edit but not publish). */
+final class %%MODEL%%Policy extends PublishablePolicy
+{
+    protected function prefix(): string
+    {
+        return '%%NAME%%';
+    }
+}

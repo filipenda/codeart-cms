@@ -1,0 +1,66 @@
+<?php
+
+namespace %%NS%%;
+
+use Codeart\Core\Admin\Dashboard\QuickAction;
+use Codeart\Core\Admin\Dashboard\QuickActions;
+%%if widget%%
+use Codeart\Core\Admin\Dashboard\Widget;
+use Codeart\Core\Admin\Dashboard\WidgetRegistry;
+%%endif%%
+use Codeart\Core\Admin\Navigation\AdminMenu;
+use Codeart\Core\Admin\Navigation\NavItem;
+use Codeart\Core\Admin\Search\SearchRegistry;
+use Codeart\Core\Events\ModuleEnabled;
+use Codeart\Core\Permissions\GrantModulePermissions;
+%%if publishable%%
+use Codeart\Core\Publishing\Publishables;
+%%endif%%
+use Codeart\Core\Tables\TableRegistry;
+use %%NS%%\Models\%%MODEL%%;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\ServiceProvider;
+
+/**
+ * Core registers this provider only while the module is enabled (routes, views and migrations are loaded from the
+ * manifest). Everything the admin shows for the module is registered here, so disabling the module removes it all.
+ */
+class %%STUDLY%%ServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        $this->mergeConfigFrom(__DIR__.'/../config/%%NAME%%.php', '%%NAME%%');
+    }
+
+    public function boot(): void
+    {
+        $this->loadTranslationsFrom(__DIR__.'/../resources/lang', '%%NAME%%');
+        Gate::policy(%%MODEL%%::class, %%MODEL%%Policy::class);
+%%if publishable%%
+        $this->app->make(Publishables::class)->register(%%MODEL%%::class); // the scheduler publishes scheduled records
+%%endif%%
+        $this->callAfterResolving(TableRegistry::class, fn (TableRegistry $tables) => $tables->register('%%NAME%%', %%STUDLY%%Table::class));
+
+        $this->app->make(AdminMenu::class)->add(
+            new NavItem('%%NAME%%', '%%NAME%%::module.title', 'file-text', '%%NAME%%.index', '%%NAME%%.view', 40, module: '%%NAME%%', activePatterns: ['%%NAME%%.*']),
+        );
+        $this->app->make(QuickActions::class)->add(new QuickAction('%%NAME%%.new', '%%NAME%%::module.new', 'plus', '%%NAME%%.create', '%%NAME%%.create', 40));
+        $this->app->make(SearchRegistry::class)->add(%%STUDLY%%Search::class);
+%%if widget%%
+        $this->app->make(WidgetRegistry::class)->add(
+            new Widget('%%NAME%%.overview', '%%NAME%%::module.widget', 'file-text', 'codeart::admin.widgets.publishable', %%STUDLY%%Widget::class, permission: '%%NAME%%.view', size: 'sm', order: 40, module: '%%NAME%%'),
+        );
+%%endif%%
+
+        // Default grants when the module is enabled (a role that already has any of its permissions is left alone).
+        Event::listen(ModuleEnabled::class, function (ModuleEnabled $event): void {
+            if ($event->module->name === '%%NAME%%') {
+                app(GrantModulePermissions::class)('%%NAME%%', [
+                    'admin' => [%%GRANTS_ADMIN%%],
+                    'editor' => [%%GRANTS_EDITOR%%],
+                ]);
+            }
+        });
+    }
+}

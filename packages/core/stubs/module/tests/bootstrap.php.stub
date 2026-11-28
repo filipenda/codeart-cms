@@ -1,0 +1,23 @@
+<?php
+
+use Composer\Autoload\ClassLoader;
+
+/*
+ * Loads Composer's autoloader and makes this module's classes loadable.
+ * Order: CODEART_AUTOLOAD (explicit), the module's own vendor/, the monorepo's packages/core/vendor/.
+ */
+$module = dirname(__DIR__);
+$candidates = array_values(array_filter([
+    (string) getenv('CODEART_AUTOLOAD'),
+    $module.'/vendor/autoload.php',
+    dirname($module, 2).'/core/vendor/autoload.php',
+], fn (string $path): bool => $path !== '' && is_file($path)));
+
+if ($candidates === []) {
+    throw new RuntimeException('No Composer autoloader found. Run composer install in this module, or set CODEART_AUTOLOAD.');
+}
+
+/** @var ClassLoader $loader */
+$loader = require $candidates[0];
+$loader->addPsr4('%%NS%%\\', $module.'/src/');
+$loader->addPsr4('%%NS%%\\Tests\\', $module.'/tests/');

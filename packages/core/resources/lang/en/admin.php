@@ -48,6 +48,13 @@ return [
             'logout' => 'Signed out',
             'lockout' => 'Too many sign-in attempts',
         ],
+        'publishing' => [
+            'published' => 'Content published',
+            'unpublished' => 'Content unpublished',
+            'scheduled' => 'Content scheduled',
+            'restored' => 'Version restored',
+            'deleted' => 'Content deleted',
+        ],
         'registration' => ['created' => 'Registration'],
         'user' => [
             'created' => 'User created',
