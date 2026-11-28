@@ -1,0 +1,42 @@
+%%file-if media%%
+<?php
+
+use Codeart\Core\Media\Actions\DeleteMedia;
+use Codeart\Core\Media\Media;
+use Codeart\Core\Media\MediaInUse;
+use Codeart\Core\Publishing\Actions\PublishContent;
+use %%NS%%\Models\%%MODEL%%;
+use %%NS%%\Tests\TestCase;
+
+uses(TestCase::class);
+
+function %%SNAKE%%_media(): Media
+{
+    return Media::query()->create(['disk' => 'public', 'path' => 'uploads/test/'.uniqid().'.jpg', 'original_name' => 'cover.jpg', 'mime' => 'image/jpeg', 'size' => 10, 'width' => 10, 'height' => 10, 'hash' => hash('sha256', uniqid())]);
+}
+
+it('shows the media field %%MEDIA_FIELD%% in the form', function () {
+    $html = $this->actingAs($this->staff('editor'), 'admin')->get(route('%%NAME%%.create'))->assertOk()->getContent();
+
+    expect($html)->toContain('data-media-field="%%MEDIA_FIELD%%"')->toContain('data-media-choose');
+});
+
+it('stores the chosen media ids with the draft, records where they are used on publish and blocks deleting them', function () {
+    $media = %%SNAKE%%_media();
+    $ghost = $media->id + 999; // an id that is not in the library is dropped, never stored
+
+    $this->actingAs($this->staff('editor'), 'admin')->post(route('%%NAME%%.store'), [
+        'intent' => 'draft',
+        'translations' => ['sr' => ['%%TITLE_FIELD%%' => 'Naslov']],
+        '%%MEDIA_FIELD%%' => [$media->id, $ghost],
+    ])->assertRedirect();
+
+    $model = %%MODEL%%::query()->firstOrFail();
+    expect($model->currentContent()['fields']['%%MEDIA_FIELD%%'])->toBe([$media->id])
+        ->and($model->mediaFor('%%MEDIA_FIELD%%'))->toHaveCount(0); // a draft does not use the file yet
+
+    app(PublishContent::class)($model);
+
+    expect($model->fresh()->mediaFor('%%MEDIA_FIELD%%')->pluck('id')->all())->toBe([$media->id])
+        ->and(fn () => app(DeleteMedia::class)($media))->toThrow(MediaInUse::class);
+});

@@ -12,7 +12,7 @@ use Spatie\Permission\Models\Role;
 it('grants the permissions to the roles it should', function () {
     $permissions = fn (string $role) => Role::findByName($role, 'admin')->permissions->pluck('name')->sort()->values()->all();
 
-    expect($permissions('admin'))->toBe(['admin.access', 'settings.appearance', 'system.status', 'users.approve', 'users.block', 'users.create', 'users.delete', 'users.reset-2fa', 'users.update', 'users.view'])
+    expect($permissions('admin'))->toBe(['admin.access', 'media.delete', 'media.update', 'media.upload', 'media.view', 'settings.appearance', 'system.status', 'users.approve', 'users.block', 'users.create', 'users.delete', 'users.reset-2fa', 'users.update', 'users.view'])
         ->and($permissions('editor'))->toBe(['admin.access'])
         ->and($permissions('member'))->toBe([])
         ->and($permissions('super-admin'))->toBe([]); // passes through the Gate instead

@@ -20,6 +20,8 @@ class MakeModuleCommand extends Command
         {--publishable=true : Draft / published / scheduled workflow with revisions and preview (true|false)}
         {--slug : Add a translated, unique-per-locale slug}
         {--no-widget : No dashboard widget}
+        {--editor= : Rich-text (TipTap) fields, comma separated; they must be translatable fields and not the title}
+        {--media= : Media-library fields, comma separated (`cover` = one file, `gallery:many` = several, reorderable)}
         {--path= : Folder that will hold the module (default: packages/modules/<name> in the monorepo)}';
 
     protected $description = 'Generate a complete CodeArt module (model, table, form, permissions, menu, tests ...)';
@@ -47,7 +49,7 @@ class MakeModuleCommand extends Command
         }
 
         try {
-            $spec = ModuleSpec::fromOptions((string) $name, $fields, $slug, $publishable, ! $this->option('no-widget'));
+            $spec = ModuleSpec::fromOptions((string) $name, $fields, $slug, $publishable, ! $this->option('no-widget'), (string) $this->option('editor'), (string) $this->option('media'));
             $target = rtrim((string) ($this->option('path') ?: $this->defaultPath($spec)), '/');
             $written = $generator->generate($spec, $target);
         } catch (InvalidArgumentException|RuntimeException $e) {

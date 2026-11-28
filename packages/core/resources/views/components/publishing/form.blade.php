@@ -21,7 +21,7 @@
 <x-codeart::admin.layout :title="$title">
     <x-codeart::admin.page-header :title="$title" :breadcrumbs="[['label' => __($module.'::module.title'), 'url' => route($module.'.index')], ['label' => $isNew ? __($module.'::module.new') : $title]]" />
 
-    <form method="POST" action="{{ $isNew ? route($module.'.store') : route($module.'.update', $model->getKey()) }}" data-publishing-form
+    <form method="POST" action="{{ $isNew ? route($module.'.store') : route($module.'.update', $model->getKey()) }}" data-publishing-form data-dirty-guard
           x-data="{ locale: @js($form['defaultLocale']) }" class="grid gap-6 lg:grid-cols-3">
         @csrf
         @unless ($isNew) @method('PUT') @endunless
@@ -45,7 +45,9 @@
                             @php($value = old('translations.'.$code.'.'.$field, $form['content']['translations'][$code][$field] ?? ''))
                             @php($required = $code === $form['defaultLocale'] && $loop->first)
                             @php($name = 'translations['.$code.']['.$field.']')
-                            @if ($type === 'textarea')
+                            @if ($type === 'editor')
+                                <x-codeart::form.editor :name="$name" :id="'f-'.$code.'-'.$field" :label="$label($field)" :value="$value" :bag="$bag" />
+                            @elseif ($type === 'textarea')
                                 @if ($required)
                                     <x-codeart::textarea :name="$name" :id="'f-'.$code.'-'.$field" :label="$label($field)" :value="$value" :bag="$bag" rows="8" required />
                                 @else
@@ -60,6 +62,16 @@
                     </div>
                 </x-codeart::admin.card>
             @endforeach
+
+            @if (($form['mediaFields'] ?? []) !== [])
+                <x-codeart::admin.card :title="__('codeart::media.title')" icon="images" data-media-fields>
+                    <div class="space-y-5">
+                        @foreach ($form['mediaFields'] as $column => $options)
+                            <x-codeart::form.media :name="$column" :label="$label($column)" :value="old($column, $form['content']['fields'][$column] ?? [])" :multiple="$options['multiple'] ?? false" :bag="$bag" />
+                        @endforeach
+                    </div>
+                </x-codeart::admin.card>
+            @endif
         </div>
 
         <div class="space-y-6">

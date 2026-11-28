@@ -15,7 +15,7 @@ parameters:
         # Traits are used by models in other packages (and in tests), not inside core's src.
         -
             identifier: trait.unused
-            path: src/Translations/Translatable.php
+            path: src/Media/HasMedia.php
         -
             identifier: trait.unused
             path: src/Publishing/Publishable.php
@@ -44,3 +44,4 @@ parameters:
                 - src/Profile
                 - src/Install
                 - src/Publishing
+                - src/Media

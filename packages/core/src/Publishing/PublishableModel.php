@@ -26,7 +26,7 @@ interface PublishableModel
     /** False = no draft step: saving the form publishes at once (a module generated with `--publishable=false`). */
     public function usesWorkflow(): bool;
 
-    /** @return array<string, string> attribute => `text` | `textarea` */
+    /** @return array<string, string> attribute => `text` | `textarea` | `editor` (rich text, sanitized on save) */
     public function formFields(): array;
 
     /** @return list<string> */

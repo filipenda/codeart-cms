@@ -1,0 +1,26 @@
+%%file-if editor%%
+<?php
+
+use %%NS%%\Models\%%MODEL%%;
+use %%NS%%\Tests\TestCase;
+
+uses(TestCase::class);
+
+it('renders the rich-text editor for %%EDITOR_FIELD%% in every manual language', function () {
+    $html = $this->actingAs($this->staff('editor'), 'admin')->get(route('%%NAME%%.create'))->assertOk()->getContent();
+
+    expect($html)->toContain('data-editor')->toContain('name="translations[sr][%%EDITOR_FIELD%%]"')->toContain('name="translations[en][%%EDITOR_FIELD%%]"');
+});
+
+it('sanitizes the rich text on the server before it is stored', function () {
+    $dirty = '<p onclick="x()">Zdravo <strong>svete</strong></p><script>alert(1)</script><a href="javascript:alert(1)">klik</a><img src=x onerror=alert(1)>';
+
+    $this->actingAs($this->staff('editor'), 'admin')->post(route('%%NAME%%.store'), [
+        'intent' => 'draft',
+        'translations' => ['sr' => ['%%TITLE_FIELD%%' => 'Naslov', '%%EDITOR_FIELD%%' => $dirty]],
+    ])->assertRedirect();
+
+    $stored = %%MODEL%%::query()->firstOrFail()->currentContent()['translations']['sr']['%%EDITOR_FIELD%%'];
+    expect($stored)->toContain('<strong>svete</strong>')
+        ->not->toContain('<script')->not->toContain('onclick')->not->toContain('onerror')->not->toContain('javascript:');
+});

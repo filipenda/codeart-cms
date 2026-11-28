@@ -4,6 +4,7 @@ namespace Codeart\Core\Publishing\Actions;
 
 use Carbon\CarbonInterface;
 use Codeart\Core\ActivityLog\ActivityLog;
+use Codeart\Core\Media\MediaUsage;
 use Codeart\Core\Publishing\PublishableModel;
 use Codeart\Core\Publishing\PublishStatus;
 use Codeart\Core\Translations\Locales;
@@ -46,6 +47,7 @@ final class PublishContent
             ])->save();
         });
         $model->unsetRelation('draftRevision');
+        MediaUsage::syncPublished($model);
         $this->log->record('publishing.published', 'Content published', $model, $user instanceof Model ? $user : null, [], 'content');
 
         return $model;

@@ -30,7 +30,7 @@ final class ModuleGenerator
         }
 
         $tokens = $this->tokens($spec, $now ?? now());
-        $flags = ['publishable' => $spec->publishable, 'slug' => $spec->slug, 'widget' => $spec->widget];
+        $flags = ['publishable' => $spec->publishable, 'slug' => $spec->slug, 'widget' => $spec->widget, 'editor' => $spec->editors !== [], 'media' => $spec->medias !== []];
         $written = [];
 
         foreach ($this->files->allFiles(self::stubPath(), true) as $stub) {
@@ -112,9 +112,23 @@ final class ModuleGenerator
             $label = Str::headline($field);
             $en[] = "        '{$field}' => '{$label}',";
             $sr[] = "        '{$field}' => '{$label}',";
-            $columns[] = $i === 0 ? "            \$table->string('{$field}')->index();" : "            \$table->text('{$field}')->nullable();";
-            $rules[] = $i === 0 ? "            '{$field}' => ['required', 'string', 'max:255'],".'' : "            '{$field}' => ['nullable', 'string', 'max:65000'],";
-            $form[] = $i === 0 ? "'{$field}' => 'text'" : "'{$field}' => 'textarea'";
+            $rich = in_array($field, $spec->editors, true);
+            $columns[] = $i === 0 ? "            \$table->string('{$field}')->index();" : ($rich ? "            \$table->longText('{$field}')->nullable();" : "            \$table->text('{$field}')->nullable();");
+            $rules[] = $i === 0 ? "            '{$field}' => ['required', 'string', 'max:255'],".'' : "            '{$field}' => ['nullable', 'string', 'max:".($rich ? '200000' : '65000')."'],";
+            $form[] = $i === 0 ? "'{$field}' => 'text'" : "'{$field}' => '".($rich ? 'editor' : 'textarea')."'";
+        }
+        $mediaFields = [];
+        $mediaColumns = [];
+        $mediaCasts = [];
+        $mediaMigration = [];
+        foreach ($spec->medias as $media => $many) {
+            $mediaFields[] = "'{$media}' => ['multiple' => ".($many ? 'true' : 'false').']';
+            $mediaColumns[] = "'{$media}'";
+            $mediaCasts[] = "'{$media}' => 'array'";
+            $mediaMigration[] = "            \$table->json('{$media}')->nullable(); // media ids";
+            $label = Str::headline($media);
+            $en[] = "        '{$media}' => '{$label}',";
+            $sr[] = "        '{$media}' => '{$label}',";
         }
         $perms = array_map(fn (string $p): string => json_encode($p, JSON_UNESCAPED_SLASHES) ?: '""', $spec->permissions());
         $grantsAdmin = array_map(fn (string $a): string => "'{$a}'", $spec->actions());
@@ -134,6 +148,13 @@ final class ModuleGenerator
             'FK' => $spec->foreignKey(),
             'DATE' => $now->format('Y_m_d_His'),
             'TITLE_FIELD' => $first,
+            'MEDIA_FIELDS' => implode(', ', $mediaFields),
+            'MEDIA_COLUMNS' => implode(', ', $mediaColumns),
+            'MEDIA_CASTS' => implode(', ', $mediaCasts),
+            'MEDIA_MIGRATION' => implode("\n", $mediaMigration),
+            'MEDIA_FIELD' => array_key_first($spec->medias) ?? '',
+            'MEDIA_MANY' => ($spec->medias[array_key_first($spec->medias)] ?? false) ? 'true' : 'false',
+            'EDITOR_FIELD' => $spec->editors[0] ?? $first,
             'TRANSLATED' => implode(', ', array_map(fn (string $f): string => "'{$f}'", $spec->translatedAttributes())),
             'FORM_FIELDS' => implode(', ', $form),
             'COLUMNS' => implode("\n", $columns),
