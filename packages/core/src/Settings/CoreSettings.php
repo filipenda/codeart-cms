@@ -3,6 +3,7 @@
 namespace Codeart\Core\Settings;
 
 use Closure;
+use Codeart\Core\Media\MediaTypes;
 
 /** Definitions owned by core: appearance, content locales and security. */
 final class CoreSettings
@@ -12,7 +13,7 @@ final class CoreSettings
     /** @return list<SettingDefinition> */
     public static function definitions(): array
     {
-        return [...self::appearance(), ...self::locales(), ...self::security(), ...self::auth(), ...self::mail(), ...self::profile()];
+        return [...self::appearance(), ...self::locales(), ...self::security(), ...self::auth(), ...self::mail(), ...self::profile(), ...self::media()];
     }
 
     /** @return list<SettingDefinition> */
@@ -117,6 +118,15 @@ final class CoreSettings
             $int('security.login.remember_days', 30, 1, 365, 'Remember me (days)', 'How long a "remember me" login lasts.'),
             new SettingDefinition('security.ip_storage', SettingType::Enum, 'full', options: ['full', 'anonymized', 'off'], label: 'IP address storage', description: 'full keeps IPs, anonymized zeroes the last part (IPv4 last octet, IPv6 last 80 bits), off stores and shows none. Applies to the activity log, sessions and the profile.'),
             $int('security.activity_log.retention_days', 90, 7, 3650, 'Activity log retention (days)', 'Older entries are removed.'),
+        ];
+    }
+
+    /** @return list<SettingDefinition> media library limits (media.update may change them; the real PHP limits still cap the size) */
+    private static function media(): array
+    {
+        return [
+            new SettingDefinition('media.max_kb', SettingType::Int, 10240, ['integer', 'min:1', 'max:2097152'], permission: 'media.update', label: 'Maximum upload size (KB)', description: 'Largest file people may upload. It can never exceed PHP\'s upload_max_filesize and post_max_size.'),
+            new SettingDefinition('media.allowed_types', SettingType::Json, MediaTypes::DEFAULT_ALLOWED, itemRules: ['string', 'in:'.implode(',', array_keys(MediaTypes::TYPES))], permission: 'media.update', label: 'Allowed file types', description: 'Extensions people may upload. SVG, HTML and scripts can never be allowed.'),
         ];
     }
 

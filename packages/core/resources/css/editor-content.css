@@ -1,0 +1,29 @@
+/*
+ * Styles of the rich-text content area. Loaded as TEXT by esbuild (build:js) into the editor's shadow root, so they
+ * apply only inside the editor and nothing from the admin page (or from the client site's stylesheets, codeart.editor_css)
+ * can reach across the boundary. Colors: tokens only (custom properties pass through the shadow boundary).
+ */
+:host { all: initial; display: block; color: var(--color-text); font: 1rem/1.65 var(--font-sans); }
+.codeart-content { min-height: 14rem; max-height: 70vh; overflow: auto; padding: 1rem 1.25rem; background: var(--color-surface); color: var(--color-text); }
+.codeart-content .ProseMirror { outline: none; min-height: 12rem; }
+.codeart-content .ProseMirror > * + * { margin-top: 0.85em; }
+.codeart-content h2 { font-size: 1.5rem; font-weight: 700; line-height: 1.25; }
+.codeart-content h3 { font-size: 1.25rem; font-weight: 700; line-height: 1.3; }
+.codeart-content h4 { font-size: 1.05rem; font-weight: 700; line-height: 1.35; }
+.codeart-content a { color: var(--color-link); text-decoration: underline; }
+.codeart-content ul, .codeart-content ol { padding-inline-start: 1.5rem; }
+.codeart-content ul { list-style: disc; }
+.codeart-content ol { list-style: decimal; }
+.codeart-content li > p { margin: 0; }
+.codeart-content blockquote { border-inline-start: 4px solid var(--color-border); padding-inline-start: 1rem; color: var(--color-text-muted); }
+.codeart-content code { background: var(--color-surface-alt); border-radius: var(--radius-sm); padding: 0.1em 0.35em; font-family: var(--font-mono); font-size: 0.9em; }
+.codeart-content pre { background: var(--color-surface-alt); border-radius: var(--radius-md); padding: 0.85rem 1rem; overflow: auto; }
+.codeart-content pre code { background: none; padding: 0; }
+.codeart-content hr { border: 0; border-top: 1px solid var(--color-border); }
+.codeart-content img { max-width: 100%; height: auto; border-radius: var(--radius-md); }
+.codeart-content img.ProseMirror-selectednode, .codeart-content .selectedCell { outline: 2px solid var(--color-focus); }
+.codeart-content table { border-collapse: collapse; width: 100%; table-layout: fixed; }
+.codeart-content th, .codeart-content td { border: 1px solid var(--color-border); padding: 0.4rem 0.6rem; vertical-align: top; }
+.codeart-content th { background: var(--color-surface-alt); text-align: start; }
+.codeart-content .selectedCell { background: var(--color-primary-soft); }
+.codeart-content p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: var(--color-text-muted); float: left; height: 0; pointer-events: none; }

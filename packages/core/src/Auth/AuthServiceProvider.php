@@ -123,6 +123,7 @@ class AuthServiceProvider extends ServiceProvider
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/auth.php');
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/admin.php');
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/users.php');
+        Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/media.php');
     }
 
     /** Guard, Fortify config and the settings-driven parts. Values come from settings with config fallbacks. */

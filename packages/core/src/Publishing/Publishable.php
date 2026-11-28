@@ -31,7 +31,7 @@ trait Publishable
     abstract public function permissionPrefix(): string;
 
     /**
-     * Fields of the edit form: attribute => `text` | `textarea`. The order is the order on the page; the label is
+     * Fields of the edit form: attribute => `text` | `textarea` | `editor` (rich text, sanitized on save). The order is the order on the page; the label is
      * the translation `<module>::module.fields.<attribute>` when it exists.
      *
      * @return array<string, string>
@@ -46,6 +46,18 @@ trait Publishable
 
     /** Columns of the model table (not translated) that are drafted and published with the content. */
     public function publishableColumns(): array
+    {
+        return [];
+    }
+
+    /**
+     * Media fields of the form (stored as a JSON list of media ids in a column of the model table; list the column in
+     * `publishableColumns()` so it is drafted and published with the text): `['cover' => ['multiple' => false], 'gallery' => ['multiple' => true]]`.
+     * On publish the usage is recorded, so the library knows where a file is used.
+     *
+     * @return array<string, array{multiple: bool}>
+     */
+    public function mediaFields(): array
     {
         return [];
     }

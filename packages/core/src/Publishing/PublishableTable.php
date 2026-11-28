@@ -14,6 +14,8 @@ use Codeart\Core\Tables\TableDefinition;
 use Codeart\Core\Translations\Locales;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Str;
 
 /**
  * The list of a publishable module: title, languages, status, dates; edit / publish / unpublish / delete per row and in bulk.
@@ -27,6 +29,43 @@ abstract class PublishableTable implements TableDefinition
 
     /** Module name: table key, route prefix (`pages.edit`), permission prefix, view and language namespace. */
     abstract protected function module(): string;
+
+    /**
+     * A short plain-text excerpt of the first rich-text (`editor`) field; none when the model has no such field.
+     *
+     * @param  Model&PublishableModel  $model
+     * @return list<Column>
+     */
+    private function excerptColumns(Model $model, string $module, string $titleSql): array
+    {
+        $field = array_search('editor', $model->formFields(), true);
+        if (! is_string($field)) {
+            return [];
+        }
+        $label = Lang::has($module.'::module.fields.'.$field) ? (string) __($module.'::module.fields.'.$field) : Str::headline($field);
+
+        return [Column::text('excerpt', $label, str_replace('t.'.array_key_first($model->formFields()), 't.'.$field, $titleSql))
+            ->sortable(false)->searchable(false)->filterable(false)
+            ->using(fn (Model $r): string => Str::limit(trim((string) preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags((string) preg_replace('/<\/(p|h\d|li|tr|blockquote)>/i', ' ', (string) $r->getAttribute($field)))))), 90))];
+    }
+
+    /** A small picture of the first media field (the published one): read from the usage rows, loaded with the page (no N+1). */
+    private function thumbnailColumn(Model $model, string $module): ?Column
+    {
+        $fields = method_exists($model, 'mediaFields') ? array_keys($model->mediaFields()) : [];
+        if ($fields === [] || ! method_exists($model, 'mediaUsages')) {
+            return null;
+        }
+        $field = $fields[0];
+        $label = Lang::has($module.'::module.fields.'.$field) ? (string) __($module.'::module.fields.'.$field) : Str::headline($field);
+
+        return Column::thumbnail('thumbnail', $label)->sortable(false)->searchable(false)->filterable(false)
+            ->using(function (Model $r) use ($field): ?string {
+                $usage = $r->getRelation('mediaUsages')->where('field', $field)->sortBy('position')->first();
+
+                return $usage?->media?->variantUrl('thumb');
+            });
+    }
 
     public function table(): DataTable
     {
@@ -51,6 +90,11 @@ abstract class PublishableTable implements TableDefinition
             Column::languageChips('languages', (string) __('codeart::publishing.languages'))
                 ->using(fn (Model $r): array => $r->getRelation('translations')->pluck('locale')->all()),
         ];
+        array_push($columns, ...$this->excerptColumns($model, $module, $titleSql));
+        $thumbnail = $this->thumbnailColumn($model, $module);
+        if ($thumbnail !== null) {
+            array_splice($columns, 1, 0, [$thumbnail]);
+        }
         $filters = [];
         $rowActions = [RowAction::make('edit', (string) __('codeart::table.edit'), 'pencil', fn (Model $r): string => route($module.'.edit', $r->getKey()), $module.'.update')];
         $bulkActions = [];
@@ -75,7 +119,7 @@ abstract class PublishableTable implements TableDefinition
         return DataTable::make($module, $class::query())
             ->columns(...$columns)
             ->filters(...$filters)
-            ->with('translations')
+            ->with('translations', ...($thumbnail !== null ? ['mediaUsages.media'] : []))
             ->defaultSort('updated_at', 'desc')
             ->permission($module.'.view')
             ->export($module)

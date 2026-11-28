@@ -22,6 +22,7 @@ use Codeart\Core\Console\BrandLoadCommand;
 use Codeart\Core\Console\LangTransliterateCommand;
 use Codeart\Core\Console\MailTestCommand;
 use Codeart\Core\Console\MakeModuleCommand;
+use Codeart\Core\Console\MediaRegenerateCommand;
 use Codeart\Core\Console\ModuleDisableCommand;
 use Codeart\Core\Console\ModuleEnableCommand;
 use Codeart\Core\Console\ModuleListCommand;
@@ -158,7 +159,7 @@ class CoreServiceProvider extends ServiceProvider
             $this->commands([ModuleListCommand::class, ModuleEnableCommand::class, ModuleDisableCommand::class, RolesCommand::class,
                 SettingsListCommand::class, SettingsGetCommand::class, SettingsSetCommand::class, SettingsLockCommand::class, SettingsUnlockCommand::class,
                 UserCreateCommand::class, UserInviteCommand::class, UserApproveCommand::class, UserDeactivateCommand::class, UserReset2faCommand::class,
-                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class, BrandLoadCommand::class, TableBenchCommand::class, PublishingRunCommand::class, MakeModuleCommand::class]);
+                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class, BrandLoadCommand::class, TableBenchCommand::class, PublishingRunCommand::class, MakeModuleCommand::class, MediaRegenerateCommand::class]);
 
             $this->publishes([
                 __DIR__.'/../config/codeart.php' => config_path('codeart.php'),
@@ -183,6 +184,7 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->make(AdminMenu::class)->add(
             new NavItem('dashboard', 'codeart::admin.menu.dashboard', 'layout-dashboard', 'admin.dashboard', order: 0, module: 'core'),
             new NavItem('profile', 'codeart::profile.title', 'circle-user', 'admin.profile', order: 950, module: 'core', activePatterns: ['admin.profile', 'admin.profile.*']),
+            new NavItem('media', 'codeart::media.title', 'image', 'admin.media.index', 'media.view', order: 800, module: 'core', activePatterns: ['admin.media.*']),
             new NavItem('users', 'codeart::users.title', 'users', 'admin.users.index', 'users.view', order: 900, module: 'core', activePatterns: ['admin.users.*']),
         );
         $this->app->make(WidgetRegistry::class)->add(

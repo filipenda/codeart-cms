@@ -205,6 +205,8 @@ php artisan make:module                              # asks for name and options
 | `--publishable=true\|false` | `true` | draft / published / scheduled workflow, history and preview. `false`: saving publishes at once, no `publish` permission |
 | `--slug` | off | translated slug, unique per language, generated from the title |
 | `--no-widget` | widget on | no dashboard widget |
+| `--editor=a,b` | none | rich-text (TipTap) fields among the translatable ones (not the title); sanitized on the server, `docs/editor.md` |
+| `--media=cover,photos:many` | none | media-library fields: ids in JSON columns, picker in the form, thumbnail column, usage tracking; `name:many` = several files, `docs/media.md` |
 | `--path=` | `packages/modules/<name>` (monorepo) or `<app>/modules/<name>` | where to write; a non-empty folder is refused |
 
 The name is a lowercase slug. `blog-posts` gives namespace `Codeart\BlogPosts`, model `BlogPost`, tables `blog_posts_blog_posts` + `blog_posts_blog_post_translations`, permissions `blog-posts.view|create|update|publish|delete`, config `config/blog-posts.php`.
@@ -239,4 +241,6 @@ Enable it like any module: add the package (path repository), `php artisan modul
 ### Checks of a generated module
 In the monorepo `make:module` links `vendor` to core's (git ignores it). Inside the module folder: `vendor/bin/pest`, `vendor/bin/pint --test`, `vendor/bin/phpstan analyse`. Core's own test generates modules into a temp directory and runs all three on them. Module tests extend `Codeart\Core\Testing\ModuleTestCase` (MariaDB `DB_DATABASE`, default `test`).
 
-Developer docs for the workflow and preview: `docs/publishing-and-preview.md`.
+Developer docs for the workflow and preview: `docs/publishing-and-preview.md`; media library: `docs/media.md`; rich text: `docs/editor.md`.
+
+**Rule: user-provided HTML is always sanitized on the server** (`Codeart\Core\Editor\HtmlSanitizer`) before it is stored; the browser's editor and its source view are never trusted.

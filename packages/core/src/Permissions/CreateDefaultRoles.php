@@ -29,6 +29,10 @@ class CreateDefaultRoles
         'users.delete' => ['admin'],
         'users.force-delete' => [],
         'users.reset-2fa' => ['admin'],
+        'media.view' => ['admin'],
+        'media.upload' => ['admin'],
+        'media.update' => ['admin'],
+        'media.delete' => ['admin'],
     ];
 
     /** @return list<string> roles that were created (existing ones are left alone) */

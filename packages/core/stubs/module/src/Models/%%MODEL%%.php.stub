@@ -2,6 +2,9 @@
 
 namespace %%NS%%\Models;
 
+%%if media%%
+use Codeart\Core\Media\HasMedia;
+%%endif%%
 use Codeart\Core\Publishing\Publishable;
 use Codeart\Core\Publishing\PublishableModel;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +15,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class %%MODEL%% extends Model implements PublishableModel
 {
+%%if media%%
+    use HasMedia;
+%%endif%%
     use Publishable;
 
     protected $table = '%%TABLE%%';
@@ -39,6 +45,34 @@ class %%MODEL%% extends Model implements PublishableModel
     public function usesWorkflow(): bool
     {
         return false; // no drafts: saving the form publishes at once
+    }
+
+%%endif%%
+%%if media%%
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return [%%MEDIA_CASTS%%];
+    }
+
+    /**
+     * Columns drafted and published together with the text (media ids).
+     *
+     * @return list<string>
+     */
+    public function publishableColumns(): array
+    {
+        return [%%MEDIA_COLUMNS%%];
+    }
+
+    /**
+     * Media-library fields of the form: `multiple` lets people pick several files and reorder them.
+     *
+     * @return array<string, array{multiple: bool}>
+     */
+    public function mediaFields(): array
+    {
+        return [%%MEDIA_FIELDS%%];
     }
 
 %%endif%%

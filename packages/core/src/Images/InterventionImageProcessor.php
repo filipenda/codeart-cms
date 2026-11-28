@@ -55,6 +55,27 @@ class InterventionImageProcessor implements ImageProcessor
         return new ImageInfo($info['mime'], $info[0], $info[1]);
     }
 
+    public function probe(string $bytes): ?ImageInfo
+    {
+        $info = @getimagesizefromstring($bytes);
+        if ($info === false || ! in_array($info['mime'], ['image/png', 'image/jpeg', 'image/webp', 'image/gif'], true) || $info[0] < 1 || $info[1] < 1) {
+            return null;
+        }
+
+        return new ImageInfo($info['mime'], $info[0], $info[1]);
+    }
+
+    public function stripMetadata(string $bytes): string
+    {
+        $info = $this->probe($bytes);
+        $format = $info === null ? null : ImageFormat::fromMime($info->mime);
+        if ($format === null) {
+            return $bytes; // gif (or not an image): untouched
+        }
+
+        return $this->render($this->manager->read($bytes), $format, 92);
+    }
+
     public function trimTransparent(string $bytes): ?string
     {
         $info = $this->inspect($bytes);

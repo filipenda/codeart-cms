@@ -42,7 +42,7 @@ trait Translatable
         return 'title';
     }
 
-    /** @return HasMany<Translation, $this> */
+    /** @return HasMany<covariant Translation, $this> */
     public function translations(): HasMany
     {
         return $this->hasMany($this->translationModel(), $this->getForeignKey());
@@ -50,7 +50,7 @@ trait Translatable
 
     public function getAttribute($key)
     {
-        if (is_string($key) && in_array($key, $this->translatedAttributes(), true) && ! array_key_exists($key, $this->attributes)) {
+        if (in_array($key, $this->translatedAttributes(), true) && ! array_key_exists($key, $this->attributes)) {
             return $this->translated($key);
         }
 
@@ -209,7 +209,7 @@ trait Translatable
         $translation->manual_fields = array_values(array_unique($manual));
 
         if (in_array('slug', $this->translatedAttributes(), true)) {
-            $translation->slug = $source?->slug
+            $translation->slug = $source->slug
                 ?? static::uniqueSlug((string) ($translation->{$this->slugSource()} ?? ''), $locale, $translation->id);
         }
 
@@ -239,7 +239,7 @@ trait Translatable
             }
         }
 
-        $translation->manual_fields = array_values($manual);
+        $translation->manual_fields = $manual;
         $translation->save();
 
         return $translation;

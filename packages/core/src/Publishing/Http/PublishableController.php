@@ -5,6 +5,8 @@ namespace Codeart\Core\Publishing\Http;
 use Carbon\CarbonImmutable;
 use Codeart\Core\ActivityLog\ActivityLog;
 use Codeart\Core\Auth\Admin;
+use Codeart\Core\Editor\HtmlSanitizer;
+use Codeart\Core\Media\Media;
 use Codeart\Core\Publishing\Actions\PublishContent;
 use Codeart\Core\Publishing\Actions\RestoreRevision;
 use Codeart\Core\Publishing\Actions\SaveDraft;
@@ -142,7 +144,10 @@ abstract class PublishableController
         if (! $model->exists) {
             $model->forceFill(['status' => PublishStatus::Draft])->save(); // only now: nothing is created for an invalid form
         }
-        $draft = app(SaveDraft::class)($model, ['translations' => (array) ($data['translations'] ?? [])], $user);
+        // Rich text is sanitized HERE, on the server, before anything is stored (the browser's HTML is never trusted).
+        $editorFields = array_keys(array_filter($model->formFields(), fn (string $type): bool => $type === 'editor'));
+        $translations = HtmlSanitizer::cleanTranslations((array) ($data['translations'] ?? []), $editorFields);
+        $draft = app(SaveDraft::class)($model, ['translations' => $translations, 'fields' => $this->mediaValues($request, $model)], $user);
         $edit = redirect()->route($this->module().'.edit', $model->getKey());
 
         if ($intent === 'preview' || $intent === 'frame') {
@@ -205,6 +210,24 @@ abstract class PublishableController
         return redirect()->away($url);
     }
 
+    /**
+     * Ids of the media fields (`mediaFields()`): only files that exist, in the order sent, at most one for a single field.
+     *
+     * @return array<string, list<int>>
+     */
+    private function mediaValues(Request $request, Model $model): array
+    {
+        $out = [];
+        foreach (method_exists($model, 'mediaFields') ? $model->mediaFields() : [] as $column => $options) {
+            $sent = array_values(array_unique(array_map('intval', array_filter((array) $request->input($column, []), 'is_numeric'))));
+            $known = $sent === [] ? [] : array_map('intval', Media::query()->whereIn('id', array_slice($sent, 0, 100))->pluck('id')->all());
+            $ids = array_values(array_filter($sent, fn (int $id): bool => in_array($id, $known, true)));
+            $out[$column] = ($options['multiple'] ?? false) ? $ids : array_slice($ids, 0, 1);
+        }
+
+        return $out;
+    }
+
     /** @return array<string, mixed> */
     private function rules(string $intent): array
     {
@@ -251,6 +274,7 @@ abstract class PublishableController
             'isNew' => $isNew,
             'content' => $model->currentContent(),
             'fields' => $model->formFields(),
+            'mediaFields' => method_exists($model, 'mediaFields') ? $model->mediaFields() : [],
             'locales' => collect($this->manualLocales())->mapWithKeys(fn (string $l): array => [$l => $locales->name($l)])->all(),
             'defaultLocale' => $locales->default(),
             'workflow' => $model->usesWorkflow(),

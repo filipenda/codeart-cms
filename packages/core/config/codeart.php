@@ -62,6 +62,19 @@ return [
     ],
 
     /*
+    | Media library (docs/media.md). `disk`: any Laravel filesystem disk. `variants`: pre-generated widths (name => px);
+    | `webp`: also write WebP copies when the server can; `max_pixels`: refuse images with more pixels (decompression bombs).
+    | The upload size and allowed types are SETTINGS (media.max_kb, media.allowed_types), capped by PHP's real limits.
+    */
+    'media' => [
+        'disk' => 'public',
+        'variants' => ['thumb' => 320, 'medium' => 800, 'large' => 1600],
+        'webp' => true,
+        'max_pixels' => 50_000_000,
+        'per_page' => 48,
+    ],
+
+    /*
     | Profile pictures (same disk as the branding images; png, jpg, webp only, fitted within 512x512).
     */
     'avatars' => [

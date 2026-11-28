@@ -1,4 +1,6 @@
 import Alpine from 'alpinejs';
+import registerEditor from './editor.js';
+import registerMedia from './media.js';
 
 /*
  * Progressive enhancement only: every screen works without this file (plain forms posting to Fortify).
@@ -636,6 +638,9 @@ Alpine.data('codeartTable', ({ total = 0, rows = 0 } = {}) => ({
         this.$refs.form?.requestSubmit();
     },
 }));
+
+registerEditor(Alpine);
+registerMedia(Alpine);
 
 window.Alpine = Alpine;
 Alpine.start();
