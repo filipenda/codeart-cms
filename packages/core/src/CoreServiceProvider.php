@@ -38,6 +38,7 @@ use Codeart\Core\Console\UserInviteCommand;
 use Codeart\Core\Console\UserReset2faCommand;
 use Codeart\Core\Images\ImageProcessor;
 use Codeart\Core\Images\InterventionImageProcessor;
+use Codeart\Core\Install\InstallServiceProvider;
 use Codeart\Core\Modules\MenuRegistry;
 use Codeart\Core\Modules\ModuleDiscovery;
 use Codeart\Core\Modules\ModuleRegistry;
@@ -104,6 +105,9 @@ class CoreServiceProvider extends ServiceProvider
             (array) config('codeart.theme_base', []),
             (array) config('codeart.theme_defaults', []),
         ));
+
+        // Before auth: the not-installed mode changes the session driver auth would otherwise override.
+        $this->app->register(InstallServiceProvider::class);
 
         // Last: it reads settings and config registered above.
         $this->app->register(AuthServiceProvider::class);

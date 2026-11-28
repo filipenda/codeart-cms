@@ -139,7 +139,7 @@ class AuthServiceProvider extends ServiceProvider
             $config->set('auth.defaults.guard', $guard);
         }
         // Staff sessions live in the database so they can be listed and revoked.
-        if (in_array($config->get('session.driver'), ['file', 'cookie', null], true)) {
+        if (! $config->get('codeart.install.pending') && in_array($config->get('session.driver'), ['file', 'cookie', null], true)) {
             $config->set('session.driver', 'database');
         }
         // Role and permission changes are logged from spatie's events.

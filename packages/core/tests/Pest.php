@@ -6,6 +6,7 @@ use Codeart\Core\Modules\ModuleRegistry;
 use Codeart\Core\Permissions\CreateDefaultRoles;
 use Codeart\Core\Settings\Settings;
 use Codeart\Core\Tests\AuthTestCase;
+use Codeart\Core\Tests\InstallTestCase;
 use Codeart\Core\Tests\Support\AdminTestUser;
 use Codeart\Core\Tests\Support\FakeDiscovery;
 use Codeart\Core\Tests\Support\StubUser;
@@ -21,6 +22,7 @@ use PragmaRX\Google2FA\Google2FA;
 
 uses(TestCase::class)->in('Unit', 'Feature');
 uses(AuthTestCase::class)->in('Auth');
+uses(InstallTestCase::class)->in('Install');
 
 pest()->beforeEach(function () {
     // Enabling a module runs DDL (implicit commits), so no transaction-based refresh: back to the migrated baseline.
@@ -59,6 +61,12 @@ pest()->beforeEach(function () {
     app(CreateDefaultRoles::class)();
     fakeHttp(['api.pwnedpasswords.com/*' => Http::response('', 200)]); // nobody is "breached" unless a test says so
 })->in('Auth');
+
+// Installer tests: an empty throwaway database per test (InstallTestCase), the installer itself migrates it.
+pest()->beforeEach(function () {
+    FakeDiscovery::$modules = [];
+    fakeHttp(['api.pwnedpasswords.com/*' => Http::response('', 200)]);
+})->in('Install');
 
 // Settings written by a test must not leak into the next application boot (the admin path is read at boot).
 pest()->afterEach(fn () => Schema::hasTable('settings') && DB::table('settings')->delete())->in('Auth');
@@ -123,4 +131,21 @@ function useModules(array $modules): void
     foreach ([ModuleDiscovery::class, ModuleRegistry::class, MenuRegistry::class] as $class) {
         app()->forgetInstance($class);
     }
+}
+
+/** Walk the wizard through the HTTP kernel up to (not including) the run. */
+function walkWizard(InstallTestCase $test, array $modules = []): void
+{
+    $test->post('/install', ['key' => 'KEY-FOR-THE-TEST-0123456789'])->assertRedirect(route('install.requirements'));
+    $test->get('/install/requirements')->assertOk();
+    $test->post('/install/database', $test->dbInput())->assertRedirect(route('install.site'));
+    $test->post('/install/site', [
+        'site_name' => 'Moj sajt', 'url' => 'https://example.test', 'timezone' => 'Europe/Belgrade',
+        'locales' => ['sr', 'sr-Cyrl', 'en'], 'default_locale' => 'sr', 'admin_path' => 'upravljanje',
+    ])->assertRedirect(route('install.admin'));
+    $test->post('/install/admin', [
+        'first_name' => 'Pera', 'last_name' => 'Perić', 'email' => 'pera@example.test',
+        'password' => 'Str0ng-Install-Pass', 'password_confirmation' => 'Str0ng-Install-Pass',
+    ])->assertRedirect(route('install.modules'));
+    $test->post('/install/modules', ['modules' => $modules])->assertRedirect(route('install.run'));
 }
