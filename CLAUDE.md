@@ -68,6 +68,7 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 - Open a PR, wait for CI and merge ONLY when the prompt says "finish the feature": then run full `ddev composer check` once, CI once, squash-merge on green.
 - W7: commit only after `check:fast` passes; a failing check is investigated, never skipped or committed over; a flaky test is fixed at the root, not retried.
 - W8: the last step of every task is to leave the local dev environment ready to open in the browser (`ddev composer install`, `migrate`, `codeart:roles`, publish assets, `optimize:clear`) and say so in the report; the owner never runs setup commands by hand. Automated HTTP checks must not leave rows in the dev `sessions` table (use `SESSION_DRIVER=array` or delete what they created).
+- After merging to main, also wait for the push run on main (`gh run list --branch main --limit 1`, `gh run watch`) and report it; if red, fix it before any other work (W6).
 - Version tags only when a feature set is stable. Every task brief states its branch and whether it finishes the feature.
 
 ## Git rules

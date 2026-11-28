@@ -23,6 +23,7 @@
 - W8: The last step of every task is to leave the local dev environment ready to open in the browser (`ddev composer install`, `migrate`, `codeart:roles`, publish assets, `optimize:clear`) and say so in the report; the owner never runs setup commands by hand.
 - Version tags only when a feature set is stable.
 - Unless a task says "finish the feature", Claude does not open a PR, wait for CI or merge: it commits, pushes and reports.
+- After merging to `main`, also wait for the push run on `main` (`gh run list --branch main --limit 1`, then `gh run watch`) and report its result. If it is red, fix it immediately before any other work. A rerun is allowed once for an external cause (e.g. a 429 from GitHub); a second failure is treated as deterministic.
 
 ## Commits
 [Conventional Commits](https://www.conventionalcommits.org): `feat(core): add theme settings`, `fix(pages): ...`, `chore: ...`, `docs: ...`.
