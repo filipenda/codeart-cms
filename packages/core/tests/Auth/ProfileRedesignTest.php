@@ -24,7 +24,8 @@ function png_upload(string $name = 'me.png', int $w = 900, int $h = 600): Upload
     return new UploadedFile($path, $name, 'image/png', null, true);
 }
 
-it('renders exactly three server-side tabs that route to their own pages', function () {
+it('renders exactly three server-side tabs that route to their own pages (no sessions tab without the database driver)', function () {
+    config(['session.driver' => 'array']);
     $me = staff('editor');
     $routes = ['personal' => '/admin/profile', 'password' => '/admin/profile/password', 'two-factor' => '/admin/profile/two-factor'];
     foreach ($routes as $key => $path) {

@@ -7,7 +7,6 @@ use Codeart\Core\Auth\Actions\UpdateUserPassword;
 use Codeart\Core\Auth\Admin;
 use Codeart\Core\Auth\PasswordRules;
 use Codeart\Core\Auth\RoleRank;
-use Codeart\Core\Auth\TwoFactorPolicy;
 use Codeart\Core\Support\DisplayTime;
 use Codeart\Core\Translations\Locales;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -44,17 +43,6 @@ final class ProfileController
     public function passwordPage(Request $request, PasswordRules $rules): View
     {
         return view('codeart::admin.profile.password', $this->data($request) + ['passwordRules' => $rules->requirements(), 'checksBreached' => $rules->checksBreached()]);
-    }
-
-    public function twoFactorPage(Request $request, TwoFactorPolicy $twoFactor): View
-    {
-        $user = $this->me($request);
-
-        return view('codeart::admin.profile.two-factor', $this->data($request) + [
-            'twoFactorAvailable' => $twoFactor->available(),
-            'twoFactorRequired' => $twoFactor->requiredFor($user),
-            'twoFactorOn' => Admin::staff($user)->hasTwoFactorEnabled(),
-        ]);
     }
 
     public function update(Request $request, Locales $locales): RedirectResponse

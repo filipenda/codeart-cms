@@ -107,6 +107,10 @@ public function boot(): void
         ]),
     );
 
+    // Active state: an item is active on its own route, on any route of its section when the route ends in `.index`
+    // (`pages.index` covers `pages.edit`), and on every route matching `activePatterns` (route names, `*` wildcard):
+    //   new NavItem('profile', '...', 'circle-user', 'admin.profile', activePatterns: ['admin.profile', 'admin.profile.*'])
+
     // Dashboard widget: a Blade view plus a data class. size: sm (3/12), md (6/12), lg (12/12) on desktop.
     $this->app->make(WidgetRegistry::class)->add(
         new Widget('pages.drafts', 'pages::widgets.drafts', 'file-text', 'pages::widgets.drafts', DraftsWidget::class,

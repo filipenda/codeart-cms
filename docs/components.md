@@ -82,11 +82,17 @@ handling and keeps the single input in sync.
 Frame shared by `field`, `textarea` and `select`. Props: `id`, `label`, `hint`, `error`, `required` (adds an `aria-hidden` `*`), `max` + `count` (character counter `data-counter`, live with Alpine, server value without JS).
 
 ### `textarea`, `select`
-Same contract as `field`. `textarea` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `rows` (4); `maxlength` gives the counter. `select` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `options` (value => label) or `<option>` in the slot, `placeholder`. Value defaults to `old(name)`.
+Same contract as `field`. `textarea` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `rows` (4); `maxlength` gives the counter. `select` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `icon` (leading icon, same as `input`; keeps error, hint and disabled states), `options` (value => label; a value that is itself an array becomes an `<optgroup>`: `['Europe' => ['Europe/Belgrade' => '...']]`) or `<option>` in the slot, `placeholder`. Value defaults to `old(name)`.
 ```blade
 <x-codeart::textarea name="bio" label="Bio" maxlength="80" hint="Optional" />
 <x-codeart::select name="plan" label="Plan" :options="['free' => 'Free', 'pro' => 'Pro']" placeholder="Choose..." required />
 ```
+
+### `form.password-strength`
+`<x-codeart::form.password-strength for="field-password" :rules="app(PasswordRules::class)->requirements()" :breached="..." />`. A strength meter (5 segments + label "Slaba/Srednja/Jaka lozinka") and a requirements checklist for the password input with id `for`. The rules come from the server (`PasswordRules::requirements()`: minimum length, mixed case, number, symbol, as configured in `security.password.*`), so a settings change changes the list. Without JS only the static list is shown (neutral bullets); Alpine (`codeartPasswordStrength`) adds the live ticks and the meter with a simple score (rules met + length headroom). The server stays the only judge; the breached-password check is server-side only and just mentioned in a hint (`breached`).
+
+### `copy-button`
+Props: `value`, `label`, `copied`. Copies `value` with the Clipboard API (hidden-textarea fallback) and shows "Kopirano" for a moment, with an `aria-live` message (also on failure). Needs JS: without it the button is hidden, so always show the value next to it.
 
 ### `checkbox`, `radio`, `switch`
 Props: `id`, `label`, `hint`, `bag`, `checked` (`radio` also `value`). The plain attribute `name` ties them to `old()` (after a failed submit the sent state wins) and, for checkbox and switch, to the error bag. `switch` is a real checkbox with `role="switch"`, styled by CSS only.
@@ -122,7 +128,7 @@ Props: `type` (`info|success|warning|danger`), `title`, `messages` (list), `dism
 ```
 
 ### `modal`
-Native `<dialog>`. Props: `id`, `title`, `size` (`sm|md|lg`). Slots: `title` (markup, overrides the prop), default = body, `footer`. Open with any element that has `data-modal-open="id"`; `data-modal-close` closes; Esc and backdrop click close; focus is trapped and restored by the browser. Opening needs JS.
+Native `<dialog>`. Wrapping: the dialog sets `whitespace-normal break-words overflow-x-hidden min-w-0` itself (a dialog inside a `whitespace-nowrap` table cell would otherwise inherit nowrap and clip the title and text); width is `calc(100% - 2rem)` up to `max-w-sm|lg|2xl`. Props: `id`, `title`, `size` (`sm|md|lg`). Slots: `title` (markup, overrides the prop), default = body, `footer`. Open with any element that has `data-modal-open="id"`; `data-modal-close` closes; Esc and backdrop click close; focus is trapped and restored by the browser. Opening needs JS.
 ```blade
 <x-codeart::button type="button" data-modal-open="m1">Open</x-codeart::button>
 <x-codeart::modal id="m1" title="Title">Body <x-slot:footer>...</x-slot:footer></x-codeart::modal>
@@ -248,7 +254,7 @@ together with the raw value itself. Other toolbar details: "Više filtera" is a 
 a server icon instead of initials; date filter inputs carry `lang` of the panel locale.
 
 ## JavaScript (`resources/js/app.js`, built to `resources/dist/codeart.js`)
-Alpine 3 plus two components: `codeartOtp(length)` and `codeartRecoveryCodes(filename)` (copy and download .txt).
+Alpine 3 plus: `codeartOtp(length)`, `codeartRecoveryCodes(filename)` (copy and download .txt), `codeartCopy(value)` and `codeartPasswordStrength(rules, inputId)`.
 Rebuild both bundles after changing views, CSS or JS: `ddev exec "cd packages/core && npm run build"` and commit `resources/dist`.
 
 ## Admin shell (`<x-codeart::admin.*>`, `resources/views/components/admin`)
@@ -262,7 +268,8 @@ Spec: `docs/admin-ui.md`. Only semantic utilities; the sidebar and top bar follo
 | `admin.user-menu` | Built on `dropdown`: name and role, theme radiogroup, language items, 2FA link (when offered), sign out. |
 | `admin.command-palette` | Prop `items` (list of `{label, url, icon, group}`); rendered as JSON, filtered in the browser, arrow keys, Enter, Esc, focus trap. |
 | `admin.page-header` | Props `title`, `description`, `breadcrumbs` (`[['label' => 'Pages', 'url' => '...'], ['label' => 'Edit']]`); named slot `actions` aligned to the end. |
-| `admin.card` | Rounded surface with border. Props `title`, `icon` (header shown when `title` is set). |
+| `admin.card` | Rounded surface with border. Props `title`, `icon`, `description` (header: icon tile, title, one-line description, shown when `title` is set); slot `footer` for the form buttons. |
+| `admin.profile-shell` | Moj profil frame: tabs, profile card, content slot. Props `tab`, `me`, `role`, `avatarUrl`. |
 
 ```blade
 <x-codeart::admin.layout :title="__('pages::menu.list')">

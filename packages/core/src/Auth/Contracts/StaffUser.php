@@ -30,6 +30,9 @@ interface StaffUser
     /** @return bool */
     public function hasTwoFactorEnabled();
 
+    /** @return string */
+    public function twoFactorQrCodeSvg();
+
     /** @return void */
     public function sendEmailVerificationNotification();
 }

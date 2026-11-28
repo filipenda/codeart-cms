@@ -81,3 +81,4 @@ tablet
 qr-code
 refresh-cw
 badge-check
+shield-off

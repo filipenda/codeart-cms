@@ -6,6 +6,10 @@
         'password' => [__('codeart::profile.tab_password'), route('admin.profile.password.show'), 'lock'],
         'two-factor' => [__('codeart::profile.tab_two_factor'), route('admin.profile.two-factor'), 'shield'],
     ];
+    // The session list needs the database session driver; without it the tab is not drawn (no dead tabs).
+    if (\Codeart\Core\Profile\SessionsController::enabled()) {
+        $tabs['sessions'] = [__('codeart::profile.tab_sessions'), route('admin.profile.sessions'), 'monitor'];
+    }
     $time = \Codeart\Core\Support\DisplayTime::current();
     $lastLogin = $time->convert($me->last_login_at);
 @endphp

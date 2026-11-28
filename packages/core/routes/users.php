@@ -1,6 +1,8 @@
 <?php
 
 use Codeart\Core\Profile\ProfileController;
+use Codeart\Core\Profile\SessionsController;
+use Codeart\Core\Profile\TwoFactorController;
 use Codeart\Core\Users\Http\InvitationsController;
 use Codeart\Core\Users\Http\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -17,7 +19,12 @@ $dangerous = ['password.confirm', 'codeart.confirmed'];
 Route::middleware(['auth:'.$guard, 'admin.access'])->prefix('profile')->group(function () {
     Route::get('/', [ProfileController::class, 'show'])->name('admin.profile');
     Route::get('password', [ProfileController::class, 'passwordPage'])->name('admin.profile.password.show');
-    Route::get('two-factor', [ProfileController::class, 'twoFactorPage'])->name('admin.profile.two-factor');
+    Route::get('two-factor', [TwoFactorController::class, 'show'])->name('admin.profile.two-factor');
+    Route::post('two-factor/recovery-codes', [TwoFactorController::class, 'regenerate'])->middleware(['throttle:10,1', 'password.confirm', 'codeart.confirmed'])->name('admin.profile.two-factor.recovery');
+    Route::delete('two-factor', [TwoFactorController::class, 'disable'])->middleware(['throttle:10,1', 'password.confirm', 'codeart.confirmed'])->name('admin.profile.two-factor.disable');
+    Route::get('sessions', [SessionsController::class, 'show'])->name('admin.profile.sessions');
+    Route::delete('sessions', [SessionsController::class, 'destroyOthers'])->middleware(['throttle:10,1', 'password.confirm', 'codeart.confirmed'])->name('admin.profile.sessions.destroy-others');
+    Route::delete('sessions/{handle}', [SessionsController::class, 'destroy'])->where('handle', '[a-f0-9]{64}')->middleware(['throttle:20,1', 'password.confirm', 'codeart.confirmed'])->name('admin.profile.sessions.destroy');
     Route::put('/', [ProfileController::class, 'update'])->middleware('throttle:30,1')->name('admin.profile.update');
     Route::post('avatar', [ProfileController::class, 'avatar'])->middleware('throttle:20,1')->name('admin.profile.avatar');
     Route::delete('avatar', [ProfileController::class, 'removeAvatar'])->middleware('throttle:20,1')->name('admin.profile.avatar.remove');

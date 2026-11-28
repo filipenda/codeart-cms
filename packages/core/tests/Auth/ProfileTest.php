@@ -77,22 +77,22 @@ it('changes the password only with the current one and the configured rules', fu
 
 it('shows the two-factor state and lets people switch it off only where it is not required', function () {
     $settings = app(Settings::class);
-    $on = ['two_factor_secret' => 'x', 'two_factor_confirmed_at' => now()];
+    $on = ['two_factor_secret' => encrypt('SECRETSECRET'), 'two_factor_recovery_codes' => encrypt(json_encode(['aaaa-1111', 'bbbb-2222'])), 'two_factor_confirmed_at' => now()];
 
     $settings->set('security.2fa.mode', 'off');
     expect(count_nodes(dom($this->actingAs(staff('editor'), 'admin')->get('/admin/profile/two-factor')->getContent()), '//*[@data-two-factor]'))->toBe(0);
 
     $settings->set('security.2fa.mode', 'optional');
     $xp = dom($this->actingAs(staff('editor'), 'admin')->get('/admin/profile/two-factor')->getContent());
-    expect(count_nodes($xp, '//*[@data-two-factor]//a[contains(@href,"two-factor-setup")]'))->toBe(1)->and(count_nodes($xp, '//button[@data-disable]'))->toBe(0);
+    expect(count_nodes($xp, '//*[@data-two-factor]//form[contains(@action,"two-factor-authentication")]//button'))->toBe(1)->and(count_nodes($xp, '//*[@data-disable]'))->toBe(0);
 
     $xp = dom($this->actingAs(staff('editor', $on), 'admin')->get('/admin/profile/two-factor')->getContent());
-    expect(count_nodes($xp, '//button[@data-regenerate]'))->toBe(1)->and(count_nodes($xp, '//button[@data-disable]'))->toBe(1);
+    expect(count_nodes($xp, '//*[@data-regenerate]//button[@data-confirm-trigger]'))->toBe(1)->and(count_nodes($xp, '//*[@data-disable]//button[@data-confirm-trigger]'))->toBe(1);
 
     $settings->set('security.2fa.mode', 'required');
     $settings->set('security.2fa.required_roles', ['admin']);
     $xp = dom($this->actingAs(staff('admin', $on), 'admin')->get('/admin/profile/two-factor')->getContent());
-    expect(count_nodes($xp, '//button[@data-disable]'))->toBe(0)->and(count_nodes($xp, '//*[@data-required-note]'))->toBe(1);
+    expect(count_nodes($xp, '//*[@data-disable]'))->toBe(0)->and(count_nodes($xp, '//*[@data-required-note]'))->toBe(1);
 });
 
 it('has the profile texts in sr, en and sr-Cyrl', function () {

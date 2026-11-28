@@ -11,6 +11,7 @@ use Codeart\Core\Auth\Http\Screens;
 use Codeart\Core\Auth\Listeners\AuthEventSubscriber;
 use Codeart\Core\Auth\Middleware\ConfigureAuthRequest;
 use Codeart\Core\Auth\Middleware\EnsureAdminAccess;
+use Codeart\Core\Auth\Middleware\RefuseTwoFactorDisable;
 use Codeart\Core\Auth\Middleware\SetAuthLocale;
 use Codeart\Core\Auth\Middleware\ValidInvitationLink;
 use Codeart\Core\Confirmation\RequireConfirmation;
@@ -113,6 +114,9 @@ class AuthServiceProvider extends ServiceProvider
 
         $fortify = dirname((string) (new \ReflectionClass(Fortify::class))->getFileName(), 2).'/routes/routes.php';
         Route::group(['namespace' => 'Laravel\\Fortify\\Http\\Controllers', 'prefix' => $path], fn () => require $fortify);
+        // Whoever the settings force to use 2FA cannot switch it off through Fortify's own route either.
+        Route::getRoutes()->refreshNameLookups();
+        Route::getRoutes()->getByName('two-factor.disable')?->middleware(RefuseTwoFactorDisable::class);
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/auth.php');
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/admin.php');
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/users.php');
