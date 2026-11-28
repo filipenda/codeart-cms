@@ -69,7 +69,7 @@ it('changes the password only with the current one and the configured rules', fu
     $this->actingAs($me, 'admin')->put('/admin/profile/password', ['current_password' => 'Secret-pass-123', 'password' => 'short', 'password_confirmation' => 'short'])->assertSessionHasErrorsIn('updatePassword', 'password');
     expect(Hash::check('Secret-pass-123', $me->fresh()->password))->toBeTrue();
 
-    $this->actingAs($me, 'admin')->put('/admin/profile/password', ['current_password' => 'Secret-pass-123', 'password' => 'Brand-new-pass-7', 'password_confirmation' => 'Brand-new-pass-7'])->assertRedirect('/admin/profile');
+    $this->actingAs($me, 'admin')->put('/admin/profile/password', ['current_password' => 'Secret-pass-123', 'password' => 'Brand-new-pass-7', 'password_confirmation' => 'Brand-new-pass-7'])->assertRedirect('/admin/profile/password');
     expect(Hash::check('Brand-new-pass-7', $me->fresh()->password))->toBeTrue()
         ->and(Activity::query()->where('event', 'password.changed')->count())->toBe(1)
         ->and(Activity::query()->get()->toJson())->not->toContain('Brand-new-pass-7')->not->toContain('Secret-pass-123');
@@ -80,18 +80,18 @@ it('shows the two-factor state and lets people switch it off only where it is no
     $on = ['two_factor_secret' => 'x', 'two_factor_confirmed_at' => now()];
 
     $settings->set('security.2fa.mode', 'off');
-    expect(count_nodes(dom($this->actingAs(staff('editor'), 'admin')->get('/admin/profile')->getContent()), '//*[@data-two-factor]'))->toBe(0);
+    expect(count_nodes(dom($this->actingAs(staff('editor'), 'admin')->get('/admin/profile/two-factor')->getContent()), '//*[@data-two-factor]'))->toBe(0);
 
     $settings->set('security.2fa.mode', 'optional');
-    $xp = dom($this->actingAs(staff('editor'), 'admin')->get('/admin/profile')->getContent());
+    $xp = dom($this->actingAs(staff('editor'), 'admin')->get('/admin/profile/two-factor')->getContent());
     expect(count_nodes($xp, '//*[@data-two-factor]//a[contains(@href,"two-factor-setup")]'))->toBe(1)->and(count_nodes($xp, '//button[@data-disable]'))->toBe(0);
 
-    $xp = dom($this->actingAs(staff('editor', $on), 'admin')->get('/admin/profile')->getContent());
+    $xp = dom($this->actingAs(staff('editor', $on), 'admin')->get('/admin/profile/two-factor')->getContent());
     expect(count_nodes($xp, '//button[@data-regenerate]'))->toBe(1)->and(count_nodes($xp, '//button[@data-disable]'))->toBe(1);
 
     $settings->set('security.2fa.mode', 'required');
     $settings->set('security.2fa.required_roles', ['admin']);
-    $xp = dom($this->actingAs(staff('admin', $on), 'admin')->get('/admin/profile')->getContent());
+    $xp = dom($this->actingAs(staff('admin', $on), 'admin')->get('/admin/profile/two-factor')->getContent());
     expect(count_nodes($xp, '//button[@data-disable]'))->toBe(0)->and(count_nodes($xp, '//*[@data-required-note]'))->toBe(1);
 });
 

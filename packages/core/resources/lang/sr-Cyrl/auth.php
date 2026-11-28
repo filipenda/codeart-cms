@@ -24,6 +24,7 @@ return [
     'attributes' => [
         'name' => 'име',
         'email' => 'е-пошта',
+        'phone' => 'телефон',
         'password' => 'лозинка',
         'current_password' => 'тренутна лозинка',
     ],

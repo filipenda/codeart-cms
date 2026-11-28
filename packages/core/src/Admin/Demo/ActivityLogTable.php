@@ -3,6 +3,7 @@
 namespace Codeart\Core\Admin\Demo;
 
 use Codeart\Core\ActivityLog\ActivityDescription;
+use Codeart\Core\Profile\Avatar;
 use Codeart\Core\Tables\BulkAction;
 use Codeart\Core\Tables\Column;
 use Codeart\Core\Tables\DataTable;
@@ -40,7 +41,7 @@ final class ActivityLogTable implements TableDefinition
                         return ['system' => true, 'name' => __('codeart::table.demo.system')];
                     }
 
-                    return ['name' => (string) ($causer->getAttribute('name') ?? ''), 'subtitle' => (string) ($causer->getAttribute('email') ?? '')];
+                    return ['name' => (string) ($causer->getAttribute('name') ?? ''), 'subtitle' => (string) ($causer->getAttribute('email') ?? ''), 'image' => Avatar::url($causer)];
                 })->searchable(false),
                 Column::text('ip_address', __('codeart::table.demo.ip')),
                 Column::date('created_at', __('codeart::table.demo.when')),

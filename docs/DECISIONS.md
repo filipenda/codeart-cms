@@ -239,8 +239,12 @@ New dev dependencies (npm, newest stable on 2026-11-26): `@fontsource-variable/i
 - **US9. Invitation message is a column** (`user_invitations.message`, 500 chars, shown in the mail only). The invite form also asks for a name, because the mail greets by name and the account is created with it.
 - **US10. `StaffUser` contract.** The app's User now implements `Codeart\Core\Auth\Contracts\StaffUser` (the `AdminUser` trait provides every method) so core can use soft deletes, roles and 2FA state with real types; `Admin::staff($model)` narrows a model and fails loudly if the contract is missing.
 - **US11. Profile preferences storage.** Reuses `users.locale` and `users.theme_preference`; the latter became nullable (NULL = not chosen, `auto` is a real choice), migration `make_theme_preference_optional_on_users_table`. The saved choice wins over the browser's localStorage so the same person sees the same theme on every device; guests and users without a choice keep the browser/site default. The user-menu switcher saves best effort (fetch, no error shown).
-- **US12. Not done in step 4 (open):** avatar upload (needs ImageProcessor + image field wiring), active-sessions list (excluded by the brief). Profile edits cannot change e-mail by design.
+- **US12. Not done in step 4:** avatar upload (done in step 5, see PR3), active-sessions list (excluded by the brief). Profile edits cannot change e-mail by design.
 
 ## Step 5: icon buttons and profile
 - **IB1. One icon-button for every row action.** `<x-codeart::icon-button>` (32/36px square, ghost at rest). Danger = icon color + soft background on hover/focus only, never a filled red button at rest. Delete-like row actions (`delete`, `force-delete`, `revoke`) are danger (`RowAction::danger()`); the rest are neutral. The extra right offset was the text-button padding and gap around single icons.
-
+- **PR1. Profile name stays one field** ("Ime i prezime"); no split into first/last name.
+- **PR2. No time zone yet, no dead tabs.** Only the three tabs that work are rendered; "Obaveštenja" and "Sesije" appear when their features exist.
+- **PR3. Avatars:** `users.avatar_path` + `users.phone` (core migration); upload via `AvatarUploader` (ImageProcessor, png/jpg/webp by content, SVG refused, 512x512 fit, old file deleted); size limit is the setting `profile.avatar_max_kb` (default 5 MB). Stored on the branding disk under `avatars/`. Admins cannot change other people's pictures (not part of this step).
+- **PR4. Decorative card header is CSS only:** gradient + two inline SVG waves using primary-color tokens (`from-primary-soft`, `fill-primary`); no raster, no external SVG, so it follows the client's color and the theme.
+- **PR5. Last sign-in IP** is the already stored `users.last_login_ip` (set on login), not read from the activity log.

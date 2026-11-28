@@ -62,6 +62,13 @@ return [
     ],
 
     /*
+    | Profile pictures (same disk as the branding images; png, jpg, webp only, fitted within 512x512).
+    */
+    'avatars' => [
+        'directory' => 'avatars',
+    ],
+
+    /*
     | Content languages (not the admin interface language).
     | `default`, `enabled` and `fallbacks` are only the DEFAULTS of the locales.* settings (the database wins);
     | `available` (what each language is) stays here.

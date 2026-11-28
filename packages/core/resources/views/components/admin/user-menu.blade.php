@@ -14,7 +14,7 @@
 @endphp
 <x-codeart::dropdown id="user-menu-panel" :label="__('codeart::admin.user.menu')" width="w-64" trigger-class="flex items-center gap-3 rounded-control py-1 ps-1 pe-2 hover:bg-surface-alt">
     <x-slot:trigger>
-        <span class="inline-flex size-9 items-center justify-center rounded-full bg-primary text-sm font-semibold text-on-primary" aria-hidden="true">{{ $initials }}</span>
+        <x-codeart::avatar :user="$user" class="size-9 text-sm" />
         <span class="hidden min-w-0 text-start leading-tight md:block">
             <span class="block max-w-40 truncate text-sm font-semibold text-text">{{ $name }}</span>
             <span class="block max-w-40 truncate text-xs text-text-muted">{{ $roleLabel }}</span>

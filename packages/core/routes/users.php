@@ -16,7 +16,11 @@ $dangerous = ['password.confirm', 'codeart.confirmed'];
 // "Moj profil": every user who may enter the admin; always the signed-in user's own row.
 Route::middleware(['auth:'.$guard, 'admin.access'])->prefix('profile')->group(function () {
     Route::get('/', [ProfileController::class, 'show'])->name('admin.profile');
+    Route::get('password', [ProfileController::class, 'passwordPage'])->name('admin.profile.password.show');
+    Route::get('two-factor', [ProfileController::class, 'twoFactorPage'])->name('admin.profile.two-factor');
     Route::put('/', [ProfileController::class, 'update'])->middleware('throttle:30,1')->name('admin.profile.update');
+    Route::post('avatar', [ProfileController::class, 'avatar'])->middleware('throttle:20,1')->name('admin.profile.avatar');
+    Route::delete('avatar', [ProfileController::class, 'removeAvatar'])->middleware('throttle:20,1')->name('admin.profile.avatar.remove');
     Route::put('password', [ProfileController::class, 'password'])->middleware('throttle:10,1')->name('admin.profile.password');
     Route::post('theme', [ProfileController::class, 'theme'])->middleware('throttle:60,1')->name('admin.profile.theme');
 });

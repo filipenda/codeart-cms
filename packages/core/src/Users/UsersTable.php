@@ -6,6 +6,7 @@ use Codeart\Core\Auth\Actions\ApproveUser;
 use Codeart\Core\Auth\Actions\DeactivateUser;
 use Codeart\Core\Auth\Admin;
 use Codeart\Core\Auth\RoleRank;
+use Codeart\Core\Profile\Avatar;
 use Codeart\Core\Tables\BulkAction;
 use Codeart\Core\Tables\Column;
 use Codeart\Core\Tables\DataTable;
@@ -41,7 +42,7 @@ final class UsersTable implements TableDefinition
         return DataTable::make(self::KEY, $model::query())
             ->columns(
                 Column::avatar('name', __('codeart::users.col.user'), "CONCAT({$table}.name, ' ', {$table}.email)")
-                    ->using(fn (Model $u): array => ['name' => (string) $u->getAttribute('name'), 'subtitle' => (string) $u->getAttribute('email')]),
+                    ->using(fn (Model $u): array => ['name' => (string) $u->getAttribute('name'), 'subtitle' => (string) $u->getAttribute('email'), 'image' => Avatar::url($u)]),
                 Column::badge('role', __('codeart::users.col.role'), array_map(fn (string $l): array => [$l, 'primary'], $roles), $roleSql)
                     ->using(fn (Model $u): ?string => $this->topRole($u))->searchTranslated($roleLabels),
                 Column::status('status', __('codeart::users.col.status'), UserStatus::options(), UserStatus::sql($table))

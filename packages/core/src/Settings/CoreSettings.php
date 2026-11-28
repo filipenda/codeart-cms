@@ -12,7 +12,7 @@ final class CoreSettings
     /** @return list<SettingDefinition> */
     public static function definitions(): array
     {
-        return [...self::appearance(), ...self::locales(), ...self::security(), ...self::auth(), ...self::mail()];
+        return [...self::appearance(), ...self::locales(), ...self::security(), ...self::auth(), ...self::mail(), ...self::profile()];
     }
 
     /** @return list<SettingDefinition> */
@@ -79,6 +79,14 @@ final class CoreSettings
                     return null;
                 },
             ),
+        ];
+    }
+
+    /** @return list<SettingDefinition> */
+    private static function profile(): array
+    {
+        return [
+            new SettingDefinition('profile.avatar_max_kb', SettingType::Int, 5120, ['integer', 'min:100', 'max:20480'], label: 'Maximum avatar size (KB)', description: 'Largest profile picture people may upload (default 5 MB).'),
         ];
     }
 
