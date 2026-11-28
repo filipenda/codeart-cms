@@ -84,7 +84,7 @@ it('lists the current session first, then the others, without real ids and witho
     $me = staff('editor');
     $other = staff('editor');
     $current = sesLogin($this, $me);
-    sesRow($me->id, 'older-session-id-0001', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1', '203.0.113.9', time() - 7200);
+    sesRow($me->id, 'older-session-id-0001', 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1', '203.0.113.9', time() - 3600);
     sesRow($me->id, 'newer-session-id-0002', 'curl/8.0', '203.0.113.10', time() - 600);
     sesRow($other->id, 'foreign-session-id-0003', UA_CHROME_WIN, '192.0.2.77');
 
@@ -191,7 +191,7 @@ it('lists only live sessions, deletes the expired ones and puts the current one 
     config(['session.lifetime' => 60]);
     sesRow($user->id, 'live-old', UA_CHROME_WIN, '203.0.113.5', time() - 600);
     sesRow($user->id, 'live-new', UA_CHROME_WIN, '203.0.113.5', time() - 10);
-    sesRow($user->id, 'expired', UA_CHROME_WIN, '203.0.113.5', time() - 7200);
+    sesRow($user->id, 'expired', UA_CHROME_WIN, '203.0.113.5', time() - 7500);
     sesRow($user->id, 'current', UA_CHROME_WIN, '203.0.113.5', time() - 300);
 
     $ids = array_column(app(UserSessions::class)->list($user->id, 'current'), 'id');
