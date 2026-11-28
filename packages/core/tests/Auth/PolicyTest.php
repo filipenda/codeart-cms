@@ -12,18 +12,18 @@ use Spatie\Permission\Models\Role;
 it('grants the permissions to the roles it should', function () {
     $permissions = fn (string $role) => Role::findByName($role, 'admin')->permissions->pluck('name')->sort()->values()->all();
 
-    expect($permissions('admin'))->toBe(['admin.access', 'settings.appearance', 'system.status', 'users.approve', 'users.invite', 'users.manage', 'users.view'])
+    expect($permissions('admin'))->toBe(['admin.access', 'settings.appearance', 'system.status', 'users.approve', 'users.block', 'users.create', 'users.delete', 'users.reset-2fa', 'users.update', 'users.view'])
         ->and($permissions('editor'))->toBe(['admin.access'])
         ->and($permissions('member'))->toBe([])
         ->and($permissions('super-admin'))->toBe([]); // passes through the Gate instead
 });
 
 it('does not hand a revoked permission back when the roles command runs again', function () {
-    Role::findByName('admin', 'admin')->revokePermissionTo('users.manage');
+    Role::findByName('admin', 'admin')->revokePermissionTo('users.update');
 
     app(CreateDefaultRoles::class)();
 
-    expect(Role::findByName('admin', 'admin')->hasPermissionTo('users.manage'))->toBeFalse();
+    expect(Role::findByName('admin', 'admin')->hasPermissionTo('users.update'))->toBeFalse();
 });
 
 it('lets super-admin do everything and member nothing', function (string $ability) {
@@ -44,7 +44,7 @@ it('lets an admin manage users below them, but nobody above or the super-admin',
 })->with([
     'member' => ['member', true],
     'editor' => ['editor', true],
-    'admin' => ['admin', true],
+    'admin' => ['admin', false],
     'super-admin' => ['super-admin', false],
 ]);
 
@@ -76,14 +76,14 @@ it('never lets an admin hand out the super-admin role, to anyone', function () {
         ->and(AdminTestUser::query()->where('email', 'x@example.com')->exists())->toBeFalse();
 });
 
-it('lets an admin change roles up to their own rank', function () {
+it('lets an admin change roles only below their own rank', function () {
     $admin = staff('admin');
     $editor = staff('editor');
 
     app(SyncUserRoles::class)($editor, ['member'], $admin);
     expect($editor->fresh()->getRoleNames()->all())->toBe(['member']);
-    app(SyncUserRoles::class)($editor, ['admin'], $admin);
-    expect($editor->fresh()->hasRole('admin'))->toBeTrue();
+    expect(fn () => app(SyncUserRoles::class)($editor, ['admin'], $admin))->toThrow(AuthorizationException::class);
+    expect($editor->fresh()->hasRole('admin'))->toBeFalse();
 });
 
 it('lets only a super-admin hand out roles it does not know', function () {

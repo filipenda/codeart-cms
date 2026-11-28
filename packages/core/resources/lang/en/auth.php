@@ -23,6 +23,7 @@ return [
     'attributes' => [
         'name' => 'name',
         'email' => 'e-mail',
+        'phone' => 'phone',
         'password' => 'password',
         'current_password' => 'current password',
     ],

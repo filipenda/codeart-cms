@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 
 /**
  * The admin sidebar. Modules register items from their service provider (`NavItem`); only ENABLED modules boot, so a
@@ -27,7 +28,7 @@ class AdminMenu
         foreach ($items as $item) {
             $this->items[$item->key] = $item;
             foreach ($item->children as $child) {
-                $this->add(new NavItem($child->key, $child->label, $child->icon, $child->route, $child->permission, $child->order, $item->key, $child->children, $child->module ?? $item->module));
+                $this->add(new NavItem($child->key, $child->label, $child->icon, $child->route, $child->permission, $child->order, $item->key, $child->children, $child->module ?? $item->module, $child->activePatterns));
             }
         }
     }
@@ -89,7 +90,7 @@ class AdminMenu
                 $item,
                 (string) __($item->label),
                 $item->route !== null ? route($item->route) : null,
-                $item->route !== null && self::isActive($item->route, $currentRoute),
+                $item->route !== null && self::isActive($item->route, $currentRoute, $item->activePatterns),
                 $children,
             );
         }
@@ -106,17 +107,22 @@ class AdminMenu
         return $user !== null && $this->gate->forUser($user)->allows($item->permission);
     }
 
-    /** The item's own route, or any route of its section when it ends in `.index` (`pages.index` covers `pages.edit`). */
-    public static function isActive(string $route, ?string $current): bool
+    /**
+     * The item's own route, any route matching one of its `activePatterns`, or any route of its section when it ends
+     * in `.index` (`pages.index` covers `pages.edit`).
+     *
+     * @param  list<string>  $patterns
+     */
+    public static function isActive(string $route, ?string $current, array $patterns = []): bool
     {
         if ($current === null) {
             return false;
         }
-        if ($current === $route) {
+        if ($current === $route || ($patterns !== [] && Str::is($patterns, $current))) {
             return true;
         }
 
-        return str_ends_with($route, '.index') && str_starts_with($current, substr($route, 0, -5).'.');
+        return str_ends_with($route, '.index') && str_starts_with($current, substr($route, 0, -6).'.');
     }
 
     /** @return array<string, NavItem> */

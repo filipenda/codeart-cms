@@ -22,7 +22,7 @@ it('defines every semantic token for light and dark', function (string $token) {
     '--color-surface', '--color-surface-alt', '--color-text', '--color-text-muted', '--color-border', '--color-link',
     '--color-success', '--color-success-bg', '--color-success-text',
     '--color-warning', '--color-warning-bg', '--color-warning-text',
-    '--color-danger', '--color-danger-bg', '--color-danger-text',
+    '--color-danger', '--color-danger-bg', '--color-danger-text', '--color-on-danger', '--color-on-danger',
     '--color-info', '--color-info-bg', '--color-info-text',
     '--sidebar-bg', '--sidebar-text', '--sidebar-muted', '--sidebar-hover', '--sidebar-border', '--color-topbar', '--color-surface-sunken', '--color-neutral', '--color-neutral-bg', '--color-neutral-text', '--radius-md', '--space-md', '--font-sans',
 ]);

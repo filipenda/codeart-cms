@@ -4,7 +4,7 @@ namespace Codeart\Core\Auth;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 
-/** Who may hand out which role: nobody above their own rank; super-admin only by a super-admin. */
+/** Who may hand out which role: only roles strictly below their own rank; super-admin and admin only by a super-admin. */
 final class RoleRank
 {
     public const string SUPER_ADMIN = 'super-admin';
@@ -45,7 +45,17 @@ final class RoleRank
             return true;
         }
 
-        return $role !== self::SUPER_ADMIN && self::of($role) <= self::ofUser($actor);
+        return $role !== self::SUPER_ADMIN && self::of($role) < self::ofUser($actor);
+    }
+
+    /** May this actor manage this user (edit, block, delete ...)? Only strictly lower roles; a super-admin manages everybody. */
+    public static function canManage(?Authenticatable $actor, mixed $target): bool
+    {
+        if ($actor === null || self::isSuperAdmin($actor)) {
+            return true;
+        }
+
+        return ! self::isSuperAdmin($target) && self::ofUser($target) < self::ofUser($actor);
     }
 
     /** May this actor touch (change, deactivate, reset) this user at all? */

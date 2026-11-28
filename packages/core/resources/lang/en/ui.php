@@ -113,4 +113,22 @@ return [
         'password-updated' => 'Your password was changed.',
         'invitation-accepted' => 'Your account is active. You can sign in now.',
     ],
+
+    'c' => [
+        'required' => 'required',
+        'optional' => 'optional',
+        'characters' => ':count of :max characters',
+        'loading' => 'Loading',
+        'dismiss' => 'Dismiss',
+        'close' => 'Close',
+        'cancel' => 'Cancel',
+        'confirm' => 'Confirm',
+        'confirm_title' => 'Are you sure?',
+        'confirm_text' => 'This action cannot be undone.',
+        'notifications' => 'Notifications',
+        'select_placeholder' => 'Choose…',
+    ],
+    'copy' => 'Copy',
+    'copied' => 'Copied',
+    'copy_failed' => 'Copying failed. Select the text and copy it by hand.',
 ];

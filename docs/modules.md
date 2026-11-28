@@ -107,6 +107,10 @@ public function boot(): void
         ]),
     );
 
+    // Active state: an item is active on its own route, on any route of its section when the route ends in `.index`
+    // (`pages.index` covers `pages.edit`), and on every route matching `activePatterns` (route names, `*` wildcard):
+    //   new NavItem('profile', '...', 'circle-user', 'admin.profile', activePatterns: ['admin.profile', 'admin.profile.*'])
+
     // Dashboard widget: a Blade view plus a data class. size: sm (3/12), md (6/12), lg (12/12) on desktop.
     $this->app->make(WidgetRegistry::class)->add(
         new Widget('pages.drafts', 'pages::widgets.drafts', 'file-text', 'pages::widgets.drafts', DraftsWidget::class,
@@ -172,8 +176,17 @@ app(SettingsManager::class)->update($user, $key, $value);  // checks permission 
 
 **Who may change what:** a definition's `permission` (core: `settings.appearance` for `theme.*` and `locales.*`, granted to `admin`); `null` = `super-admin` only (security settings). `super-admin` can lock/unlock any key; a locked key is changeable by `super-admin` only. CLI: `settings:list|get|set|lock|unlock` (CLI = super-admin; secrets masked).
 
-**Appearance:** `theme.primary|secondary|mode|logo_light|logo_dark|favicon`. `theme.mode` is `light|dark|auto`; `<html @include('codeart::partials.theme-attributes')>` prints `data-theme="..."`, `auto` follows the visitor's system preference through a `prefers-color-scheme` block in tokens.css. Logos/favicon are uploaded with `BrandingImageUploader` (png, jpg, webp by real content; size and dimension limits in `codeart.branding`; SVG refused).
+**Appearance:** `theme.primary|secondary|mode|logo_light|logo_dark|favicon`. `theme.mode` is `light|dark|auto`; `<html @include('codeart::partials.theme-attributes')>` prints `data-theme="..."`, `auto` follows the visitor's system preference through a `prefers-color-scheme` block in tokens.css. Logos/favicon are uploaded with `BrandingImageUploader` (png, jpg, webp by real content, read by the `ImageProcessor`; transparent margins of PNG/WebP are trimmed and the original kept, see DECISIONS I1-I4; size and dimension limits in `codeart.branding`; SVG refused).
 
 **Locales:** `locales.default|enabled|fallbacks` (config values are only the defaults; `available` stays in config). The default must be enabled; a derived locale (`sr-Cyrl`) needs its source (`sr`) enabled.
 
 **Security settings** (`security.*`: 2FA mode and roles, password rules, session lifetime, login attempts, log retention) are defined and validated but not enforced until login exists.
+
+## Lists (data tables)
+A module's list page is a `TableDefinition` plus `<x-codeart::table>` (`docs/components.md`, rules in `docs/DECISIONS.md` TB). Register the definition in the provider so bulk actions and CSV export work (they exist only while the module is enabled):
+```php
+use Codeart\Core\Tables\TableRegistry;
+
+$this->callAfterResolving(TableRegistry::class, fn (TableRegistry $tables) => $tables->register('pages', PagesTable::class));
+```
+Declare permissions `pages.view|edit|delete|...` on the table and its actions, eager loads with `with()`, and never load all rows: a bulk action handler gets one row at a time.

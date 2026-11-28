@@ -11,14 +11,18 @@ use Codeart\Core\Auth\Http\Screens;
 use Codeart\Core\Auth\Listeners\AuthEventSubscriber;
 use Codeart\Core\Auth\Middleware\ConfigureAuthRequest;
 use Codeart\Core\Auth\Middleware\EnsureAdminAccess;
+use Codeart\Core\Auth\Middleware\RefuseTwoFactorDisable;
 use Codeart\Core\Auth\Middleware\SetAuthLocale;
 use Codeart\Core\Auth\Middleware\ValidInvitationLink;
+use Codeart\Core\Confirmation\RequireConfirmation;
 use Codeart\Core\Mail\MailConfig;
+use Codeart\Core\Privacy\PrivacyDatabaseSessionHandler;
 use Codeart\Core\Settings\Settings;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
+use Illuminate\Session\DatabaseSessionHandler;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -63,6 +67,7 @@ class AuthServiceProvider extends ServiceProvider
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware('admin.access', EnsureAdminAccess::class);
         $router->aliasMiddleware('admin.invitation', ValidInvitationLink::class);
+        $router->aliasMiddleware('codeart.confirmed', RequireConfirmation::class);
         $this->registerScreens();
         try {
             Gate::policy(Admin::userModel(), UserPolicy::class);
@@ -76,6 +81,7 @@ class AuthServiceProvider extends ServiceProvider
 
         $this->app->make(MailConfig::class)->apply();
         $this->applySessionLifetime();
+        $this->registerSessionHandler();
 
         $this->registerRoutes();
     }
@@ -111,8 +117,12 @@ class AuthServiceProvider extends ServiceProvider
 
         $fortify = dirname((string) (new \ReflectionClass(Fortify::class))->getFileName(), 2).'/routes/routes.php';
         Route::group(['namespace' => 'Laravel\\Fortify\\Http\\Controllers', 'prefix' => $path], fn () => require $fortify);
+        // Whoever the settings force to use 2FA cannot switch it off through Fortify's own route either.
+        Route::getRoutes()->refreshNameLookups();
+        Route::getRoutes()->getByName('two-factor.disable')?->middleware(RefuseTwoFactorDisable::class);
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/auth.php');
         Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/admin.php');
+        Route::middleware(['web', SetAuthLocale::class])->prefix($path)->group(__DIR__.'/../../routes/users.php');
     }
 
     /** Guard, Fortify config and the settings-driven parts. Values come from settings with config fallbacks. */
@@ -150,6 +160,17 @@ class AuthServiceProvider extends ServiceProvider
             Features::updatePasswords(),
             Features::twoFactorAuthentication(['confirm' => true, 'confirmPassword' => true]),
         ]);
+    }
+
+    /** The database session handler stores the IP the way `security.ip_storage` says. */
+    private function registerSessionHandler(): void
+    {
+        $this->app->make('session')->extend('database', fn ($app): DatabaseSessionHandler => new PrivacyDatabaseSessionHandler(
+            $app['db']->connection($app['config']->get('session.connection')),
+            $app['config']->get('session.table', 'sessions'),
+            $app['config']->get('session.lifetime'),
+            $app,
+        ));
     }
 
     private function applySessionLifetime(): void

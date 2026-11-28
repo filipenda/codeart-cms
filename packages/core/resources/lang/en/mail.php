@@ -7,6 +7,7 @@ return [
         'subject' => 'You are invited to :app',
         'heading' => 'Welcome to :app',
         'intro' => 'Hello :name, you have been invited to join :app. Set your password to activate your account.',
+        'note' => 'Message: :message',
         'expires' => 'This invitation can be used once and expires in :days days.',
         'action' => 'Accept the invitation',
     ],
@@ -36,6 +37,12 @@ return [
         'heading' => 'Your account is approved',
         'intro' => 'Hello :name, your account for :app has been approved. You can sign in now.',
         'action' => 'Sign in',
+    ],
+    'registration_rejected' => [
+        'subject' => 'Your registration was not approved',
+        'heading' => 'Registration not approved',
+        'intro' => 'Hello :name, unfortunately your registration for :app was not approved.',
+        'reason' => 'Reason: :reason',
     ],
     'registration_pending' => [
         'subject' => 'New registration waiting for approval',

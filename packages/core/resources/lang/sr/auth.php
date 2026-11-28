@@ -23,6 +23,7 @@ return [
     'attributes' => [
         'name' => 'ime',
         'email' => 'e-pošta',
+        'phone' => 'telefon',
         'password' => 'lozinka',
         'current_password' => 'trenutna lozinka',
     ],

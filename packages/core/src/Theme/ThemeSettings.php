@@ -2,7 +2,9 @@
 
 namespace Codeart\Core\Theme;
 
+use Codeart\Core\Auth\Admin;
 use Codeart\Core\Settings\Settings;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -32,10 +34,25 @@ class ThemeSettings
         return in_array($mode, ['light', 'dark', 'auto'], true) ? $mode : 'light';
     }
 
+    /** The signed-in user's saved choice (profile), or null: then the browser's choice or the site default applies. */
+    public function userMode(): ?string
+    {
+        $user = request()->user(Admin::guardName());
+        $mode = $user instanceof Model ? $user->getAttribute('theme_preference') : null;
+
+        return in_array($mode, ['light', 'dark', 'auto'], true) ? $mode : null;
+    }
+
+    /** What the page starts with: the user's saved choice, else the site default. */
+    public function effectiveMode(): string
+    {
+        return $this->userMode() ?? $this->mode();
+    }
+
     /** Value for the <html> tag; see partials/theme-attributes. */
     public function htmlAttributes(): string
     {
-        return 'data-theme="'.$this->mode().'"';
+        return 'data-theme="'.$this->effectiveMode().'"';
     }
 
     public function logoLight(): ?string

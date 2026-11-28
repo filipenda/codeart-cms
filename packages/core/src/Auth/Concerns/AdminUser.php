@@ -9,6 +9,7 @@ use Codeart\Core\Auth\Mail\VerifyEmailMail;
 use Codeart\Core\Auth\RoleRank;
 use Codeart\Core\Auth\TwoFactorPolicy;
 use Codeart\Core\Mail\AuthMailer;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
@@ -26,7 +27,7 @@ use Spatie\Permission\Traits\HasRoles;
  */
 trait AdminUser
 {
-    use HasRoles, Notifiable, TwoFactorAuthenticatable;
+    use HasRoles, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     public function initializeAdminUser(): void
     {
@@ -35,6 +36,7 @@ trait AdminUser
             'approved_at' => 'datetime',
             'last_login_at' => 'datetime',
             'invited_at' => 'datetime',
+            'deleted_at' => 'datetime',
             'email_verified_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
         ]);

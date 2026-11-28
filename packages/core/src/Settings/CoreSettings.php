@@ -12,7 +12,7 @@ final class CoreSettings
     /** @return list<SettingDefinition> */
     public static function definitions(): array
     {
-        return [...self::appearance(), ...self::locales(), ...self::security(), ...self::auth(), ...self::mail()];
+        return [...self::appearance(), ...self::locales(), ...self::security(), ...self::auth(), ...self::mail(), ...self::profile()];
     }
 
     /** @return list<SettingDefinition> */
@@ -25,9 +25,9 @@ final class CoreSettings
             new SettingDefinition('theme.primary', SettingType::Color, $cfg('primary'), permission: $perm, label: 'Primary color', description: 'Main brand color; hover, link and text colors are derived from it.'),
             new SettingDefinition('theme.secondary', SettingType::Color, $cfg('secondary'), permission: $perm, label: 'Secondary color', description: 'Accent color.'),
             new SettingDefinition('theme.mode', SettingType::Enum, $cfg('mode'), permission: $perm, options: ['light', 'dark', 'auto'], label: 'Color mode', description: 'Light, dark, or follow the visitor\'s system preference.'),
-            new SettingDefinition('theme.logo_light', SettingType::Image, $cfg('logo_light'), permission: $perm, label: 'Logo (light background)', description: 'PNG, JPG or WebP.'),
-            new SettingDefinition('theme.logo_dark', SettingType::Image, $cfg('logo_dark'), permission: $perm, label: 'Logo (dark background)', description: 'PNG, JPG or WebP.'),
-            new SettingDefinition('theme.favicon', SettingType::Image, $cfg('favicon'), permission: $perm, label: 'Favicon', description: 'PNG, JPG or WebP.'),
+            new SettingDefinition('theme.logo_light', SettingType::Image, $cfg('logo_light'), permission: $perm, label: 'Logo (light background)', description: 'Best: PNG or WebP with a transparent background (empty margins are trimmed automatically; the original is kept). JPG also works.'),
+            new SettingDefinition('theme.logo_dark', SettingType::Image, $cfg('logo_dark'), permission: $perm, label: 'Logo (dark background)', description: 'Best: PNG or WebP with a transparent background (empty margins are trimmed automatically; the original is kept). JPG also works.'),
+            new SettingDefinition('theme.favicon', SettingType::Image, $cfg('favicon'), permission: $perm, label: 'Favicon', description: 'Best: PNG or WebP with a transparent background. JPG also works.'),
         ];
     }
 
@@ -83,6 +83,19 @@ final class CoreSettings
     }
 
     /** @return list<SettingDefinition> */
+    private static function profile(): array
+    {
+        return [
+            new SettingDefinition(
+                'site.timezone', SettingType::String, 'Europe/Belgrade', ['required', 'string'],
+                label: 'Site time zone', description: 'Time zone dates are shown in unless a user chose their own. The database always keeps UTC.',
+                check: fn (mixed $value): ?string => is_string($value) && in_array($value, \DateTimeZone::listIdentifiers(), true) ? null : 'must be a valid time zone identifier, e.g. Europe/Belgrade',
+            ),
+            new SettingDefinition('profile.avatar_max_kb', SettingType::Int, 5120, ['integer', 'min:100', 'max:20480'], label: 'Maximum avatar size (KB)', description: 'Largest profile picture people may upload (default 5 MB).'),
+        ];
+    }
+
+    /** @return list<SettingDefinition> */
     private static function security(): array
     {
         $int = fn (string $key, int $default, int $min, int $max, string $label, string $description): SettingDefinition => new SettingDefinition(
@@ -102,6 +115,7 @@ final class CoreSettings
             $int('security.login.max_attempts', 5, 1, 100, 'Maximum login attempts', 'Failed attempts before a temporary lockout.'),
             $int('security.login.decay_minutes', 15, 1, 1440, 'Login lockout (minutes)', 'How long a lockout lasts.'),
             $int('security.login.remember_days', 30, 1, 365, 'Remember me (days)', 'How long a "remember me" login lasts.'),
+            new SettingDefinition('security.ip_storage', SettingType::Enum, 'full', options: ['full', 'anonymized', 'off'], label: 'IP address storage', description: 'full keeps IPs, anonymized zeroes the last part (IPv4 last octet, IPv6 last 80 bits), off stores and shows none. Applies to the activity log, sessions and the profile.'),
             $int('security.activity_log.retention_days', 90, 7, 3650, 'Activity log retention (days)', 'Older entries are removed.'),
         ];
     }

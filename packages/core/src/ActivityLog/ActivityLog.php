@@ -3,6 +3,7 @@
 namespace Codeart\Core\ActivityLog;
 
 use Codeart\Core\Auth\Admin;
+use Codeart\Core\Privacy\IpPrivacy;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Activitylog\Models\Activity;
 use Throwable;
@@ -28,7 +29,7 @@ class ActivityLog
             $http = $request->route() !== null; // a real, routed request (not a console command)
 
             $logger = activity($log)->event($event)->withProperties($this->clean($properties))->tap(function (Activity $activity) use ($request, $http): void {
-                $activity->ip_address = $http ? $request->ip() : null;
+                $activity->ip_address = $http ? app(IpPrivacy::class)->store($request->ip()) : null;
                 $activity->user_agent = $http ? mb_substr((string) $request->userAgent(), 0, 255) : null;
             });
             if ($subject !== null) {

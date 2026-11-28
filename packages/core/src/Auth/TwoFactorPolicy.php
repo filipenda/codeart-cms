@@ -20,6 +20,17 @@ class TwoFactorPolicy
         return $this->mode() !== 'off';
     }
 
+    /** Is two-factor mandatory for this user's roles (so they may not switch it off)? */
+    public function requiredFor(mixed $user): bool
+    {
+        if ($this->mode() !== 'required' || ! is_object($user) || ! method_exists($user, 'hasAnyRole')) {
+            return false;
+        }
+        $roles = array_values(array_filter((array) $this->settings->get('security.2fa.required_roles'), 'is_string'));
+
+        return $roles !== [] && $user->hasAnyRole($roles);
+    }
+
     /** Required for this user's roles, and not set up yet? */
     public function mustSetUp(mixed $user): bool
     {

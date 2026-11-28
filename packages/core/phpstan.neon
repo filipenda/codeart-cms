@@ -34,3 +34,7 @@ parameters:
             paths:
                 - src/Auth
                 - src/Admin
+                - src/Tables
+                - src/Confirmation
+                - src/Users
+                - src/Profile

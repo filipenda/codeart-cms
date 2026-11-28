@@ -83,6 +83,88 @@ Alpine.data('codeartOtp', (length = 6) => ({
     },
 }));
 
+/** Copy text to the clipboard; falls back to a hidden textarea + execCommand where the Clipboard API is missing. Resolves true on success. */
+async function copyText(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch {
+        const area = Object.assign(document.createElement('textarea'), { value: text });
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        let ok = false;
+        try {
+            ok = document.execCommand('copy');
+        } catch {
+            ok = false;
+        }
+        area.remove();
+        return ok;
+    }
+}
+
+Alpine.data('codeartCopy', (value = '') => ({
+    copied: false,
+    failed: false,
+
+    async copy() {
+        this.failed = !(await copyText(value));
+        this.copied = !this.failed;
+        setTimeout(() => ((this.copied = false), (this.failed = false)), 2500);
+    },
+}));
+
+/*
+ * Password strength: the server passes the configured rules ([{key, value}]); the score is simple on purpose
+ * (rules met + length headroom). The server stays the only judge; this is feedback while typing.
+ */
+Alpine.data('codeartPasswordStrength', (rules = [], inputId = '') => ({
+    rules,
+    value: '',
+    met: {},
+    score: 0,
+
+    init() {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        this.value = input.value;
+        input.addEventListener('input', () => ((this.value = input.value), this.evaluate()));
+        this.evaluate();
+    },
+
+    check(rule, v) {
+        switch (rule.key) {
+            case 'min_length': return [...v].length >= Number(rule.value);
+            case 'mixed_case': return /\p{Ll}/u.test(v) && /\p{Lu}/u.test(v);
+            case 'number': return /\p{N}/u.test(v);
+            case 'symbol': return /[^\p{L}\p{N}\s]/u.test(v);
+            default: return true;
+        }
+    },
+
+    evaluate() {
+        const v = this.value;
+        this.met = Object.fromEntries(this.rules.map((r) => [r.key, v !== '' && this.check(r, v)]));
+        const all = v !== '' && this.rules.every((r) => this.met[r.key]);
+        const min = Number((this.rules.find((r) => r.key === 'min_length') || { value: 8 }).value);
+        const len = [...v].length;
+        const kinds = [/\p{Ll}/u, /\p{Lu}/u, /\p{N}/u, /[^\p{L}\p{N}\s]/u].filter((re) => re.test(v)).length;
+        let score = v === '' ? 0 : 1;
+        if (all) score = 3;
+        else if (v !== '' && this.rules.some((r) => this.met[r.key])) score = 2;
+        if (all && len >= min + 4) score += 1;
+        if (all && len >= min + 8 && kinds >= 3) score += 1;
+        this.score = Math.min(score, 5);
+    },
+
+    level() {
+        return this.score <= 2 ? 'weak' : this.score === 3 ? 'medium' : 'strong';
+    },
+}));
+
 Alpine.data('codeartRecoveryCodes', (filename = 'recovery-codes.txt') => ({
     copied: false,
 
@@ -91,16 +173,7 @@ Alpine.data('codeartRecoveryCodes', (filename = 'recovery-codes.txt') => ({
     },
 
     async copy() {
-        try {
-            await navigator.clipboard.writeText(this.text());
-        } catch {
-            const area = document.createElement('textarea');
-            area.value = this.text();
-            document.body.appendChild(area);
-            area.select();
-            document.execCommand('copy');
-            area.remove();
-        }
+        if (!(await copyText(this.text()))) return;
         this.copied = true;
         setTimeout(() => (this.copied = false), 2500);
     },
@@ -175,7 +248,8 @@ Alpine.data('codeartShell', () => ({
         });
         this.collapsed = document.documentElement.dataset.sidebar === 'collapsed';
         const saved = store.get('codeart.theme');
-        this.theme = ['light', 'dark', 'auto'].includes(saved) ? saved : this.$root.dataset.themeDefault || 'light';
+        const chosen = this.$root.dataset.themeUser || saved; // the saved profile choice wins over this browser's memory
+        this.theme = ['light', 'dark', 'auto'].includes(chosen) ? chosen : this.$root.dataset.themeDefault || 'light';
     },
 
     get collapsedDesktop() {
@@ -217,6 +291,16 @@ Alpine.data('codeartShell', () => ({
         this.theme = mode;
         document.documentElement.setAttribute('data-theme', mode);
         store.set('codeart.theme', mode);
+        // Signed-in staff: remember the choice on the account too (best effort; the browser keeps working without it).
+        const url = this.$root.dataset.themeUrl;
+        if (url) {
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
+                body: JSON.stringify({ theme: mode }),
+                credentials: 'same-origin',
+            }).catch(() => {});
+        }
     },
 
     openPalette() {
@@ -246,8 +330,8 @@ Alpine.data('codeartShell', () => ({
     },
 }));
 
-/** User dropdown: aria-expanded button, arrows/Home/End move between items, Esc closes and refocuses, tabbing out closes. */
-Alpine.data('codeartUserMenu', () => ({
+/** Dropdown (<x-codeart::dropdown>, also the user menu): aria-expanded button, arrows/Home/End move between items, Esc closes and refocuses, tabbing out closes. */
+Alpine.data('codeartDropdown', () => ({
     open: false,
 
     items() {
@@ -359,6 +443,197 @@ Alpine.data('codeartPalette', () => ({
 
     scrollToActive() {
         this.$nextTick(() => document.getElementById('palette-option-' + this.index)?.scrollIntoView({ block: 'nearest' }));
+    },
+}));
+
+/**
+ * Modals are native <dialog> elements: showModal() gives the focus trap, Esc, inert page and focus restore.
+ * Triggers: [data-modal-open="id"], closers: [data-modal-close]; a click on the backdrop closes too.
+ * Confirm forms: the submit button marked [data-confirm-trigger] opens the dialog inside its form instead of submitting.
+ */
+document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+    const opener = target.closest('[data-modal-open]');
+    if (opener) {
+        event.preventDefault();
+        document.getElementById(opener.getAttribute('data-modal-open'))?.showModal();
+        return;
+    }
+    const confirmer = target.closest('[data-confirm-trigger]');
+    if (confirmer) {
+        // The server confirms: ask the confirmation step for a token (JSON), put it in the dialog's form and open the dialog.
+        // Without JS this click is a plain submit of the step form, which answers with a confirmation page.
+        event.preventDefault();
+        openConfirm(confirmer);
+        return;
+    }
+    const closer = target.closest('[data-modal-close]');
+    if (closer) {
+        closer.closest('dialog')?.close();
+        return;
+    }
+    if (target instanceof HTMLDialogElement && target.hasAttribute('data-modal')) target.close(); // backdrop
+});
+
+async function openConfirm(trigger) {
+    const step = trigger.closest('[data-confirm-step]');
+    const form = trigger.closest('[data-confirm-step]')?.parentElement?.querySelector('[data-confirm-form]');
+    if (!step || !form) return;
+    trigger.disabled = true;
+    try {
+        const response = await fetch(step.action, {
+            method: 'POST',
+            body: new FormData(step),
+            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        form.querySelector('[data-confirm-token]').value = (await response.json()).token;
+        form.querySelector('dialog')?.showModal();
+    } catch {
+        step.submit(); // fall back to the confirmation page
+    } finally {
+        trigger.disabled = false;
+    }
+}
+
+/** Toasts: items come from the server flash (JSON) and from the window event `codeart:toast` ({message, type, timeout}). */
+Alpine.data('codeartToasts', (initial = []) => ({
+    items: [],
+    seq: 0,
+
+    init() {
+        initial.forEach((toast) => this.add(toast));
+    },
+
+    add({ message, type = 'info', timeout }) {
+        if (!message) return;
+        const id = ++this.seq;
+        this.items.push({ id, message, type });
+        const ms = timeout ?? (type === 'danger' ? 8000 : 5000);
+        if (ms > 0) setTimeout(() => this.remove(id), ms);
+    },
+
+    remove(id) {
+        this.items = this.items.filter((item) => item.id !== id);
+    },
+}));
+
+/**
+ * Data table enhancements (the table works without them): debounced search and auto-submit of the toolbar form,
+ * the selection counter, select-all for the page, "all results" (sends the filter, never ids) and the confirm dialog before a bulk run.
+ */
+Alpine.data('codeartTable', ({ total = 0, rows = 0 } = {}) => ({
+    total,
+    rows,
+    count: 0,
+    pageAll: false,
+    allMatching: false,
+    timer: null,
+
+    init() {
+        const form = this.$refs.form;
+        if (form) {
+            form.querySelectorAll('[data-filter-auto]').forEach((el) => el.addEventListener('change', () => this.submit()));
+            form.querySelectorAll('[data-filter-search]').forEach((el) => el.addEventListener('input', () => this.later()));
+        }
+        this.sync();
+        window.addEventListener('pageshow', () => this.sync());
+    },
+
+    boxes() {
+        return Array.from(this.$root.querySelectorAll('[data-row-select]'));
+    },
+
+    sync() {
+        const boxes = this.boxes();
+        const checked = boxes.filter((box) => box.checked).length;
+        this.pageAll = boxes.length > 0 && checked === boxes.length;
+        const all = this.$root.querySelector('[data-select-all]');
+        if (all) {
+            all.checked = this.pageAll;
+            all.indeterminate = checked > 0 && !this.pageAll;
+        }
+        if (!this.pageAll) this.allMatching = false;
+        this.count = this.allMatching ? this.total : checked;
+    },
+
+    toggleAll(event) {
+        this.boxes().forEach((box) => (box.checked = event.target.checked));
+        this.sync();
+    },
+
+    selectedLabel() {
+        const template = this.$root.querySelector('[data-selected-label]')?.dataset.selectedLabel ?? ':count';
+        return template.replace(':count', new Intl.NumberFormat(document.documentElement.lang || undefined).format(this.allMatching ? this.total : this.count));
+    },
+
+    /**
+     * Before a bulk run: a destructive action asks the server for a token (JSON answer with the texts and the row count) and
+     * the dialog shows them; any other action with a confirm text only opens the dialog. The dialog's Confirm button submits
+     * the form again with the token. Nothing here replaces the server: a destructive request without a valid token does nothing.
+     */
+    async confirmBulk(event) {
+        const form = event.target;
+        if (form.dataset.confirmed === '1') {
+            delete form.dataset.confirmed;
+            return;
+        }
+        const option = form.querySelector('select[name="action"]')?.selectedOptions[0];
+        const destructive = option?.dataset.destructive === '1';
+        const text = option?.dataset.confirm;
+        if (!destructive && !text) return;
+
+        event.preventDefault();
+        const dialog = document.getElementById(form.id.replace(/-bulk$/, '-confirm'));
+        const set = (selector, value) => {
+            const node = dialog.querySelector(selector);
+            node.textContent = value ?? '';
+            node.closest('p').hidden = value == null;
+        };
+        const token = form.querySelector('[data-bulk-token]');
+        token.disabled = true;
+        token.value = '';
+        let info = { text, count: null, filter: null };
+
+        if (destructive) {
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+                if (!response.ok) throw new Error(String(response.status));
+                info = await response.json();
+                token.value = info.token;
+                token.disabled = false;
+            } catch {
+                form.submit(); // the server answers with the confirmation page
+                return;
+            }
+        }
+
+        dialog.querySelector('[data-bulk-text]').textContent = info.text ?? text;
+        set('[data-bulk-count]', info.count != null ? new Intl.NumberFormat(document.documentElement.lang || undefined).format(info.count) : null);
+        set('[data-bulk-filter]', info.filter ?? null);
+        dialog.querySelector('[data-bulk-confirm]').onclick = () => {
+            dialog.close();
+            form.dataset.confirmed = '1';
+            form.requestSubmit();
+        };
+        dialog.showModal();
+    },
+
+    later() {
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => this.submit(), 400);
+    },
+
+    submit() {
+        clearTimeout(this.timer);
+        this.$refs.form?.requestSubmit();
     },
 }));
 

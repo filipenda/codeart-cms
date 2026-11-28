@@ -32,6 +32,10 @@ abstract class TestCase extends Orchestra
         // Fixture modules instead of Composer metadata (core's own tests have no module packages).
         $app->singleton(ModuleDiscovery::class, fn () => new FakeDiscovery);
         $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('k', 32)));
+        // One fixed address for every test: without it the root URL depends on APP_URL of the shell and on whether an earlier
+        // test in the same worker already made an HTTP request, so a test that runs first in a worker saw http://localhost:8000.
+        $app['config']->set('app.url', 'http://localhost');
+        $app->booted(fn () => $app['url']->forceRootUrl('http://localhost'));
         $app['config']->set('cache.default', 'array'); // never share the enabled-modules cache between tests
         $app['config']->set('auth.providers.users.model', StubUser::class);
         TestDatabase::ensureExists();

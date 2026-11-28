@@ -35,14 +35,14 @@ All under guard name `admin`. `CreateDefaultRoles` grants a permission to roles 
 | Permission | admin | editor | member | super-admin |
 |---|---|---|---|---|
 | `admin.access` | yes | yes | no | Gate bypass |
-| `users.view`, `users.invite`, `users.manage`, `users.approve` | yes | no | no | Gate bypass |
+| `users.view`, `users.create`, `users.update`, `users.approve` | yes | no | no | Gate bypass |
 | `settings.appearance` | yes | no | no | Gate bypass |
 
 `member` is the role of registered visitors: it has no permission, so it never reaches the admin (403).
 
 Rank (`config('codeart.auth.role_rank')`): super-admin 100, admin 50, editor 10, member 0, unknown roles 98. Nobody may assign, remove or touch a role above their own; **only a super-admin touches a super-admin** (`RoleRank`, enforced in every action and in `UserPolicy`). A null actor (command line) counts as super-admin.
 
-`UserPolicy` abilities (registered for the app's User model): `viewAny`, `view` (`users.view`), `invite` (`users.invite`), `create`, `update`, `deactivate`, `delete` (`users.manage` + rank; never yourself for deactivate/delete), `approve` (`users.approve` + rank).
+`UserPolicy` abilities (registered for the app's User model): `viewAny`, `view` (`users.view`), `invite` (`users.create`), `create`, `update`, `deactivate`, `delete` (`users.update` + rank; never yourself for deactivate/delete), `approve` (`users.approve` + rank).
 
 ## Middleware
 
@@ -97,7 +97,9 @@ Throttling: login by e-mail + IP from the settings (lockout answers 429 and fire
 | `security.password.check_breached` | on (fails open when the service is unreachable) | super-admin |
 | `security.login.max_attempts` / `decay_minutes` / `remember_days` | 5 / 15 / 30 | super-admin |
 | `security.session.lifetime_minutes` | 120 (applied at runtime) | super-admin |
+| `site.timezone` | `Europe/Belgrade` (display zone when a user chose none) | super-admin |
 | `security.activity_log.retention_days` | 90 | super-admin |
+| `security.ip_storage` | **full** (`full`, `anonymized`, `off`) | super-admin |
 | `mail.from_name`, `from_address`, `driver` (`smtp`/`log`), `host`, `port`, `username`, `password` (secret), `encryption` (`tls`/`ssl`/`none`) | from `.env` | super-admin |
 
 Mail settings override `.env` only for values that were saved. 2FA mode: `off` hides/blocks setup (users who already have 2FA are still challenged); `optional` allows it; `required` forces it for `required_roles`.
@@ -110,7 +112,7 @@ Mail settings override `.env` only for values that were saved. 2FA mode: `off` h
 
 **E-mail verification.** The mail links to the signed `verification.verify` route; the user must be signed in. Required only while `auth.registration.require_email_verification` is on.
 
-**Invitations (the main way to add staff).** `InviteUser` (action) or `php artisan user:invite name email role`. Needs `users.invite`, and the role must not be above the inviter's (admin: up to admin, never super-admin). One open invitation per address; the token is random, stored only as a SHA-256 hash, valid `auth.invitation.expiry_days`, single use. The mail contains a signed URL to `admin.invitation.show`. The invitation screen renders the "set your password" form at that URL and POSTs the same URL with `password`, `password_confirmation` and optional `locale` (`admin.invitation.accept`): accepting creates the user (verified, active, approved, roles from the invitation, `invited_at`). Unknown, used, expired or no-longer-allowed invitations all answer 410; a tampered link 403.
+**Invitations (the main way to add staff).** `InviteUser` (action) or `php artisan user:invite name email role`. Needs `users.create`, and the role must not be above the inviter's (admin: up to admin, never super-admin). One open invitation per address; the token is random, stored only as a SHA-256 hash, valid `auth.invitation.expiry_days`, single use. The mail contains a signed URL to `admin.invitation.show`. The invitation screen renders the "set your password" form at that URL and POSTs the same URL with `password`, `password_confirmation` and optional `locale` (`admin.invitation.accept`): accepting creates the user (verified, active, approved, roles from the invitation, `invited_at`). Unknown, used, expired or no-longer-allowed invitations all answer 410; a tampered link 403.
 
 **Registration** (off by default). When enabled, `register.store` creates a user with the default role. With approval required the user is `is_active=false`, `approved_at=null` and cannot sign in until approved; they are signed in right after registering, so they can verify the e-mail in that session. Mails: verification, "registration received", and a "new registration pending" to every active user with `users.approve` plus super-admins. Approve with `ApproveUser` (needs `users.approve`) or `php artisan user:approve email`; the user gets "registration approved". Known trade-off: the e-mail uniqueness check reveals that an address is registered (login and reset do not).
 
@@ -151,7 +153,15 @@ Sent in the user's `locale` (`sr`, `sr-Cyrl`, `en`; falls back to the app locale
 
 ## Activity log
 
-`ActivityLog::record($event, $description, $subject, $causer, $properties, $log)` writes to `activity_log` (spatie/laravel-activitylog; adds `ip_address` and `user_agent`). Property keys that look like secrets (`pass`, `token`, `secret`, `recovery`, `code`, `key`, `hash`, ...) are dropped automatically. Events: `auth.login`, `auth.login_failed`, `auth.logout`, `auth.lockout`, `password.reset_requested`, `password.reset_completed`, `password.changed`, `two_factor.setup_started|enabled|disabled|failed|recovery_code_used|recovery_codes_regenerated|reset`, `email.verified`, `registration.created`, `invitation.sent|accepted`, `user.created|approved|deactivated`, `role.attached|detached`, `permission.attached|detached`, `session.others_revoked`. `activity-log:prune` deletes entries older than `security.activity_log.retention_days`; core schedules it daily (the client's cron runs `schedule:run`).
+`ActivityLog::record($event, $description, $subject, $causer, $properties, $log)` writes to `activity_log` (spatie/laravel-activitylog; adds `ip_address` and `user_agent`). Property keys that look like secrets (`pass`, `token`, `secret`, `recovery`, `code`, `key`, `hash`, ...) are dropped automatically. Events: `auth.login`, `auth.login_failed`, `auth.logout`, `auth.lockout`, `password.reset_requested`, `password.reset_completed`, `password.changed`, `two_factor.setup_started|enabled|disabled|failed|recovery_code_used|recovery_codes_regenerated|reset`, `profile.updated|avatar_changed|avatar_removed`, `session.revoked`, `email.verified`, `registration.created`, `invitation.sent|accepted`, `user.created|approved|deactivated`, `role.attached|detached`, `permission.attached|detached`, `session.others_revoked`. `activity-log:prune` deletes entries older than `security.activity_log.retention_days`; core schedules it daily (the client's cron runs `schedule:run`).
+
+## IP storage (privacy)
+
+Setting `security.ip_storage` (`php artisan settings:set security.ip_storage anonymized`), applied by `Codeart\Core\Privacy\IpPrivacy`:
+`full` keeps the address, `anonymized` zeroes the IPv4 last octet / the IPv6 last 80 bits, `off` stores nothing and hides the "IP adresa" rows.
+It covers everywhere an IP is stored or shown: `activity_log.ip_address`, `sessions.ip_address` (core wraps Laravel's database session handler), `users.last_login_ip`, the profile card and the sessions list (rows stored earlier are displayed according to the CURRENT mode).
+`activity-log:prune` (daily) also deletes old entries and then removes or anonymizes the IPs still stored in the other rows, so changing the mode takes effect for old data within a day.
+Login throttling keeps working: the rate limiter uses the raw IP, which lives only in the cache for the lockout window (`security.login.decay_minutes`) and is never written to the database.
 
 ## Language files
 
@@ -160,3 +170,32 @@ Sent in the user's `locale` (`sr`, `sr-Cyrl`, `en`; falls back to the app locale
 ## Commands
 
 `codeart:brand:load {path?}`, `user:create {name} {email} {role}`, `user:invite`, `user:approve`, `user:deactivate`, `user:reset-2fa`, `activity-log:prune`, `mail:test {address}`, `lang:transliterate`, `codeart:roles`.
+
+## Users management (core, always on)
+
+Screens under the admin path: `admin.users.index` (list, menu "Korisnici"), `admin.users.edit` / `update` / `role`, row and bulk actions (`block`, `unblock`, `destroy` = soft delete, `restore`, `force-destroy`, `reset-2fa`, `approve`, `reject`). Dashboard widget "Čeka odobrenje" (only with `users.approve`) and quick action "Pozovi korisnika".
+
+- **Permissions:** `users.view`, `users.create` (invite), `users.update`, `users.block`, `users.approve`, `users.delete`, `users.force-delete`, `users.reset-2fa` (the old `users.invite` / `users.manage` became `users.create` / `users.update`). `admin` gets all but `users.force-delete`; `editor` and `member` none; super-admin passes the Gate, except the self / last-super-admin rules.
+- **Policy rules** (`UserPolicy`, tested): an admin manages only users STRICTLY below their rank (editor, member); admins and super-admins only by a super-admin. Roles can be assigned only strictly below the actor's own (`RoleRank::canAssign`); nobody changes their own role, blocks or deletes themselves; the last active super-admin cannot be blocked, deleted or demoted. Super-admin abilities `changeRole`, `block`, `delete`, `restore`, `forceDelete`, `resetTwoFactor` still go through the policy (`UserPolicy::GUARDED`, Gate::before skips them).
+- **Status** (`UserStatus`): deleted > pending (no `approved_at`) > blocked (`is_active` = 0) > unverified (e-mail) > active. Blocked reuses `is_active`.
+- **Soft delete:** `users.deleted_at` (the app's User uses `AdminUser`, which brings `SoftDeletes`). Deleted users vanish from the list (filter "Obrisani" shows them), cannot sign in, can be restored; permanent delete is super-admin only. Log entries keep `name` and `email` in their properties.
+- **Dangerous actions** (role change, block, delete, force delete, reset 2FA) carry middleware `password.confirm` then `codeart.confirmed`: a fresh password confirmation AND the server-issued confirmation token.
+- **Edit:** only `name` and `email` (generic update) and `role` (own route) are read from the request. A new e-mail clears `email_verified_at` and sends the verification mail when verification is required. New people are added only through invitations.
+- **Registrations:** `approve` / `reject` (reason optional, max 500) both mail the person; reject soft-deletes the pending account.
+- **Bulk:** approve, block, unblock, delete; each row passes the policy, forbidden rows are skipped and counted ("preskočeno"). Block and delete need the confirmation.
+- **Log events** (`users` log): `user.updated`, `user.email_changed`, `user.role_changed`, `user.deactivated`, `user.unblocked`, `user.deleted`, `user.restored`, `user.force_deleted`, `user.approved`, `user.rejected`, `two_factor.reset`.
+
+
+### Invitations screen
+`admin.users.invite` (form: name, e-mail, role from the assignable roles, optional message up to 500 characters; `users.create`) posts to `admin.users.invite.store` (throttle 10/min) and uses the existing `InviteUser` flow (hashed token, signed URL, expiry; the token appears only in the mail). `admin.users.invitations` lists open invitations (DataTable `user-invitations`, translated state/role search): `resend` (new token, the old link stops) and `revoke` (confirmation + password). A role above the actor's rank can neither be invited nor resent nor revoked. Events: `invitation.sent`, `invitation.revoked`.
+
+## "Moj profil" (`admin.profile`)
+Every user who may enter the admin (menu entry and a link in the user menu). Always the signed-in user's own row, no id in any URL. Layout and tabs: `docs/admin-ui.md`.
+- **Details:** `PUT admin.profile.update` reads only `first_name`, `last_name` (`name` is composed from them), `phone`, `timezone` (an IANA identifier or empty = site zone), `locale`, `theme_preference`; anything else (e-mail, role, status) is ignored. E-mail changes only by an admin. Logged as `profile.updated`.
+- **Password:** `PUT admin.profile.password` asks for the current password and applies the configured password rules (`PasswordRules`; the checklist on the page is `PasswordRules::requirements()`), signs out other devices and logs `password.changed`.
+- **2FA tab:** enabling and confirming use Fortify's routes; `POST admin.profile.two-factor.recovery` (new recovery codes) and `DELETE admin.profile.two-factor.disable` need a fresh password and the server confirmation token. Turning 2FA off is refused with 403 while the settings require it for the user's role (`TwoFactorPolicy::requiredFor`), on the profile route and on Fortify's own route. Recovery codes are shown only right after confirming/regenerating or after a fresh password confirmation (`?codes=1`).
+- **Sessions tab (`admin.profile.sessions`): requires `SESSION_DRIVER=database`** (the starter and the dev environment use it; the `sessions` table comes from core's migration). With any other driver the tab is not rendered and the route answers 404. Rows come from the `sessions` table for the signed-in user only; the page carries opaque handles (`SessionHandle`), never real ids; no location is shown. `DELETE admin.profile.sessions/{handle}` and `DELETE admin.profile.sessions` (all others) need a fresh password and the confirmation token; the current session can never be ended there. Log events `session.revoked`, `session.others_revoked`.
+- **Preferences:** `users.locale` (also saved by the language switcher) and `users.theme_preference` (NULL = not chosen); the user-menu theme switcher posts to `admin.profile.theme` and the saved choice starts every page (`data-theme`, `data-theme-user`), falling back to the browser's memory and then the site default.
+
+## Time zone
+Dates are stored in UTC and only DISPLAYED in a zone: the user's `users.timezone` (profile), else the setting `site.timezone` (default `Europe/Belgrade`, super-admin). `Codeart\Core\Support\DisplayTime` (singleton; `DisplayTime::current()` in views) converts and formats: `convert($value)`, `format($value, 'd.m.Y. H:i')`, `relative($value)`, `options()` (zones grouped by region, label `(UTC+01:00) Beograd`), `isValid($zone)`. `admin.access` applies the signed-in user's zone to every admin request. Used by data-table date cells, the activity feed, users list/edit, the profile card and the session list. Mails and CSV exports keep their old behaviour. Invalid zones are rejected by validation (profile, setting) and ignored at runtime (site zone).

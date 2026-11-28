@@ -28,7 +28,7 @@
     @include('codeart::partials.theme-style')
     <noscript><style>[x-cloak]{display:block !important}</style></noscript>
 </head>
-<body class="min-h-screen bg-surface-alt text-text antialiased" x-data="codeartShell" data-theme-default="{{ $theme->mode() }}"
+<body class="min-h-screen bg-surface-alt text-text antialiased" x-data="codeartShell" data-theme-default="{{ $theme->mode() }}" @if ($theme->userMode()) data-theme-user="{{ $theme->userMode() }}" @endif @if (\Illuminate\Support\Facades\Route::has('admin.profile.theme')) data-theme-url="{{ route('admin.profile.theme') }}" @endif
     x-on:keydown.window="onKeydown($event)" x-on:pageshow.window="drawer = false">
     <a href="#main" class="sr-only rounded-control bg-surface px-4 py-2 text-text focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-60 focus-visible:outline-2 focus-visible:outline-focus">{{ __('codeart::ui.skip_to_content') }}</a>
 
@@ -40,13 +40,11 @@
         <x-codeart::admin.topbar :user="$user" />
 
         <main id="main" tabindex="-1" class="w-full max-w-(--content-max) flex-1 px-4 py-6 focus:outline-none sm:px-6 lg:px-8 lg:py-8">
-            @if (session('status'))
-                <x-codeart::alert type="success" class="mb-6">{{ session('status') }}</x-codeart::alert>
-            @endif
             {{ $slot }}
         </main>
     </div>
 
     <x-codeart::admin.command-palette :items="$search" />
+    <x-codeart::toasts />
 </body>
 </html>

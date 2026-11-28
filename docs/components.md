@@ -68,7 +68,7 @@ Other attributes (`autocomplete`, `required`, `autofocus`, `readonly`) go to the
 ```
 
 ### `input`
-52px text input with optional leading `icon`. Used by `field`; `aria-invalid="true"` turns the border to the danger color.
+Props: `icon` (start), `icon-end`, `type`. 52px text input; `aria-invalid="true"` turns the border to the danger color; `disabled`/`readonly` styled. Used by `field`.
 
 ### `password-input`
 Password field with show/hide toggle (Alpine switches `type`; without JS the toggle stays hidden and it is a plain password field).
@@ -78,24 +78,183 @@ Props: `id`, `name` (default `code`), `length` (default 6). The submitted value 
 `autocomplete="one-time-code"`, `maxlength`). Alpine (`codeartOtp`) turns it into boxes with auto-advance, paste and backspace
 handling and keeps the single input in sync.
 
-### `checkbox`
-Props: `id`, `label`; other attributes (`name`, `value`, `checked`) go to the input.
+### `field-shell`
+Frame shared by `field`, `textarea` and `select`. Props: `id`, `label`, `hint`, `error`, `required` (adds an `aria-hidden` `*`), `max` + `count` (character counter `data-counter`, live with Alpine, server value without JS).
+
+### `textarea`, `select`
+Same contract as `field`. `textarea` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `rows` (4); `maxlength` gives the counter. `select` props: `name`, `label`, `id`, `hint`, `bag`, `value`, `icon` (leading icon, same as `input`; keeps error, hint and disabled states), `options` (value => label; a value that is itself an array becomes an `<optgroup>`: `['Europe' => ['Europe/Belgrade' => '...']]`) or `<option>` in the slot, `placeholder`. Value defaults to `old(name)`.
+```blade
+<x-codeart::textarea name="bio" label="Bio" maxlength="80" hint="Optional" />
+<x-codeart::select name="plan" label="Plan" :options="['free' => 'Free', 'pro' => 'Pro']" placeholder="Choose..." required />
+```
+
+### `form.password-strength`
+`<x-codeart::form.password-strength for="field-password" :rules="app(PasswordRules::class)->requirements()" :breached="..." />`. A strength meter (5 segments + label "Slaba/Srednja/Jaka lozinka") and a requirements checklist for the password input with id `for`. The rules come from the server (`PasswordRules::requirements()`: minimum length, mixed case, number, symbol, as configured in `security.password.*`), so a settings change changes the list. Without JS only the static list is shown (neutral bullets); Alpine (`codeartPasswordStrength`) adds the live ticks and the meter with a simple score (rules met + length headroom). The server stays the only judge; the breached-password check is server-side only and just mentioned in a hint (`breached`).
+
+### `copy-button`
+Props: `value`, `label`, `copied`. Copies `value` with the Clipboard API (hidden-textarea fallback) and shows "Kopirano" for a moment, with an `aria-live` message (also on failure). Needs JS: without it the button is hidden, so always show the value next to it.
+
+### `checkbox`, `radio`, `switch`
+Props: `id`, `label`, `hint`, `bag`, `checked` (`radio` also `value`). The plain attribute `name` ties them to `old()` (after a failed submit the sent state wins) and, for checkbox and switch, to the error bag. `switch` is a real checkbox with `role="switch"`, styled by CSS only.
+```blade
+<x-codeart::checkbox id="terms" name="terms" label="I accept" />
+<x-codeart::radio id="plan-pro" name="plan" value="pro" label="Pro" />
+<x-codeart::switch id="active" name="active" label="Active" :checked="true" />
+```
+
+### `icon-button`
+Square ghost icon button for row actions and toolbars. Props: `label` (required: `aria-label` and tooltip `title`), `icon`, `variant` (`neutral` default, `danger`), `size` (`sm` 32px, `md` 36px default), `href` (renders `<a>`, otherwise `<button>`), `type` (`button`; use `submit` inside forms), `loading` (spinner, `aria-busy`), `disabled`. Danger changes only the icon color and shows a soft danger background on hover/focus; it is never filled at rest. `<x-codeart::confirm :icon-only="true">` uses it as the trigger of POST/DELETE row actions.
+Data table row actions always use it: the cell is `whitespace-nowrap px-4 py-2 text-end` and holds one `flex items-center justify-end gap-1` wrapper, so buttons align from the right in every row. (The old extra right offset came from text buttons: `px-3.5` plus a gap and an empty label span around a single icon.)
+```blade
+<x-codeart::icon-button label="Edit" icon="pencil" :href="route('x.edit', $id)" size="sm" />
+```
 
 ### `button`
-Props: `variant` (`primary` default, `secondary`, `ghost`), `type` (`submit` default), `icon` (trailing), `href` (renders a link), `full` (default true).
-52px high, 14px radius. As a submit button it shows a spinner after the first submit and ignores further clicks (no double submit);
-`pageshow` resets it for the back button.
+Props: `variant` (`primary` default, `secondary`, `ghost`, `danger`), `size` (`sm` 36px, `md` 44px, `lg` 52px default), `type` (`submit` default), `icon` (trailing), `icon-left`, `href` (renders a link), `full` (default true), `loading` (spinner, `aria-busy`, no clicks), `disabled`. As a submit button it shows a spinner after the first submit and ignores further clicks (no double submit); `pageshow` resets it. A disabled link gets `aria-disabled` and `tabindex=-1`.
+```blade
+<x-codeart::button variant="danger" size="md" :full="false" icon-left="trash-2">Delete</x-codeart::button>
+```
+
+### `badge`
+Props: `tone` (`primary|success|warning|danger|neutral`), `dot` (true). The label is the meaning; the dot is decoration.
+```blade
+<x-codeart::badge tone="success">Published</x-codeart::badge>
+```
 
 ### `alert`
-Props: `type` (`info|success|warning|danger`), `title`, `messages` (list). `danger` = `role="alert"`; the others
-`role="status" aria-live="polite"`. Always has an icon, so color is never the only signal.
+Props: `type` (`info|success|warning|danger`), `title`, `messages` (list), `dismissible` (close button, needs JS). `danger` = `role="alert"`; the others `role="status" aria-live="polite"`. Always has an icon, so color is never the only signal.
+```blade
+<x-codeart::alert type="warning" title="Careful" :dismissible="true">Text</x-codeart::alert>
+```
+
+### `modal`
+Native `<dialog>`. Wrapping: the dialog sets `whitespace-normal break-words overflow-x-hidden min-w-0` itself (a dialog inside a `whitespace-nowrap` table cell would otherwise inherit nowrap and clip the title and text); width is `calc(100% - 2rem)` up to `max-w-sm|lg|2xl`. Props: `id`, `title`, `size` (`sm|md|lg`). Slots: `title` (markup, overrides the prop), default = body, `footer`. Open with any element that has `data-modal-open="id"`; `data-modal-close` closes; Esc and backdrop click close; focus is trapped and restored by the browser. Opening needs JS.
+```blade
+<x-codeart::button type="button" data-modal-open="m1">Open</x-codeart::button>
+<x-codeart::modal id="m1" title="Title">Body <x-slot:footer>...</x-slot:footer></x-codeart::modal>
+```
+
+### `confirm`
+Destructive action with a SERVER-side confirmation (TB11). Props: `action`, `method` (POST; others are spoofed), `title`, `text`, `confirm`, `cancel`, `button` (label if the slot is empty), `variant` (danger), `size` (md), `icon`. The default slot is the trigger label.
+It renders two forms: the trigger posts to core's confirmation step (`codeart.confirm`) with the signed target, never to the target itself. Without JS the answer is a confirmation page (`codeart::admin.confirm`: text, Confirm, Cancel); with JS the trigger asks the step for a token (JSON), opens the dialog, and the dialog's own form posts the real request with `confirmation=<token>`. The target route MUST use the `codeart.confirmed` middleware, which refuses a request without a valid, unused token (10 minutes, bound to user, method and path).
+```blade
+<x-codeart::confirm :action="route('pages.destroy', $page)" method="DELETE" title="Delete page?" text="This cannot be undone.">Delete</x-codeart::confirm>
+Route::delete('pages/{page}', [PageController::class, 'destroy'])->middleware('codeart.confirmed')->name('pages.destroy');
+```
+
+### `toasts`
+Once per page (the admin layout has it). Shows `session('toast')` (string, `['type' => 'success', 'message' => '...']` or a list), `session('status')` (success) and `session('error')` (danger) in an `aria-live` stack and listens to the window event `codeart:toast`. Auto-dismiss 5 s (danger 8 s); without JS the flashes are alerts.
+```blade
+return back()->with('toast', ['type' => 'success', 'message' => __('Saved')]);
+<button x-data x-on:click="$dispatch('codeart:toast', { message: 'Copied', type: 'info' })">Copy</button>
+```
+
+### `empty-state`
+Props: `title`, `text`, `icon` (inbox). The default slot holds the action.
+```blade
+<x-codeart::empty-state title="No pages yet" text="Create the first one."><x-codeart::button href="...">New page</x-codeart::button></x-codeart::empty-state>
+```
+
+### `dropdown`
+The one dropdown (the user menu uses it). Props: `label` (aria-label of the button), `id` (panel id), `align` (`end|start`), `width` (`w-56`), `trigger-class`. Slot `trigger` = button content, default = panel; mark items `data-menu-item` for arrow-key navigation (Esc closes and refocuses, tabbing out closes).
+```blade
+<x-codeart::dropdown label="Actions"><x-slot:trigger>Actions</x-slot:trigger><a data-menu-item href="...">Edit</a></x-codeart::dropdown>
+```
+
+### Showcase
+`/admin/_ui` (route `codeart.ui-showcase`) lists every component in all states for review in light/dark. Local environment only (404 elsewhere), super-admin only (403), no menu item.
 
 ### `link`, `divider`, `icon`, `logout`
 `link` (prop `href`), `divider` (prop `text`: a labeled separator), `icon` (prop `name`: mail, lock, eye, eye-off, arrow-right,
 check, alert, globe, shield, chevron-down, user; inline SVG, `aria-hidden`), `logout` (a POST form to `logout` with a ghost button; slot = label).
 
+## Data table (`<x-codeart::table>` and `DataTable`)
+
+Server-side lists for tables of any size. A module defines the table in PHP, the controller loads one page, the component draws it.
+Everything is plain HTML (GET form, links, POST bulk form); Alpine (`codeartTable`) only adds debounced search, auto-submit on filter
+change and the selection counter. Strings: `codeart::table.*` (sr, en, generated sr-Cyrl). Rules and reasons: `docs/DECISIONS.md` section TB.
+
+```php
+// definition (registered once in the module provider: app(TableRegistry::class)->register('pages', PagesTable::class))
+final class PagesTable implements TableDefinition
+{
+    public function table(): DataTable
+    {
+        return DataTable::make('pages', Page::query())
+            ->columns(
+                Column::titleSubtitle('title', 'Naslov')->using(fn (Page $p) => ['title' => $p->title, 'subtitle' => $p->slug, 'url' => route('pages.edit', $p)]),
+                Column::status('status', 'Status', ['draft' => ['Nacrt', 'neutral'], 'published' => ['Objavljeno', 'success']]),
+                Column::date('updated_at', 'Izmenjeno'),
+            )
+            ->filters(Filter::status('status', 'Status', ['draft' => 'Nacrt', 'published' => 'Objavljeno']), Filter::dateRange('updated_at', 'Izmenjeno'))
+            ->with('author')                                   // eager loads: the query count must not grow with the rows
+            ->defaultSort('updated_at', 'desc')
+            ->permission('pages.view')
+            ->rowActions(RowAction::edit(fn (Page $p) => route('pages.edit', $p), 'pages.edit'), RowAction::delete(fn (Page $p) => route('pages.destroy', $p), 'pages.delete'))
+            ->bulkActions(BulkAction::make('publish', 'Objavi', fn (Page $p) => $p->publish(), 'pages.publish', 'Objaviti izabrane stranice?'))
+            ->export('pages');
+    }
+}
+
+// controller
+public function index(Request $request, PagesTable $pages)
+{
+    $result = $pages->table()->resolve($request, $request->user('admin'));
+    return $result->redirectTo ? redirect($result->redirectTo) : view('pages::index', ['result' => $result]);
+}
+// view
+<x-codeart::table :result="$result" label="Stranice" />
+```
+
+**Query string** (the whole state, so every list is linkable): `q`, `sort`, `dir`, `filter[key]` (`filter[key][from|to]` for ranges), `per_page`, `page`.
+Invalid values are ignored or clamped: `per_page` 1..100 (default 25, nonsense = default), `page` >= 1, unknown sort keys and filters dropped, and a page past
+the last redirects to the last page (`TableResult::$redirectTo`). A request loads exactly one page and the exact total (`count(*)`).
+
+**Columns** (`Column::text|number|date|boolean|status|badge|avatar|titleSubtitle|thumbnail|languageChips`): key, label, DB expression (default the key; a plain
+identifier is quoted and qualified, anything else is your own raw SQL). All columns sort, search and filter unless `->sortable(false)`, `->searchable(false)` or
+`->filterable(false)`. `->using(fn ($row) => ...)` shapes the cell value (avatar `['name', 'subtitle', 'image']`, title-subtitle `['title', 'subtitle', 'url']`, language chips
+`['sr' => true, 'en' => false]`, thumbnail a URL), `->exportUsing()` the CSV value, `->options([...])` the label and tone of status and badge cells.
+The base query must return one row per model (no GROUP BY). Sorting uses only the declared expressions, with the primary key as a stable tie-breaker.
+
+**Search** is "contains" over the searchable columns, `%`, `_` and `!` are literal (`LIKE ? ESCAPE '!'`), words are AND-ed (each word in any column).
+**Filters**: declared `Filter::select|status|boolean|dateRange|numberRange|text` (own control in the toolbar, `->using(fn ($q, $v) => ...)` for a custom constraint); every other
+column has an implicit filter of its type, reachable through the URL and the "Više filtera" panel.
+
+**Permissions**: `->permission()` on the table (list, export, bulk), on each `RowAction` and `BulkAction`. They are hidden when missing and, for bulk and export, checked again
+on the server (403). A row action only links to a module route; that route must authorize again.
+
+**Destructive actions**: `BulkAction::destructive(key, label, handle, permission, confirmText)` (or `destructive: true`) never runs without a server-issued confirmation token (TB11): the first request returns the confirmation page (action, affected rows, active filter for "all matching"), JSON for the dialog. Row actions with a non-GET method go through `<x-codeart::confirm>` and their routes need `codeart.confirmed`. Other bulk actions with a confirm text only open the dialog.
+
+**Bulk actions and export** are served by core's `POST admin/tables/{key}/bulk` and `GET admin/tables/{key}/export`, so the table must be registered in `TableRegistry` (the key
+is the `DataTable` id). Bulk: `BulkActionRunner`, `chunkById` (500), the handler returns true/false/null (done/failed/skipped) per row; "select all results" sends the filter, never ids.
+Over `codeart.tables.bulk.queue_limit` (1000) rows it queues `RunBulkActionJob` when a real queue driver is configured; otherwise it runs in chunks up to `hard_cap` (10000) and
+refuses above with "narrow the filter". Export: `CsvExporter`, streamed, UTF-8 BOM, current filter and sort, formula-looking cells prefixed with `'`, `export.max_rows` 500000.
+
+Benchmark: `php artisan codeart:bench:table` (MariaDB, creates and drops a temporary table, 1,000,000 rows by default).
+
+| Class | Purpose |
+|---|---|
+| `DataTable` | definition, `resolve(Request, ?user): TableResult`, `filteredQuery`, `orderedQuery`, `eachOrdered` |
+| `Column`, `Filter`, `RowAction`, `BulkAction` | the parts |
+| `TableState` | the parsed query string (clamped) |
+| `TableResult` | page rows, total, `url()`, `hiddenFields()` for the view |
+| `TableRegistry`, `TableDefinition` | key => definition, so bulk and export can rebuild a table |
+| `BulkActionRunner`, `RunBulkActionJob`, `CsvExporter`, `TableController` | actions and export |
+
+Sub-components: `table.cell` (one renderer per column type), `table.filter`, `table.select` (compact 44px select), `table.pagination`. The showcase page `/admin/_ui` has a demo backed by the activity log.
+
+### Translated cells are searched by what the user sees
+
+Anything a column displays through a translation (an event key, a status, a role) must also be searchable by the
+translated text. Declare it on the column: `Column::searchTranslated(fn (string $locale): array => [rawValue => text])`
+(or `searchByOptions()` when `options()` already holds the texts). The search term is matched against the texts in the
+current locale plus `sr`, `sr-Cyrl` and `en`; every raw value whose text contains the word is searched (`IN (...)`)
+together with the raw value itself. Other toolbar details: "Više filtera" is a compact toggle button in the toolbar row
+(the panel is visible without JavaScript); a cell of type `avatar` with `['system' => true, 'name' => 'Sistem']` shows
+a server icon instead of initials; date filter inputs carry `lang` of the panel locale.
+
 ## JavaScript (`resources/js/app.js`, built to `resources/dist/codeart.js`)
-Alpine 3 plus two components: `codeartOtp(length)` and `codeartRecoveryCodes(filename)` (copy and download .txt).
+Alpine 3 plus: `codeartOtp(length)`, `codeartRecoveryCodes(filename)` (copy and download .txt), `codeartCopy(value)` and `codeartPasswordStrength(rules, inputId)`.
 Rebuild both bundles after changing views, CSS or JS: `ddev exec "cd packages/core && npm run build"` and commit `resources/dist`.
 
 ## Admin shell (`<x-codeart::admin.*>`, `resources/views/components/admin`)
@@ -106,10 +265,11 @@ Spec: `docs/admin-ui.md`. Only semantic utilities; the sidebar and top bar follo
 | `admin.layout` | Page shell. Prop `title`. Skip link, `aside > nav` (sidebar), `header` (top bar), `main#main`, command palette. Builds the menu and search items for the signed-in user. Alpine `codeartShell` holds drawer, collapse, theme and palette state. |
 | `admin.sidebar`, `admin.menu-node` | Logo, menu tree (`NavNode`s), version line. Groups collapse; `aria-current="page"` on the active link. |
 | `admin.topbar` | Hamburger, search button (Ctrl+K), `admin.user-menu`. |
-| `admin.user-menu` | Dropdown: name and role, theme radiogroup, language items, 2FA link (when offered), sign out. |
+| `admin.user-menu` | Built on `dropdown`: name and role, theme radiogroup, language items, 2FA link (when offered), sign out. |
 | `admin.command-palette` | Prop `items` (list of `{label, url, icon, group}`); rendered as JSON, filtered in the browser, arrow keys, Enter, Esc, focus trap. |
 | `admin.page-header` | Props `title`, `description`, `breadcrumbs` (`[['label' => 'Pages', 'url' => '...'], ['label' => 'Edit']]`); named slot `actions` aligned to the end. |
-| `admin.card` | Rounded surface with border. Props `title`, `icon` (header shown when `title` is set). |
+| `admin.card` | Rounded surface with border. Props `title`, `icon`, `description` (header: icon tile, title, one-line description, shown when `title` is set); slot `footer` for the form buttons. |
+| `admin.profile-shell` | Moj profil frame: tabs, profile card, content slot. Props `tab`, `me`, `role`, `avatarUrl`. |
 
 ```blade
 <x-codeart::admin.layout :title="__('pages::menu.list')">

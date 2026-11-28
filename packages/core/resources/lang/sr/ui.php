@@ -113,4 +113,22 @@ return [
         'password-updated' => 'Lozinka je promenjena.',
         'invitation-accepted' => 'Nalog je aktiviran. Sada se možete prijaviti.',
     ],
+
+    'c' => [
+        'required' => 'obavezno',
+        'optional' => 'opciono',
+        'characters' => ':count od :max znakova',
+        'loading' => 'Učitavanje',
+        'dismiss' => 'Odbaci',
+        'close' => 'Zatvori',
+        'cancel' => 'Otkaži',
+        'confirm' => 'Potvrdi',
+        'confirm_title' => 'Da li ste sigurni?',
+        'confirm_text' => 'Ova radnja se ne može poništiti.',
+        'notifications' => 'Obaveštenja',
+        'select_placeholder' => 'Izaberite…',
+    ],
+    'copy' => 'Kopiraj',
+    'copied' => 'Kopirano',
+    'copy_failed' => 'Kopiranje nije uspelo. Označite tekst i kopirajte ga ručno.',
 ];

@@ -17,6 +17,7 @@ final readonly class NavItem
      * @param  string|null  $permission  Gate ability the user needs; null = everyone who may enter the admin
      * @param  string|null  $parent  key of the group this item sits in
      * @param  list<NavItem>  $children
+     * @param  list<string>  $activePatterns  route-name patterns (`Str::is`, `*` wildcard) that also mark this item active, e.g. `admin.profile.*`
      */
     public function __construct(
         public string $key,
@@ -28,6 +29,7 @@ final readonly class NavItem
         public ?string $parent = null,
         array $children = [],
         public ?string $module = null,
+        public array $activePatterns = [],
     ) {
         $this->children = $children;
     }

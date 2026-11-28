@@ -4,6 +4,7 @@ namespace Codeart\Core\Admin\Dashboard\Widgets;
 
 use Codeart\Core\ActivityLog\ActivityDescription;
 use Codeart\Core\Admin\Dashboard\WidgetData;
+use Codeart\Core\Support\DisplayTime;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Spatie\Activitylog\Models\Activity;
 
@@ -24,6 +25,7 @@ class RecentActivityWidget implements WidgetData
             'causer' => $a->causer->name ?? null,
             'when' => $a->created_at?->diffForHumans(),
             'at' => $a->created_at?->toIso8601String(),
+            'exact' => DisplayTime::current()->format($a->created_at),
         ])->all()];
     }
 }

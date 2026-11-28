@@ -2,6 +2,7 @@
 
 namespace Codeart\Core\Branding;
 
+use Codeart\Core\Images\ImageProcessor;
 use Codeart\Core\Settings\InvalidSettingValue;
 use Codeart\Core\Settings\Settings;
 use Codeart\Core\Settings\SettingType;
@@ -13,14 +14,13 @@ use Illuminate\Support\Str;
  * Stores logos and the favicon for `image` settings (see config `codeart.branding`).
  * Only png, jpg, webp, decided by the file CONTENT (never the client's extension or mime type).
  * SVG is refused on purpose (it can carry scripts). Files get random names; the old one is deleted.
+ * PNG/WebP with transparent margins are trimmed by the ImageProcessor: the trimmed file is the one served (stored in
+ * the setting), the untouched original stays next to it as `<name>.original.<ext>` so the trim is reversible.
  * Raw layer: no permission check (SettingsManager::uploadImage adds it).
  */
 class BrandingImageUploader
 {
-    /** @var array<string, string> detected mime => extension */
-    private const array TYPES = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'];
-
-    public function __construct(private readonly Settings $settings) {}
+    public function __construct(private readonly Settings $settings, private readonly ImageProcessor $images) {}
 
     /** @return string the stored path (relative to the branding disk) */
     public function store(string $key, UploadedFile $file): string
@@ -33,8 +33,19 @@ class BrandingImageUploader
         $extension = $this->validate($key, $file);
 
         $directory = $this->directory();
-        $path = Storage::disk($this->disk())->putFileAs($directory, $file, Str::random(40).'.'.$extension);
-        if (! is_string($path)) {
+        $disk = Storage::disk($this->disk());
+        $name = Str::random(40);
+        $bytes = (string) file_get_contents((string) $file->getRealPath());
+        $trimmed = $this->images->trimTransparent($bytes);
+
+        if ($trimmed === null) {
+            $path = $disk->putFileAs($directory, $file, $name.'.'.$extension);
+        } else {
+            $disk->put($directory.'/'.$name.'.original.'.$extension, $bytes);
+            $path = $directory.'/'.$name.'.'.$extension;
+            $disk->put($path, $trimmed);
+        }
+        if (! is_string($path) || ! $disk->exists($path)) {
             throw new InvalidSettingValue($key, 'the file could not be stored');
         }
 
@@ -42,7 +53,7 @@ class BrandingImageUploader
         try {
             $this->settings->set($key, $path);
         } catch (\Throwable $e) {
-            Storage::disk($this->disk())->delete($path);
+            $this->delete($path);
             throw $e;
         }
         $this->deleteIfOurs($old, $path);
@@ -90,14 +101,14 @@ class BrandingImageUploader
             throw new InvalidSettingValue($key, "the file is larger than {$maxKb} KB");
         }
 
-        $info = @getimagesize((string) $file->getRealPath());
-        $detected = is_array($info) ? $info['mime'] : null;
-        $extension = $detected !== null ? (self::TYPES[$detected] ?? null) : null;
+        $info = $this->images->inspect((string) file_get_contents((string) $file->getRealPath()));
+        $detected = $info?->mime;
+        $extension = $info?->extension();
         // Two independent content checks must agree: PHP's image parser and libmagic.
-        if ($extension === null || $file->getMimeType() !== $detected) {
+        if ($info === null || $extension === null || $file->getMimeType() !== $detected) {
             throw new InvalidSettingValue($key, 'only PNG, JPG and WebP images are accepted');
         }
-        if ($info[0] > $maxSide || $info[1] > $maxSide) {
+        if ($info->width > $maxSide || $info->height > $maxSide) {
             throw new InvalidSettingValue($key, "the image is larger than {$maxSide}x{$maxSide} pixels");
         }
 
@@ -107,8 +118,16 @@ class BrandingImageUploader
     private function deleteIfOurs(mixed $old, ?string $current): void
     {
         if (is_string($old) && $old !== $current && str_starts_with($old, $this->directory().'/')) {
-            Storage::disk($this->disk())->delete($old);
+            $this->delete($old);
         }
+    }
+
+    /** Deletes the served file and the untouched original kept next to a trimmed one. */
+    private function delete(string $path): void
+    {
+        $disk = Storage::disk($this->disk());
+        $disk->delete($path);
+        $disk->delete(preg_replace('/\.([a-z]+)$/', '.original.$1', $path) ?? $path);
     }
 
     private function disk(): string

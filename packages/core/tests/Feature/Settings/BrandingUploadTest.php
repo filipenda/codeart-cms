@@ -109,3 +109,31 @@ it('checks permission and lock for uploads through the manager', function () {
     expect(fn () => $manager->uploadImage(userWith('admin'), 'theme.favicon', $file()))->toThrow(AuthorizationException::class);
     expect($manager->uploadImage(userWith('super-admin'), 'theme.favicon', $file()))->toStartWith('branding/');
 });
+
+it('serves the trimmed logo and keeps the original next to it, then removes both', function () {
+    $img = imagecreatetruecolor(300, 200);
+    imagealphablending($img, false);
+    imagesavealpha($img, true);
+    imagefill($img, 0, 0, imagecolorallocatealpha($img, 0, 0, 0, 127));
+    imagefilledrectangle($img, 100, 80, 199, 119, imagecolorallocatealpha($img, 10, 10, 10, 0));
+    $tmp = tempnam(sys_get_temp_dir(), 'logo').'.png';
+    imagepng($img, $tmp);
+
+    $path = uploader()->store('theme.logo_light', new UploadedFile($tmp, 'logo.png', 'image/png', null, true));
+    $original = preg_replace('/\.png$/', '.original.png', $path);
+    $disk = Storage::disk('public');
+
+    expect(getimagesizefromstring($disk->get($path))[0])->toBe(100)
+        ->and(getimagesizefromstring($disk->get($original))[0])->toBe(300)
+        ->and(app(Settings::class)->get('theme.logo_light'))->toBe($path);
+
+    uploader()->remove('theme.logo_light');
+    expect($disk->allFiles())->toBe([]);
+    @unlink($tmp);
+});
+
+it('leaves an opaque upload untouched and stores no original copy', function () {
+    $path = uploader()->store('theme.logo_light', UploadedFile::fake()->image('a.png', 200, 80));
+
+    expect(Storage::disk('public')->allFiles())->toBe([$path]);
+});
