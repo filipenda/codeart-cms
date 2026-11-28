@@ -81,6 +81,7 @@ Do not read `vendor/` or `node_modules/`.
 
 ## Installer (details: docs/install.md, docs/client/instalacija.md)
 - One `InstallerService` for the wizard (`/install`) and `codeart:install`; installed = marker `storage/app/installed`; the wizard exists only where `install.key` exists (client ZIP, built by `tools/build-package.php`, never committed).
+- Preview the wizard in a browser: `ddev composer preview:install` (URL + key printed, dev `.env`/DB untouched), remove with `ddev composer preview:install:clean`.
 - Install tests and checks never touch the dev `.env` or the dev database: they use a temporary directory and a throwaway database (`InstallTestCase`).
 
 ## Docs
