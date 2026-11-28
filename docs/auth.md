@@ -99,6 +99,7 @@ Throttling: login by e-mail + IP from the settings (lockout answers 429 and fire
 | `security.session.lifetime_minutes` | 120 (applied at runtime) | super-admin |
 | `site.timezone` | `Europe/Belgrade` (display zone when a user chose none) | super-admin |
 | `security.activity_log.retention_days` | 90 | super-admin |
+| `security.ip_storage` | **full** (`full`, `anonymized`, `off`) | super-admin |
 | `mail.from_name`, `from_address`, `driver` (`smtp`/`log`), `host`, `port`, `username`, `password` (secret), `encryption` (`tls`/`ssl`/`none`) | from `.env` | super-admin |
 
 Mail settings override `.env` only for values that were saved. 2FA mode: `off` hides/blocks setup (users who already have 2FA are still challenged); `optional` allows it; `required` forces it for `required_roles`.
@@ -153,6 +154,14 @@ Sent in the user's `locale` (`sr`, `sr-Cyrl`, `en`; falls back to the app locale
 ## Activity log
 
 `ActivityLog::record($event, $description, $subject, $causer, $properties, $log)` writes to `activity_log` (spatie/laravel-activitylog; adds `ip_address` and `user_agent`). Property keys that look like secrets (`pass`, `token`, `secret`, `recovery`, `code`, `key`, `hash`, ...) are dropped automatically. Events: `auth.login`, `auth.login_failed`, `auth.logout`, `auth.lockout`, `password.reset_requested`, `password.reset_completed`, `password.changed`, `two_factor.setup_started|enabled|disabled|failed|recovery_code_used|recovery_codes_regenerated|reset`, `profile.updated|avatar_changed|avatar_removed`, `session.revoked`, `email.verified`, `registration.created`, `invitation.sent|accepted`, `user.created|approved|deactivated`, `role.attached|detached`, `permission.attached|detached`, `session.others_revoked`. `activity-log:prune` deletes entries older than `security.activity_log.retention_days`; core schedules it daily (the client's cron runs `schedule:run`).
+
+## IP storage (privacy)
+
+Setting `security.ip_storage` (`php artisan settings:set security.ip_storage anonymized`), applied by `Codeart\Core\Privacy\IpPrivacy`:
+`full` keeps the address, `anonymized` zeroes the IPv4 last octet / the IPv6 last 80 bits, `off` stores nothing and hides the "IP adresa" rows.
+It covers everywhere an IP is stored or shown: `activity_log.ip_address`, `sessions.ip_address` (core wraps Laravel's database session handler), `users.last_login_ip`, the profile card and the sessions list (rows stored earlier are displayed according to the CURRENT mode).
+`activity-log:prune` (daily) also deletes old entries and then removes or anonymizes the IPs still stored in the other rows, so changing the mode takes effect for old data within a day.
+Login throttling keeps working: the rate limiter uses the raw IP, which lives only in the cache for the lockout window (`security.login.decay_minutes`) and is never written to the database.
 
 ## Language files
 

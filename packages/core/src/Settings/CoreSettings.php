@@ -115,6 +115,7 @@ final class CoreSettings
             $int('security.login.max_attempts', 5, 1, 100, 'Maximum login attempts', 'Failed attempts before a temporary lockout.'),
             $int('security.login.decay_minutes', 15, 1, 1440, 'Login lockout (minutes)', 'How long a lockout lasts.'),
             $int('security.login.remember_days', 30, 1, 365, 'Remember me (days)', 'How long a "remember me" login lasts.'),
+            new SettingDefinition('security.ip_storage', SettingType::Enum, 'full', options: ['full', 'anonymized', 'off'], label: 'IP address storage', description: 'full keeps IPs, anonymized zeroes the last part (IPv4 last octet, IPv6 last 80 bits), off stores and shows none. Applies to the activity log, sessions and the profile.'),
             $int('security.activity_log.retention_days', 90, 7, 3650, 'Activity log retention (days)', 'Older entries are removed.'),
         ];
     }

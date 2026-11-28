@@ -3,6 +3,7 @@
 namespace Codeart\Core\Auth;
 
 use Carbon\CarbonImmutable;
+use Codeart\Core\Privacy\IpPrivacy;
 use Illuminate\Support\Facades\DB;
 
 /** A user's own sessions (database session driver): list them, revoke one, revoke all but the current. */
@@ -21,7 +22,7 @@ class UserSessions
         return DB::table('sessions')->where('user_id', $userId)->where('last_activity', '>=', $cutoff)->orderByDesc('last_activity')->get()
             ->map(fn (object $row): array => [
                 'id' => (string) $row->id,
-                'ip_address' => $row->ip_address,
+                'ip_address' => app(IpPrivacy::class)->display($row->ip_address),
                 'user_agent' => $row->user_agent,
                 'last_active' => CarbonImmutable::createFromTimestamp((int) $row->last_activity),
                 'current' => $row->id === $currentId,

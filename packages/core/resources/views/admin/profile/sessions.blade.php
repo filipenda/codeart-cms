@@ -17,7 +17,7 @@
                             @endif
                         </p>
                         <p class="text-sm text-text-muted">
-                            <span data-session-ip>{{ $s['ip_address'] ?: '—' }}</span> · <time datetime="{{ $s['last_active']->toIso8601String() }}" title="{{ $s['exact'] }}" data-session-time>{{ $s['relative'] }}</time>
+                            @if (app(\Codeart\Core\Privacy\IpPrivacy::class)->enabled())<span data-session-ip>{{ $s['ip_address'] ?: '—' }}</span> · @endif<time datetime="{{ $s['last_active']->toIso8601String() }}" title="{{ $s['exact'] }}" data-session-time>{{ $s['relative'] }}</time>
                         </p>
                     </div>
                     @unless ($s['current'])

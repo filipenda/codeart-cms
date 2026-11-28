@@ -8,6 +8,7 @@ use Codeart\Core\Auth\Mail\NewRegistrationPendingMail;
 use Codeart\Core\Auth\Mail\RegistrationReceivedMail;
 use Codeart\Core\Auth\UserSessions;
 use Codeart\Core\Mail\AuthMailer;
+use Codeart\Core\Privacy\IpPrivacy;
 use Codeart\Core\Settings\Settings;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
@@ -84,7 +85,7 @@ class AuthEventSubscriber
         if (! $this->onAdminGuard($event->guard) || ! $event->user instanceof Model) {
             return;
         }
-        $event->user->forceFill(['last_login_at' => now(), 'last_login_ip' => request()->ip()])->saveQuietly();
+        $event->user->forceFill(['last_login_at' => now(), 'last_login_ip' => app(IpPrivacy::class)->store(request()->ip())])->saveQuietly();
         $this->log->record('auth.login', 'Signed in', $event->user, $event->user, ['remember' => $event->remember]);
     }
 

@@ -3,6 +3,7 @@
 namespace Codeart\Core\Admin\Demo;
 
 use Codeart\Core\ActivityLog\ActivityDescription;
+use Codeart\Core\Privacy\IpPrivacy;
 use Codeart\Core\Profile\Avatar;
 use Codeart\Core\Tables\BulkAction;
 use Codeart\Core\Tables\Column;
@@ -43,7 +44,7 @@ final class ActivityLogTable implements TableDefinition
 
                     return ['name' => (string) ($causer->getAttribute('name') ?? ''), 'subtitle' => (string) ($causer->getAttribute('email') ?? ''), 'image' => Avatar::url($causer)];
                 })->searchable(false),
-                Column::text('ip_address', __('codeart::table.demo.ip')),
+                Column::text('ip_address', __('codeart::table.demo.ip'))->using(fn (Activity $a): ?string => app(IpPrivacy::class)->display($a->getAttribute('ip_address'))),
                 Column::date('created_at', __('codeart::table.demo.when')),
             )
             ->filters(Filter::select('log_name', __('codeart::table.demo.log'), $logs), Filter::dateRange('created_at', __('codeart::table.demo.when')))

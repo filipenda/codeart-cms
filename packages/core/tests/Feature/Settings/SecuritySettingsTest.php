@@ -8,6 +8,7 @@ it('has sensible defaults', function () {
         'security.2fa.mode' => 'required',
         'security.2fa.required_roles' => ['super-admin', 'admin'],
         'security.activity_log.retention_days' => 90,
+        'security.ip_storage' => 'full',
         'security.login.decay_minutes' => 15,
         'security.login.max_attempts' => 5,
         'security.login.remember_days' => 30,

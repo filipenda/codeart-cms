@@ -75,7 +75,9 @@
             <dl class="divide-y divide-border border-t border-border text-sm">
                 <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.member_since') }}</dt><dd class="text-end font-medium text-text" data-member-since>{{ $time->format($me->created_at, 'd.m.Y.') }}</dd></div>
                 <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.last_sign_in') }}</dt><dd class="text-end font-medium text-text" data-last-sign-in @if ($lastLogin) title="{{ $lastLogin->translatedFormat('d.m.Y. H:i') }}" @endif>{{ $lastLogin?->diffForHumans() ?? '—' }}</dd></div>
-                <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.ip_address') }}</dt><dd class="text-end font-medium text-text" data-last-ip>{{ $me->last_login_ip ?: '—' }}</dd></div>
+                @if (app(\Codeart\Core\Privacy\IpPrivacy::class)->enabled())
+                    <div class="flex items-center justify-between gap-3 px-5 py-3"><dt class="text-text-muted">{{ __('codeart::profile.ip_address') }}</dt><dd class="text-end font-medium text-text" data-last-ip>{{ app(\Codeart\Core\Privacy\IpPrivacy::class)->display($me->last_login_ip) ?: '—' }}</dd></div>
+                @endif
             </dl>
         </aside>
 
