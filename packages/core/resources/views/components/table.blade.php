@@ -169,21 +169,18 @@
                                 </td>
                             @endforeach
                             @if ($rowActions !== [])
-                                <td class="whitespace-nowrap px-4 py-2 text-end">
-                                    <span class="inline-flex items-center gap-1">
+                                <td class="whitespace-nowrap px-4 py-2 text-end" data-actions-cell>
+                                    <div class="flex items-center justify-end gap-1">
                                         @foreach ($rowActions as $action)
                                             @if ($action->shownFor($user, $row))
                                                 @if ($action->isGet())
-                                                    <a href="{{ ($action->url)($row) }}" title="{{ $action->label }}" data-action="{{ $action->key }}"
-                                                        class="inline-flex size-9 items-center justify-center rounded-control text-text hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus">
-                                                        <x-codeart::icon :name="$action->icon" class="size-5" /><span class="sr-only">{{ $action->label }}</span>
-                                                    </a>
+                                                    <x-codeart::icon-button :href="($action->url)($row)" :label="$action->label" :icon="$action->icon" size="sm" data-action="{{ $action->key }}" />
                                                 @else
-                                                    <x-codeart::confirm :action="($action->url)($row)" :method="$action->method" :title="$action->label" :text="$action->confirm" :confirm="$action->label" :cancel="__('codeart::ui.c.cancel')" :variant="$action->key === 'delete' ? 'danger' : 'secondary'" size="sm" :icon="$action->icon" data-action="{{ $action->key }}" class="inline-flex"><span class="sr-only">{{ $action->label }}</span></x-codeart::confirm>
+                                                    <x-codeart::confirm :action="($action->url)($row)" :method="$action->method" :title="$action->label" :text="$action->confirm" :confirm="$action->label" :cancel="__('codeart::ui.c.cancel')" :variant="$action->danger() ? 'danger' : 'secondary'" size="sm" :icon="$action->icon" :icon-only="true" data-action="{{ $action->key }}" class="flex" />
                                                 @endif
                                             @endif
                                         @endforeach
-                                    </span>
+                                    </div>
                                 </td>
                             @endif
                         </tr>

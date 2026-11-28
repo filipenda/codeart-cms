@@ -240,3 +240,7 @@ New dev dependencies (npm, newest stable on 2026-11-26): `@fontsource-variable/i
 - **US10. `StaffUser` contract.** The app's User now implements `Codeart\Core\Auth\Contracts\StaffUser` (the `AdminUser` trait provides every method) so core can use soft deletes, roles and 2FA state with real types; `Admin::staff($model)` narrows a model and fails loudly if the contract is missing.
 - **US11. Profile preferences storage.** Reuses `users.locale` and `users.theme_preference`; the latter became nullable (NULL = not chosen, `auto` is a real choice), migration `make_theme_preference_optional_on_users_table`. The saved choice wins over the browser's localStorage so the same person sees the same theme on every device; guests and users without a choice keep the browser/site default. The user-menu switcher saves best effort (fetch, no error shown).
 - **US12. Not done in step 4 (open):** avatar upload (needs ImageProcessor + image field wiring), active-sessions list (excluded by the brief). Profile edits cannot change e-mail by design.
+
+## Step 5: icon buttons and profile
+- **IB1. One icon-button for every row action.** `<x-codeart::icon-button>` (32/36px square, ghost at rest). Danger = icon color + soft background on hover/focus only, never a filled red button at rest. Delete-like row actions (`delete`, `force-delete`, `revoke`) are danger (`RowAction::danger()`); the rest are neutral. The extra right offset was the text-button padding and gap around single icons.
+

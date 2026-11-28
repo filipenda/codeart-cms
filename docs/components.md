@@ -96,6 +96,13 @@ Props: `id`, `label`, `hint`, `bag`, `checked` (`radio` also `value`). The plain
 <x-codeart::switch id="active" name="active" label="Active" :checked="true" />
 ```
 
+### `icon-button`
+Square ghost icon button for row actions and toolbars. Props: `label` (required: `aria-label` and tooltip `title`), `icon`, `variant` (`neutral` default, `danger`), `size` (`sm` 32px, `md` 36px default), `href` (renders `<a>`, otherwise `<button>`), `type` (`button`; use `submit` inside forms), `loading` (spinner, `aria-busy`), `disabled`. Danger changes only the icon color and shows a soft danger background on hover/focus; it is never filled at rest. `<x-codeart::confirm :icon-only="true">` uses it as the trigger of POST/DELETE row actions.
+Data table row actions always use it: the cell is `whitespace-nowrap px-4 py-2 text-end` and holds one `flex items-center justify-end gap-1` wrapper, so buttons align from the right in every row. (The old extra right offset came from text buttons: `px-3.5` plus a gap and an empty label span around a single icon.)
+```blade
+<x-codeart::icon-button label="Edit" icon="pencil" :href="route('x.edit', $id)" size="sm" />
+```
+
 ### `button`
 Props: `variant` (`primary` default, `secondary`, `ghost`, `danger`), `size` (`sm` 36px, `md` 44px, `lg` 52px default), `type` (`submit` default), `icon` (trailing), `icon-left`, `href` (renders a link), `full` (default true), `loading` (spinner, `aria-busy`, no clicks), `disabled`. As a submit button it shows a spinner after the first submit and ignores further clicks (no double submit); `pageshow` resets it. A disabled link gets `aria-disabled` and `tabindex=-1`.
 ```blade

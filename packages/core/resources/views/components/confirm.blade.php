@@ -1,4 +1,4 @@
-@props(['action', 'method' => 'POST', 'title' => null, 'text' => null, 'confirm' => null, 'cancel' => null, 'button' => 'Delete', 'variant' => 'danger', 'size' => 'md', 'icon' => null])
+@props(['action', 'method' => 'POST', 'title' => null, 'text' => null, 'confirm' => null, 'cancel' => null, 'button' => 'Delete', 'variant' => 'danger', 'size' => 'md', 'icon' => null, 'iconOnly' => false])
 @php
     $id = 'confirm-'.substr(md5($action.$button.($title ?? '')), 0, 8);
     $verb = strtoupper($method);
@@ -23,7 +23,11 @@
         <input type="hidden" name="confirm" value="{{ $confirmText }}">
         <input type="hidden" name="back" value="{{ $back }}">
         <input type="hidden" name="sig" value="{{ $sig }}">
-        <x-codeart::button :variant="$variant" :size="$size" :full="false" :icon-left="$icon" data-confirm-trigger aria-haspopup="dialog" aria-controls="{{ $id }}">{{ $slot->isNotEmpty() ? $slot : $button }}</x-codeart::button>
+        @if ($iconOnly)
+            <x-codeart::icon-button type="submit" :label="$titleText" :icon="$icon ?? 'trash-2'" :variant="$variant === 'danger' ? 'danger' : 'neutral'" :size="$size" data-confirm-trigger aria-haspopup="dialog" aria-controls="{{ $id }}" />
+        @else
+            <x-codeart::button :variant="$variant" :size="$size" :full="false" :icon-left="$icon" data-confirm-trigger aria-haspopup="dialog" aria-controls="{{ $id }}">{{ $slot->isNotEmpty() ? $slot : $button }}</x-codeart::button>
+        @endif
     </form>
     <form method="{{ $verb === 'GET' ? 'GET' : 'POST' }}" action="{{ $action }}" data-confirm-form>
         @csrf

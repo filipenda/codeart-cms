@@ -57,6 +57,12 @@ final class RowAction
         return $this;
     }
 
+    /** Destructive actions (delete, force-delete, revoke) get the danger variant: icon color only, never filled at rest. */
+    public function danger(): bool
+    {
+        return in_array($this->key, ['delete', 'force-delete', 'revoke'], true);
+    }
+
     public function isGet(): bool
     {
         return strtoupper($this->method) === 'GET';
