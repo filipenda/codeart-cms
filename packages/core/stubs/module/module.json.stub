@@ -1,0 +1,11 @@
+{
+    "name": "%%NAME%%",
+    "package": "%%PACKAGE%%",
+    "title": "%%TITLE%%",
+    "description": "%%TITLE%%: content with languages%%WORKFLOW_TEXT_JSON%%.",
+    "requires": {},
+    "permissions": [%%PERMISSIONS_JSON%%],
+    "migrations": "database/migrations",
+    "provider": "%%NS_JSON%%\\%%STUDLY%%ServiceProvider",
+    "license": "proprietary"
+}

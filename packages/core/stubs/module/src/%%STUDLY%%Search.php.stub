@@ -1,0 +1,27 @@
+<?php
+
+namespace %%NS%%;
+
+use Codeart\Core\Admin\Search\SearchProvider;
+use Codeart\Core\Admin\Search\SearchResult;
+use Illuminate\Contracts\Auth\Authenticatable;
+
+/** Command palette: shortcuts to the list and to "new", only for people who may open them. */
+final class %%STUDLY%%Search implements SearchProvider
+{
+    public function results(?Authenticatable $user): array
+    {
+        if ($user === null || ! method_exists($user, 'can')) {
+            return [];
+        }
+        $results = [];
+        if ($user->can('%%NAME%%.view')) {
+            $results[] = new SearchResult((string) __('%%NAME%%::module.title'), route('%%NAME%%.index'), 'file-text', (string) __('%%NAME%%::module.title'));
+        }
+        if ($user->can('%%NAME%%.create')) {
+            $results[] = new SearchResult((string) __('%%NAME%%::module.new'), route('%%NAME%%.create'), 'plus', (string) __('%%NAME%%::module.title'));
+        }
+
+        return $results;
+    }
+}

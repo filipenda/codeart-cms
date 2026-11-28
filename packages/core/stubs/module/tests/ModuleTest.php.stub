@@ -1,0 +1,47 @@
+<?php
+
+use Codeart\Core\Modules\ModuleManifest;
+use %%NS%%\Tests\TestCase;
+use Spatie\Permission\Models\Permission;
+
+uses(TestCase::class);
+
+it('has a valid manifest that names the provider and every permission', function () {
+    $manifest = ModuleManifest::fromFile(dirname(__DIR__).'/module.json');
+
+    expect($manifest->name)->toBe('%%NAME%%')
+        ->and($manifest->package)->toBe('%%PACKAGE%%')
+        ->and(class_exists($manifest->provider))->toBeTrue()
+        ->and($manifest->permissions)->toBe([%%PERMISSIONS_LIST%%]);
+});
+
+it('creates its permissions and gives the defaults to admin and editor when enabled', function () {
+    foreach ($this->manifest()->permissions as $permission) {
+        expect(Permission::query()->where('name', $permission)->where('guard_name', 'admin')->exists())->toBeTrue($permission);
+    }
+    $editor = $this->staff('editor');
+    $admin = $this->staff('admin');
+
+    expect($editor->can('%%NAME%%.view'))->toBeTrue()
+        ->and($editor->can('%%NAME%%.update'))->toBeTrue()
+%%if publishable%%
+        ->and($editor->can('%%NAME%%.publish'))->toBeFalse() // editors write, they do not publish
+        ->and($admin->can('%%NAME%%.publish'))->toBeTrue()
+%%endif%%
+        ->and($editor->can('%%NAME%%.delete'))->toBeFalse()
+        ->and($admin->can('%%NAME%%.delete'))->toBeTrue();
+});
+
+it('shows the list to staff with the view permission only', function () {
+    $this->actingAs($this->staff('editor'), 'admin')->get(route('%%NAME%%.index'))->assertOk()->assertSee(__('%%NAME%%::module.new'));
+    $this->actingAs($this->staff('member'), 'admin')->get(route('%%NAME%%.index'))->assertForbidden();
+    auth('admin')->logout();
+    $this->get(route('%%NAME%%.index'))->assertRedirect();
+});
+
+it('has Serbian Cyrillic texts generated from the Latin ones', function () {
+    $latin = __('%%NAME%%::module.new', [], 'sr');
+    $cyrillic = __('%%NAME%%::module.new', [], 'sr-Cyrl');
+
+    expect($cyrillic)->not->toBe('%%NAME%%::module.new')->and(preg_match('/\p{Cyrillic}/u', $cyrillic))->toBe(1)->and($latin)->not->toBe($cyrillic);
+});

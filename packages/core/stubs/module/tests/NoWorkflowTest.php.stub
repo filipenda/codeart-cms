@@ -1,0 +1,28 @@
+%%file-if !publishable%%
+<?php
+
+use %%NS%%\Models\%%MODEL%%;
+use %%NS%%\Tests\TestCase;
+
+uses(TestCase::class);
+
+it('publishes at once when the form is saved (no draft step in this module)', function () {
+    $editor = $this->staff('editor');
+
+    $this->actingAs($editor, 'admin')->post(route('%%NAME%%.store'), ['intent' => 'draft', 'translations' => ['sr' => ['%%TITLE_FIELD%%' => 'Odmah javno']]])->assertRedirect();
+
+    $record = %%MODEL%%::query()->firstOrFail();
+    expect($record->translated('%%TITLE_FIELD%%', 'sr'))->toBe('Odmah javno')
+        ->and($record->translated('%%TITLE_FIELD%%', 'sr-Cyrl'))->toBe('Одмах јавно')
+        ->and(%%MODEL%%::query()->count())->toBe(1);
+});
+
+it('shows no status, preview or history controls', function () {
+    $html = $this->actingAs($this->staff('editor'), 'admin')->get(route('%%NAME%%.create'))->assertOk()->getContent();
+
+    expect($html)->not->toContain('data-publish-controls')->not->toContain('data-preview')->not->toContain('data-revisions');
+});
+
+it('refuses a status change', function () {
+    $this->actingAs($this->staff('admin'), 'admin')->post(route('%%NAME%%.store'), ['intent' => 'status', 'status' => 'published', 'translations' => ['sr' => ['%%TITLE_FIELD%%' => 'X']]])->assertForbidden();
+});

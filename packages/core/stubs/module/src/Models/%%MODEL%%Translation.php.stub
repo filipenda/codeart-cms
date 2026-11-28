@@ -1,0 +1,11 @@
+<?php
+
+namespace %%NS%%\Models;
+
+use Codeart\Core\Translations\Translation;
+
+/** One language of a %%MODEL%%: the live text. `manual_fields` lists attributes edited by hand in a generated language. */
+class %%MODEL%%Translation extends Translation
+{
+    protected $table = '%%TRANSLATIONS_TABLE%%';
+}

@@ -1,0 +1,16 @@
+<?php
+
+return [
+    'title' => '%%TITLE%%',
+    'description' => 'Create and edit %%TITLE%% content.',
+    'new' => 'New item',
+    'untitled' => 'Untitled',
+    'widget' => '%%TITLE%%',
+    'col' => ['title' => 'Title'],
+    'fields' => [
+%%FIELD_LABELS_EN%%
+%%if slug%%
+        'slug' => 'Address (slug)',
+%%endif%%
+    ],
+];

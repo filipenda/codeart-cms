@@ -1,0 +1,13 @@
+<?php
+
+namespace %%NS%%\Tests;
+
+use Codeart\Core\Testing\ModuleTestCase;
+
+abstract class TestCase extends ModuleTestCase
+{
+    protected function modulePath(): string
+    {
+        return dirname(__DIR__);
+    }
+}

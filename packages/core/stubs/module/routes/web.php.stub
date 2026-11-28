@@ -1,0 +1,25 @@
+<?php
+
+use Codeart\Core\Auth\Admin;
+use %%NS%%\Http\%%STUDLY%%Controller;
+use Illuminate\Support\Facades\Route;
+
+/*
+ * Loaded by core under the `web` group while the module is enabled. Every admin route: signed in on the admin guard and
+ * allowed into the admin; the controller then asks the policy (403). Deleting needs the server-issued confirmation.
+ */
+Route::middleware(['auth:'.Admin::guardName(), 'admin.access'])->prefix(Admin::path().'/%%NAME%%')->group(function () {
+    Route::get('/', [%%STUDLY%%Controller::class, 'index'])->name('%%NAME%%.index');
+    Route::get('create', [%%STUDLY%%Controller::class, 'create'])->name('%%NAME%%.create');
+    Route::middleware('throttle:60,1')->group(function () {
+        Route::post('/', [%%STUDLY%%Controller::class, 'store'])->name('%%NAME%%.store');
+        Route::get('{id}', [%%STUDLY%%Controller::class, 'edit'])->whereNumber('id')->name('%%NAME%%.edit');
+        Route::put('{id}', [%%STUDLY%%Controller::class, 'update'])->whereNumber('id')->name('%%NAME%%.update');
+%%if publishable%%
+        Route::post('{id}/publish', [%%STUDLY%%Controller::class, 'publish'])->whereNumber('id')->name('%%NAME%%.publish');
+        Route::post('{id}/unpublish', [%%STUDLY%%Controller::class, 'unpublish'])->whereNumber('id')->name('%%NAME%%.unpublish');
+        Route::post('{id}/revisions/{revision}/restore', [%%STUDLY%%Controller::class, 'restore'])->whereNumber(['id', 'revision'])->name('%%NAME%%.restore');
+%%endif%%
+        Route::delete('{id}', [%%STUDLY%%Controller::class, 'destroy'])->whereNumber('id')->middleware('codeart.confirmed')->name('%%NAME%%.destroy');
+    });
+});

@@ -1,0 +1,1 @@
+<x-codeart::publishing.form :form="$form" />

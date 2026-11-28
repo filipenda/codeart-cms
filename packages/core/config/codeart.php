@@ -146,4 +146,26 @@ return [
         'bulk' => ['chunk' => 500, 'queue_limit' => 1000, 'hard_cap' => 10000],
         'export' => ['chunk' => 1000, 'max_rows' => 500000],
     ],
+
+    /*
+    | Publishing workflow (draft / published / scheduled, docs/publishing-and-preview.md).
+    | `max_revisions`: how many saved versions are kept per record (the oldest are deleted; the current draft never is).
+    */
+    'publishing' => [
+        'max_revisions' => 20,
+    ],
+
+    /*
+    | Real-site preview links. `ttl_minutes`: how long a link works. `parameter`: the query parameter that carries the token.
+    */
+    'preview' => [
+        'ttl_minutes' => 60,
+        'parameter' => 'codeart_preview',
+    ],
+
+    /*
+    | Per-site editor stylesheet: URLs of the client site's CSS that the rich-text editor (TipTap, a later task) loads so
+    | the editor looks like the public site. Only the key exists for now.
+    */
+    'editor_css' => [],
 ];

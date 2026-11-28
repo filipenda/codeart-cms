@@ -21,9 +21,11 @@ use Codeart\Core\Console\ActivityLogPruneCommand;
 use Codeart\Core\Console\BrandLoadCommand;
 use Codeart\Core\Console\LangTransliterateCommand;
 use Codeart\Core\Console\MailTestCommand;
+use Codeart\Core\Console\MakeModuleCommand;
 use Codeart\Core\Console\ModuleDisableCommand;
 use Codeart\Core\Console\ModuleEnableCommand;
 use Codeart\Core\Console\ModuleListCommand;
+use Codeart\Core\Console\PublishingRunCommand;
 use Codeart\Core\Console\RolesCommand;
 use Codeart\Core\Console\SettingsGetCommand;
 use Codeart\Core\Console\SettingsListCommand;
@@ -42,6 +44,9 @@ use Codeart\Core\Install\InstallServiceProvider;
 use Codeart\Core\Modules\MenuRegistry;
 use Codeart\Core\Modules\ModuleDiscovery;
 use Codeart\Core\Modules\ModuleRegistry;
+use Codeart\Core\Publishing\PreviewHeaders;
+use Codeart\Core\Publishing\PreviewManager;
+use Codeart\Core\Publishing\Publishables;
 use Codeart\Core\Settings\CoreSettings;
 use Codeart\Core\Settings\Settings;
 use Codeart\Core\Settings\SettingsManager;
@@ -55,6 +60,7 @@ use Codeart\Core\Users\InvitationsTable;
 use Codeart\Core\Users\PendingUsersWidget;
 use Codeart\Core\Users\UsersTable;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -77,6 +83,8 @@ class CoreServiceProvider extends ServiceProvider
         $this->app->singleton(Icons::class);
         $this->app->singleton(TableRegistry::class);
         $this->app->singleton(DisplayTime::class);
+        $this->app->singleton(Publishables::class);
+        $this->app->singleton(PreviewManager::class);
 
         $this->mergeConfigFrom(__DIR__.'/../config/codeart.php', 'codeart');
 
@@ -133,6 +141,14 @@ class CoreServiceProvider extends ServiceProvider
 
         // cron `schedule:run` is the only scheduler on client servers
         $this->callAfterResolving(Schedule::class, fn (Schedule $schedule) => $schedule->command('activity-log:prune')->daily());
+        // Scheduled publishing and expired preview links: every minute, by the same cron line as everything else.
+        $this->callAfterResolving(Schedule::class, fn (Schedule $schedule) => $schedule->command('publishing:run')->everyMinute()->withoutOverlapping());
+        // Preview responses are never cached or indexed (the middleware only acts on requests that carry a preview token).
+        $kernel = $this->app->make(HttpKernel::class);
+        $append = [$kernel, 'appendMiddlewareToGroup'];
+        if (is_callable($append)) { // the kernel of a real app has it; analysed against Testbench's kernel it looks always true
+            $append('web', PreviewHeaders::class);
+        }
 
         // Boot enabled modules once every provider is registered. Registering a provider after
         // the app has booted boots it immediately.
@@ -142,7 +158,7 @@ class CoreServiceProvider extends ServiceProvider
             $this->commands([ModuleListCommand::class, ModuleEnableCommand::class, ModuleDisableCommand::class, RolesCommand::class,
                 SettingsListCommand::class, SettingsGetCommand::class, SettingsSetCommand::class, SettingsLockCommand::class, SettingsUnlockCommand::class,
                 UserCreateCommand::class, UserInviteCommand::class, UserApproveCommand::class, UserDeactivateCommand::class, UserReset2faCommand::class,
-                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class, BrandLoadCommand::class, TableBenchCommand::class]);
+                ActivityLogPruneCommand::class, MailTestCommand::class, LangTransliterateCommand::class, BrandLoadCommand::class, TableBenchCommand::class, PublishingRunCommand::class, MakeModuleCommand::class]);
 
             $this->publishes([
                 __DIR__.'/../config/codeart.php' => config_path('codeart.php'),

@@ -46,6 +46,13 @@ return [
             'logout' => 'Одјава',
             'lockout' => 'Превише покушаја пријаве',
         ],
+        'publishing' => [
+            'published' => 'Садржај објављен',
+            'unpublished' => 'Садржај повучен',
+            'scheduled' => 'Садржај заказан',
+            'restored' => 'Верзија враћена',
+            'deleted' => 'Садржај обрисан',
+        ],
         'registration' => [
             'created' => 'Регистрација',
         ],

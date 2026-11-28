@@ -1,0 +1,20 @@
+<?php
+
+namespace %%NS%%;
+
+use Codeart\Core\Publishing\PublishableTable;
+use %%NS%%\Models\%%MODEL%%;
+
+/** The list page: columns, filters, row and bulk actions come from core; add or change them here. */
+final class %%STUDLY%%Table extends PublishableTable
+{
+    protected function model(): string
+    {
+        return %%MODEL%%::class;
+    }
+
+    protected function module(): string
+    {
+        return '%%NAME%%';
+    }
+}
