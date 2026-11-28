@@ -97,6 +97,19 @@ return [
     ],
 
     /*
+    | Installer (wizard + `codeart:install`). Switched on by the file install.key (only the client ZIP has it; the wizard deletes it) and off where
+    | the app is already set up by other means (core's tests, the dev app). The path settings exist so tests can run the whole
+    | installation in a temporary directory; null = the real application folder.
+    */
+    'install' => [
+        'enabled' => is_file(base_path('install.key')),
+        'base_path' => null,
+        'env_file' => null,
+        'marker' => null,
+        'key_file' => null,
+    ],
+
+    /*
     | Activity events that stay in the log but are left out of the dashboard's "Recent activity" widget
     | (technical sync noise). Use the event name as written to the log.
     */

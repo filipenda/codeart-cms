@@ -38,3 +38,4 @@ parameters:
                 - src/Confirmation
                 - src/Users
                 - src/Profile
+                - src/Install

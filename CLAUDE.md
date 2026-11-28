@@ -79,6 +79,10 @@ Every color lives in ONE place: `packages/core/resources/css/tokens.css` (plus b
 Never take screenshots. Verify front-end work by measuring: rendered HTML, CSS text, computed/derived values and contrast ratios in Pest tests.
 Do not read `vendor/` or `node_modules/`.
 
+## Installer (details: docs/install.md, docs/client/instalacija.md)
+- One `InstallerService` for the wizard (`/install`) and `codeart:install`; installed = marker `storage/app/installed`; the wizard exists only where `install.key` exists (client ZIP, built by `tools/build-package.php`, never committed).
+- Install tests and checks never touch the dev `.env` or the dev database: they use a temporary directory and a throwaway database (`InstallTestCase`).
+
 ## Docs
 - `docs/ARCHITECTURE.md`: decisions and why. `docs/DECISIONS.md`: running log; add an entry for every choice made on the user's behalf.
 - `docs/tasks/_template.md`: task brief template for new sessions.
