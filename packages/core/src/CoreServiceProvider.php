@@ -160,8 +160,8 @@ class CoreServiceProvider extends ServiceProvider
     {
         $this->app->make(AdminMenu::class)->add(
             new NavItem('dashboard', 'codeart::admin.menu.dashboard', 'layout-dashboard', 'admin.dashboard', order: 0, module: 'core'),
-            new NavItem('profile', 'codeart::profile.title', 'circle-user', 'admin.profile', order: 950, module: 'core'),
-            new NavItem('users', 'codeart::users.title', 'users', 'admin.users.index', 'users.view', order: 900, module: 'core'),
+            new NavItem('profile', 'codeart::profile.title', 'circle-user', 'admin.profile', order: 950, module: 'core', activePatterns: ['admin.profile', 'admin.profile.*']),
+            new NavItem('users', 'codeart::users.title', 'users', 'admin.users.index', 'users.view', order: 900, module: 'core', activePatterns: ['admin.users.*']),
         );
         $this->app->make(WidgetRegistry::class)->add(
             new Widget('core.recent-activity', 'codeart::admin.widgets.recent_activity', 'history', 'codeart::admin.widgets.recent-activity', RecentActivityWidget::class, permission: 'users.view', size: 'md', order: 10, module: 'core'),

@@ -32,16 +32,20 @@
 
     <div class="grid items-start gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
         <aside class="overflow-hidden rounded-card border border-border bg-surface" data-profile-card aria-label="{{ __('codeart::profile.card') }}">
-            {{-- Decorative header: CSS gradient + two wave shapes, all from the primary color token (follows the client's color, light/dark/auto). --}}
-            <div class="relative h-28 overflow-hidden bg-linear-to-br from-primary-soft via-primary-soft to-surface-alt" aria-hidden="true" data-profile-banner>
-                <svg class="absolute inset-x-0 bottom-0 h-20 w-full" viewBox="0 0 340 80" preserveAspectRatio="none" focusable="false">
-                    <path class="fill-primary opacity-20" d="M0 30 C50 5 110 55 180 32 S300 8 340 28 V80 H0 Z" />
-                    <path class="fill-primary opacity-30" d="M0 54 C70 34 120 74 200 54 S310 42 340 58 V80 H0 Z" />
+            {{-- Decorative header: a soft vertical gradient of the primary color, glows and three translucent waves. Everything is
+                 derived from the primary token through CSS variables (color-mix / fill-primary), no raster, no external file. --}}
+            <div class="relative h-32 overflow-hidden" aria-hidden="true" data-profile-banner
+                style="background-image: radial-gradient(120% 90% at 15% 0%, color-mix(in srgb, var(--color-primary) 38%, transparent), transparent 60%), radial-gradient(90% 80% at 90% 10%, color-mix(in srgb, var(--color-primary) 22%, transparent), transparent 65%), linear-gradient(to bottom, color-mix(in srgb, var(--color-primary) 26%, var(--color-surface)), var(--color-surface-alt))">
+                <svg class="absolute inset-x-0 bottom-0 h-24 w-full" viewBox="0 0 340 96" preserveAspectRatio="none" focusable="false">
+                    <path class="fill-primary opacity-10" d="M0 38 C60 6 120 66 190 36 S300 4 340 30 V96 H0 Z" />
+                    <path class="fill-primary opacity-15" d="M0 58 C70 34 130 82 210 56 S312 40 340 60 V96 H0 Z" />
+                    <path class="fill-primary opacity-25" d="M0 78 C80 60 140 92 220 74 S316 64 340 80 V96 H0 Z" />
                 </svg>
+                <div class="absolute inset-x-0 bottom-0 h-10 bg-linear-to-b from-transparent to-surface"></div>
             </div>
             <div class="-mt-14 flex flex-col items-center px-5 pb-5 text-center">
                 <div class="relative">
-                    <x-codeart::avatar :user="$me" class="size-28 text-3xl ring-4 ring-surface" data-profile-avatar />
+                    <x-codeart::avatar :user="$me" class="size-28 text-3xl ring-4 ring-surface outline-2 outline-offset-0 outline-primary/40" data-profile-avatar />
                     <form method="POST" action="{{ route('admin.profile.avatar') }}" enctype="multipart/form-data" data-avatar-form
                         class="absolute bottom-0 end-0" x-data>
                         @csrf

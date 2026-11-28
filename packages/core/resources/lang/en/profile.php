@@ -42,4 +42,6 @@ return [
     'avatar_too_large' => 'The picture is larger than :mb MB.',
     'avatar_hint' => 'Picture: PNG, JPG or WebP, up to :mb MB.',
     'two_factor_unavailable' => 'Two-factor authentication is not turned on for this site.',
+    'password_card' => 'Change password',
+    'password_card_text' => 'Use a long, unique password you do not use anywhere else.',
 ];

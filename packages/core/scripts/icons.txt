@@ -73,3 +73,11 @@ chevrons-left
 chevrons-right
 rotate-ccw
 camera
+phone
+sun-moon
+laptop
+smartphone
+tablet
+qr-code
+refresh-cw
+badge-check

@@ -43,4 +43,6 @@ return [
     'avatar_too_large' => 'Slika je veća od :mb MB.',
     'avatar_hint' => 'Slika: PNG, JPG ili WebP, najviše :mb MB.',
     'two_factor_unavailable' => 'Dvofaktorska autentifikacija nije uključena na ovom sajtu.',
+    'password_card' => 'Promena lozinke',
+    'password_card_text' => 'Koristite dugu, jedinstvenu lozinku koju nigde drugde ne koristite.',
 ];

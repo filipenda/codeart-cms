@@ -148,9 +148,9 @@ it('edits only the signed-in user\'s own row', function () {
 
 it('builds the decorative card header from tokens only, without raster images', function () {
     $html = $this->actingAs(staff('editor'), 'admin')->get('/admin/profile')->getContent();
-    preg_match('/<div[^>]*data-profile-banner.*?<\/svg>\s*<\/div>/s', $html, $m);
+    preg_match('/<div[^>]*data-profile-banner.*?<\/svg>/s', $html, $m);
     $banner = $m[0] ?? '';
-    expect($banner)->not->toBe('')->toContain('from-primary-soft')->toContain('fill-primary')
+    expect($banner)->not->toBe('')->toContain('var(--color-primary)')->toContain('fill-primary')
         ->not->toMatch('/#[0-9a-f]{3,8}\b|rgb\(|hsl\(|<img|url\(|\.(png|jpe?g|webp|gif|svg)/i');
 });
 
