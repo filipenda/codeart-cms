@@ -2,6 +2,7 @@
 
 require_once __DIR__.'/../Support/dom.php';
 
+use Codeart\Core\Media\Media;
 use Codeart\Core\Settings\Settings;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\MessageBag;
@@ -302,4 +303,26 @@ it('validates the showcase form and flashes a toast on success', function () {
 
     $this->withSession(['_token' => 't'])->actingAs($user, 'admin')->post('/admin/_ui', ['_token' => 't', 'name' => 'Ana', 'plan' => 'pro', 'terms' => '1'])
         ->assertRedirect('/admin/_ui')->assertSessionHas('toast.type', 'success');
+});
+
+it('shows the rich-text editor and media picker sections without creating any media', function () {
+    $this->app['env'] = 'local';
+    $before = Media::query()->count();
+    $xp = dom($this->actingAs(staff('super-admin'), 'admin')->get('/admin/_ui')->assertOk()->getContent());
+
+    expect(count_nodes($xp, '//*[@data-showcase-editor]//*[@data-editor]'))->toBe(5)
+        ->and(count_nodes($xp, '//*[@data-showcase-editor]//*[@data-locale-tab]'))->toBe(2)
+        ->and(count_nodes($xp, '//*[@data-showcase-editor]//*[@data-locale-panel]//*[@data-editor]'))->toBe(2)
+        ->and(count_nodes($xp, '//*[@data-showcase-editor]//textarea[@readonly]'))->toBe(1)
+        ->and(count_nodes($xp, '//*[@data-showcase-editor]//textarea[@aria-invalid="true"]'))->toBe(1)
+        ->and(count_nodes($xp, '//*[@data-showcase-media]//*[@data-media-field]'))->toBe(3)
+        ->and(count_nodes($xp, '//*[@data-showcase-media]//input[@name="demo_multiple[]"]'))->toBe(2)
+        ->and(Media::query()->count())->toBe($before);
+});
+
+it('discards the editor and media demo forms', function () {
+    $this->app['env'] = 'local';
+
+    $this->withSession(['_token' => 't'])->actingAs(staff('super-admin'), 'admin')->post('/admin/_ui/discard', ['_token' => 't', 'demo_plain' => '<script>x</script>'])
+        ->assertRedirect(route('codeart.ui-showcase'))->assertSessionHas('toast');
 });

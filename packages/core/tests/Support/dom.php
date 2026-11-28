@@ -40,7 +40,9 @@ function unlabelled_controls(DOMXPath $xp): array
         /** @var DOMElement $control */
         $id = $control->getAttribute('id');
         $hasLabel = $id !== '' && $xp->query('//label[@for="'.$id.'"]')->length > 0;
-        if (! $hasLabel && ! $control->hasAttribute('aria-label')) {
+        $wrapped = $xp->query('ancestor::label', $control)->length > 0;
+        $bound = $control->hasAttribute('x-bind:aria-label') || $control->hasAttribute(':aria-label');
+        if (! $hasLabel && ! $wrapped && ! $bound && ! $control->hasAttribute('aria-label')) {
             $missing[] = $control->getAttribute('name') ?: $control->getAttribute('type');
         }
     }

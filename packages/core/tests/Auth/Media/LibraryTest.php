@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
     fake_disk('public');
@@ -108,20 +110,24 @@ it('answers 422 with a plain message for a refused file and 409 for a duplicate'
     expect(Media::query()->count())->toBe(1);
 });
 
-it('gives each role its permissions: admin may, editor and member may not', function () {
+it('gives each role its permissions: admin may all, editor views and uploads only, member nothing', function () {
     $admin = mediaAdmin('admin');
     $editor = mediaAdmin('editor');
     $media = mediaFile();
 
     $this->actingAs($admin, 'admin')->getJson(route('admin.media.items'))->assertOk();
     $this->actingAs($admin, 'admin')->get(route('admin.media.index'))->assertOk()->assertSee('data-media-browser', false);
-    foreach ([['getJson', route('admin.media.items')], ['getJson', route('admin.media.show', $media->id)], ['postJson', route('admin.media.store'), ['file' => upload('x.jpg', imageBytes())]],
-        ['putJson', route('admin.media.update', $media->id), []], ['postJson', route('admin.media.bulk-move'), ['ids' => [$media->id]]]] as $call) {
+
+    $this->actingAs($editor, 'admin')->getJson(route('admin.media.items'))->assertOk();
+    $this->actingAs($editor, 'admin')->getJson(route('admin.media.show', $media->id))->assertOk();
+    $this->actingAs($editor, 'admin')->postJson(route('admin.media.store'), ['file' => upload('x.jpg', imageBytes('jpeg', 321, 123))])->assertSuccessful();
+    foreach ([['putJson', route('admin.media.update', $media->id), []], ['postJson', route('admin.media.bulk-move'), ['ids' => [$media->id]]]] as $call) {
         $this->actingAs($editor, 'admin')->{$call[0]}($call[1], $call[2] ?? [])->assertForbidden();
     }
-    $this->actingAs($editor, 'admin')->get(route('admin.media.index'))->assertForbidden();
-    $editor->givePermissionTo('media.view');
-    $this->actingAs($editor->fresh(), 'admin')->getJson(route('admin.media.items'))->assertOk();
+
+    Role::findByName('editor', 'admin')->revokePermissionTo(['media.view', 'media.upload']);
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->actingAs($editor->fresh(), 'admin')->get(route('admin.media.index'))->assertForbidden();
     $this->actingAs($editor->fresh(), 'admin')->postJson(route('admin.media.store'), ['file' => upload('x.jpg', imageBytes())])->assertForbidden();
 });
 
@@ -131,7 +137,11 @@ it('needs a signed-in staff user', function () {
 
 it('shows the media menu item only to people with media.view', function () {
     $this->actingAs(mediaAdmin('admin'), 'admin')->get(route('admin.dashboard'))->assertSee(route('admin.media.index'), false);
-    $this->actingAs(mediaAdmin('editor'), 'admin')->get(route('admin.dashboard'))->assertDontSee(route('admin.media.index'), false);
+    $editor = mediaAdmin('editor');
+    $this->actingAs($editor, 'admin')->get(route('admin.dashboard'))->assertSee(route('admin.media.index'), false);
+    Role::findByName('editor', 'admin')->revokePermissionTo('media.view');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->actingAs($editor->fresh(), 'admin')->get(route('admin.dashboard'))->assertDontSee(route('admin.media.index'), false);
 });
 
 it('edits alt text and title per language; sr-Cyrl follows sr', function () {

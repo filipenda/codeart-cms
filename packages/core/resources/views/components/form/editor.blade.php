@@ -9,19 +9,20 @@
     $source = \Illuminate\Support\Facades\Gate::allows('manage-modules');
     $css = \Codeart\Core\Editor\EditorStyles::urls();
     $t = fn (string $key) => __('codeart::editor.'.$key);
-    $config = ['label' => $label, 'css' => $css, 'labels' => ['link_invalid' => $t('link_invalid')]];
+    $readonly = $attributes->has('readonly') || $attributes->has('disabled');
+    $config = ['label' => $label, 'readonly' => $readonly, 'css' => $css, 'labels' => ['link_invalid' => $t('link_invalid')]];
     $btn = 'inline-flex size-9 items-center justify-center rounded-control text-text-muted hover:bg-surface-sunken hover:text-text focus-visible:outline-2 focus-visible:outline-focus disabled:opacity-40 aria-pressed:bg-primary-soft aria-pressed:text-text';
     $groups = [
         [['bold', 'bold'], ['italic', 'italic'], ['underline', 'underline'], ['strike', 'strikethrough'], ['code', 'code']],
         [['bulletList', 'list'], ['orderedList', 'list-ordered'], ['blockquote', 'quote'], ['rule', 'minus']],
     ];
 @endphp
-<div {{ $attributes->class('space-y-2') }} data-field data-editor x-data="codeartEditor(@js($config))">
+<div {{ $attributes->except(['readonly', 'disabled'])->class('space-y-2') }} data-field data-editor x-data="codeartEditor(@js($config))">
     <label id="{{ $id }}-label" for="{{ $id }}" class="block text-sm font-medium text-text">{{ $label }}@if ($attributes->has('required'))<span class="ms-0.5 text-danger-text" aria-hidden="true">*</span>@endif</label>
 
     <div class="overflow-hidden rounded-control border border-border bg-surface focus-within:border-text" x-bind:class="{ 'border-danger': {{ $error ? 'true' : 'false' }} }">
         {{-- Toolbar: only shown once the editor started (x-show), so without JS the textarea below is the whole field. --}}
-        <div x-show="ready" x-cloak hidden x-bind:hidden="!ready" role="toolbar" aria-label="{{ $t('toolbar') }}" aria-controls="{{ $id }}" class="flex flex-wrap items-center gap-1 border-b border-border bg-surface-alt p-1.5">
+        <div @if ($readonly) hidden data-editor-toolbar-off @endif x-show="ready && !{{ $readonly ? 'true' : 'false' }}" x-cloak hidden x-bind:hidden="!ready || {{ $readonly ? 'true' : 'false' }}" role="toolbar" aria-label="{{ $t('toolbar') }}" aria-controls="{{ $id }}" class="flex flex-wrap items-center gap-1 border-b border-border bg-surface-alt p-1.5">
             <button type="button" class="{{ $btn }}" title="{{ $t('undo') }} (Ctrl+Z)" aria-label="{{ $t('undo') }}" x-on:click="run('undo')" x-bind:disabled="!active.canUndo || source"><x-codeart::icon name="undo-2" class="size-4" /></button>
             <button type="button" class="{{ $btn }}" title="{{ $t('redo') }} (Ctrl+Shift+Z)" aria-label="{{ $t('redo') }}" x-on:click="run('redo')" x-bind:disabled="!active.canRedo || source"><x-codeart::icon name="redo-2" class="size-4" /></button>
             <span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
@@ -61,7 +62,7 @@
         @endif
 
         {{-- What is submitted; also the whole field without JS. --}}
-        <textarea x-ref="input" id="{{ $id }}" name="{{ $name }}" rows="{{ $rows }}" data-editor-input
+        <textarea x-ref="input" id="{{ $id }}" name="{{ $name }}" rows="{{ $rows }}" data-editor-input @if ($readonly) readonly aria-readonly="true" @endif
             @if ($error) aria-invalid="true" @endif @if ($describedBy !== '') aria-describedby="{{ $describedBy }}" @endif
             @if ($attributes->has('required')) required @endif
             class="block w-full border-0 bg-surface px-4 py-3 text-base text-text focus-visible:outline-2 focus-visible:outline-focus">{{ $value }}</textarea>

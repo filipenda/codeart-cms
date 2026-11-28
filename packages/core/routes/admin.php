@@ -37,4 +37,5 @@ Route::middleware([
 ])->group(function () {
     Route::get('/_ui', [UiShowcaseController::class, 'show'])->name('codeart.ui-showcase');
     Route::post('/_ui', [UiShowcaseController::class, 'submit'])->name('codeart.ui-showcase.submit');
+    Route::post('/_ui/discard', [UiShowcaseController::class, 'discard'])->name('codeart.ui-showcase.discard');
 });
